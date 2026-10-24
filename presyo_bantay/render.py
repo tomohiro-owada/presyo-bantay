@@ -76,13 +76,38 @@ def short_market(market: str) -> str:
     return market
 
 
+#: Short labels for long commodity names (cheapest/moves sections only).
+#: Rice names stay full to avoid confusion.
+_SHORT_ITEMS = {
+    "Fresh Pork (Kasim) Local": "Pork Kasim",
+    "Fresh Pork Liempo (Local)": "Pork Liempo",
+    "Fresh Whole Chicken": "Whole Chicken",
+    "Galunggong (Local)": "Galunggong",
+    "Red Onion (Local)": "Red Onion",
+}
+
+
+def short_item(item: str) -> str:
+    """Short display name for a commodity (cheapest/moves sections)."""
+    return _SHORT_ITEMS.get(item, item)
+
+
 def _change_suffix(pct: float | None) -> str:
     # Unchanged items show no arrow: this keeps the Las Piñas section short
-    # so all 14 cheapest-market lines fit under the character cap.
+    # so all 14 cheapest-market lines survive under the character cap.
     if pct is None or pct == 0.0:
         return ""
     arrow = "▲" if pct > 0 else "▼"
     return f" {arrow}{abs(pct):.1f}%"
+
+
+def compact_price(price: float | None, item: str) -> str:
+    """Compact price: ``₱59.00`` (``₱8.50/pc`` for eggs to keep the unit)."""
+    if price is None:
+        return "wala"
+    if " ".join(item.lower().split()) == "egg (medium)":
+        return f"{format_price(price)}/pc"
+    return format_price(price)
 
 
 def render_summary(summary: WeeklySummary, fmt: str = "html") -> str:
@@ -110,36 +135,57 @@ def render_summary(summary: WeeklySummary, fmt: str = "html") -> str:
 
     las_lines: list[str] = []
     if las_pinas:
+        unavailable: list[str] = []
         for item in summary.items:
             price = (summary.latest.get(item) or {}).get(las_pinas)
+            if price is None:
+                unavailable.append(item)
+                continue
             suffix = ""
             if summary.has_changes:
                 pct = _pct_for(summary, las_pinas, item)
                 suffix = _change_suffix(pct)
             las_lines.append(
-                f"{esc('•')} {esc(item)}: {esc(price_text(price, item))}{esc(suffix)}"
+                f"{esc('•')} {esc(item)}: {esc(compact_price(price, item))}{esc(suffix)}"
+            )
+        if unavailable:
+            las_lines.append(
+                f"{esc('•')} {esc('Wala ngayon: ' + ', '.join(unavailable))}"
             )
 
-    cheap_lines: list[str] = [bold("Pinakamurang palengke (cheapest per item)")]
+    cheap_lines: list[str] = [bold("Pinakamurang palengke")]
     for entry in summary.cheapest:
+        label = short_item(entry.item)
         if entry.price is None or not entry.markets:
-            cheap_lines.append(f"{esc('•')} {esc(entry.item)}: {esc('wala')}")
+            cheap_lines.append(f"{esc('•')} {esc(label)}: {esc('wala')}")
         else:
             names = ", ".join(short_market(m) for m in entry.markets)
             cheap_lines.append(
-                f"{esc('•')} {esc(entry.item)}: {esc(names)} {esc(price_text(entry.price, entry.item))}"
+                f"{esc('•')} {esc(label)}: {esc(names)} {esc(compact_price(entry.price, entry.item))}"
             )
 
     move_lines: list[str] = []
     if summary.has_changes:
-        if summary.moves:
-            move_lines.append(bold("Kapansin-pansing galaw vs nakaraang linggo"))
-            for move in summary.moves:
-                arrow = "▲" if (move.pct_change or 0) > 0 else "▼"
+        # Las Piñas moves are already inline above; the notable-moves section
+        # shows only the OTHER markets, top 4 by |%|, in compact form.
+        others = [m for m in summary.markets[1:] if m != las_pinas] if las_pinas else list(summary.markets)
+        ranked: list[tuple[float, float, str, str, float | None]] = []
+        for item in summary.items:
+            for market in others:
+                pct = _pct_for(summary, market, item)
+                if pct is None or abs(pct) < 5.0:
+                    continue
+                latest_price = (summary.latest.get(item) or {}).get(market)
+                ranked.append((abs(pct), pct, item, market, latest_price))
+        ranked.sort(key=lambda t: t[0], reverse=True)
+        top = ranked[:4]
+        if top:
+            move_lines.append(bold("Kapansin-pansing galaw"))
+            for _, pct, item, market, latest_price in top:
+                arrow = "▲" if pct > 0 else "▼"
                 move_lines.append(
-                    f"{esc('•')} {esc(move.item)} ({esc(short_market(move.market))}): "
-                    f"{esc(price_text(move.latest, move.item))} "
-                    f"{esc(arrow + f'{abs(move.pct_change or 0.0):.1f}%')}"
+                    f"{esc('•')} {esc(short_item(item))} ({esc(short_market(market))}) "
+                    f"{esc(arrow + f'{abs(pct):.1f}%')} {esc('→')} {esc(format_price(latest_price))}"
                 )
         else:
             move_lines.append(esc("Walang malaking galaw ngayong linggo."))
@@ -161,7 +207,7 @@ def render_summary(summary: WeeklySummary, fmt: str = "html") -> str:
         if len(text) < MAX_CHARS:
             # A moves header with no items left is confusing; drop it so the
             # section disappears cleanly instead of dangling.
-            if summary.has_changes and summary.moves and len(move_lines) == 1:
+            if len(move_lines) == 1 and "Kapansin-pansing galaw" in move_lines[0]:
                 move_lines.clear()
                 continue
             return text

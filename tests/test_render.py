@@ -76,6 +76,30 @@ def test_notable_moves_arrows_and_pct():
     assert "12.5%" in text  # Bangus Las Piñas +12.5%
 
 
+def test_notable_moves_present_in_sample():
+    """Moves section survives truncation: other-market top moves, compact."""
+    text = render_summary(_fixture_summary(), fmt="html")
+    assert len(text) < 1500
+    assert "Kapansin-pansing galaw" in text
+    # Exact compact example from the spec.
+    assert "• Tilapia (La Huerta) ▲14.3% → ₱160.00" in text
+    moves_start = text.index("Kapansin-pansing galaw")
+    cheap_start = text.index("Pinakamurang palengke")
+    moves_section = text[moves_start:cheap_start]
+    # Only the OTHER 3 markets (Las Piñas moves are inline above).
+    assert "Las Piñas" not in moves_section
+    assert moves_section.count("•") <= 4
+    assert moves_section.count("•") >= 1
+    assert "→ ₱" in moves_section
+    # Short labels in moves/cheapest, rice names stay full.
+    assert "Pork Kasim" in text
+    assert "Premium Rice (Imported)" in text
+    # Markdown variant also fits with moves present.
+    md_text = render_summary(_fixture_summary(), fmt="markdownv2")
+    assert len(md_text) < 1500
+    assert "Kapansin-pansing galaw" in md_text.replace("\\-", "-").replace("\\ ", " ")
+
+
 def test_cheapest_lines_present():
     text = render_summary(_fixture_summary(), fmt="html")
     assert "Alabang" in text
@@ -86,6 +110,8 @@ def test_all_14_cheapest_lines_fit():
     """All KEY_ITEMS appear in the cheapest section (message stays short)."""
     from presyo_bantay.summary import KEY_ITEMS
 
+    from presyo_bantay.render import short_item
+
     text = render_summary(_fixture_summary(), fmt="html")
     assert len(text) < 1500  # characters, not bytes
     # The message contains multibyte chars (₱/•/—/🛒): byte length exceeds the
@@ -94,12 +120,15 @@ def test_all_14_cheapest_lines_fit():
     cheap_start = text.index("Pinakamurang palengke")
     cheap_section = text[cheap_start:]
     for item in KEY_ITEMS:
-        assert item in cheap_section, f"cheapest line missing: {item}"
+        assert short_item(item) in cheap_section, f"cheapest line missing: {item}"
+    # All 14 cheapest lines survive (header + 14 bullets).
+    assert cheap_section.count("•") >= 14
 
 
 def test_unavailable_shown_as_wala():
     text = render_summary(_fixture_summary(), fmt="html")
-    assert "wala" in text
+    assert "wala" in text.lower()
+    assert "Wala ngayon: Well-milled Rice (Local), Regular Milled (Local)" in text
     assert "n/a" not in text
 
 
@@ -112,11 +141,15 @@ def test_short_market_labels():
 def test_unchanged_items_show_no_arrow():
     """Shortened Las Piñas section: no ``→0.0%`` for unchanged items."""
     text = render_summary(_fixture_summary(), fmt="html")
-    assert "→" not in text
     assert "→0.0%" not in text
+    # Las Piñas inline lines never use → (moves section does).
+    las_part = text.split("Kapansin-pansing galaw")[0]
+    assert "→" not in las_part
     # ... but real moves still show arrows computed in code.
     assert "▲14.9%" in text  # Well-milled Rice (Imported), Las Piñas
     assert "▼9.1%" in text  # Premium Rice (Local), Las Piñas
+    # Moves section uses compact → format.
+    assert "→ ₱" in text
 
 
 def test_no_baseline_shows_no_changes():
