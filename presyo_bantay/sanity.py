@@ -5,6 +5,17 @@ from __future__ import annotations
 MIN_MARKETS = 20
 MIN_COMMODITIES_PER_MARKET = 20
 
+#: Range layout (pre-2026-08-18): only ~13 commodities per market.
+RANGE_MIN_COMMODITIES_PER_MARKET = 10
+
+#: Core commodities required by the range layout (old PDFs have no La
+#: Huerta market and no Bangus, so the single-layout core list cannot
+#: apply).
+RANGE_CORE_COMMODITIES = [
+    "Well-milled Rice (Local)",
+    "Egg (Medium)",
+]
+
 MARKETS_OF_INTEREST = [
     "New Las Piñas City Public Market",
     "Alabang Central Market",
@@ -42,8 +53,25 @@ def match_market(markets: dict, wanted: str) -> str | None:
     return None
 
 
-def run_sanity_checks(markets: dict) -> None:
-    """Validate parsed output; raise :class:`LayoutChangedError` on failure."""
+def run_sanity_checks(markets: dict, layout: str = "single") -> None:
+    """Validate parsed output; raise :class:`LayoutChangedError` on failure.
+
+    ``layout`` selects the thresholds: ``"single"`` keeps the original
+    behaviour (20+ markets, 20+ commodities per market, all 4 markets of
+    interest with the full core list); ``"range"`` requires 20+ markets,
+    10+ commodities for most markets, and the range core commodities
+    (``Well-milled Rice (Local)``, ``Egg (Medium)``) present in most
+    markets. Old range PDFs lack ``La Huerta`` entirely, so markets of
+    interest are not hard-required for that layout. Any other *layout*
+    raises :class:`LayoutChangedError`.
+    """
+    if layout == "range":
+        _run_range_sanity_checks(markets)
+        return
+    if layout != "single":
+        raise LayoutChangedError(
+            f"Layout may have changed: unknown layout {layout!r}"
+        )
     problems: list[str] = []
 
     if len(markets) < MIN_MARKETS:
@@ -74,6 +102,48 @@ def run_sanity_checks(markets: dict) -> None:
             problems.append(
                 f"market {actual!r} is missing core commodities: "
                 + ", ".join(missing)
+            )
+
+    if problems:
+        raise LayoutChangedError(
+            "Layout may have changed: " + "; ".join(problems)
+        )
+
+
+def _run_range_sanity_checks(markets: dict) -> None:
+    """Sanity checks for the range layout (fewer commodities)."""
+    problems: list[str] = []
+
+    if len(markets) < MIN_MARKETS:
+        problems.append(
+            f"only {len(markets)} markets parsed (minimum {MIN_MARKETS})"
+        )
+
+    n_full = sum(
+        1
+        for items in markets.values()
+        if len(items) >= RANGE_MIN_COMMODITIES_PER_MARKET
+    )
+    # "Most markets" must each hold 10+ commodities.
+    if markets and n_full < (len(markets) + 1) // 2:
+        thin = {
+            name: len(items)
+            for name, items in markets.items()
+            if len(items) < RANGE_MIN_COMMODITIES_PER_MARKET
+        }
+        worst = sorted(thin.items(), key=lambda kv: kv[1])[:5]
+        detail = ", ".join(f"{name} ({count})" for name, count in worst)
+        problems.append(
+            f"only {n_full}/{len(markets)} market(s) have at least "
+            f"{RANGE_MIN_COMMODITIES_PER_MARKET} commodities: {detail}"
+        )
+
+    for core in RANGE_CORE_COMMODITIES:
+        n_have = sum(1 for items in markets.values() if core in items)
+        if not markets or n_have < (len(markets) + 1) // 2:
+            problems.append(
+                f"core commodity {core!r} present in only "
+                f"{n_have}/{len(markets)} markets"
             )
 
     if problems:

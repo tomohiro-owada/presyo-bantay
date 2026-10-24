@@ -10,7 +10,7 @@ import sys
 import requests
 
 from .listing import LISTING_URL, find_latest_from_html
-from .pdfparse import parse_date_from_filename, parse_pdf
+from .pdfparse import parse_date_from_filename, parse_pdf_with_layout
 from .sanity import (
     MARKETS_OF_INTEREST,
     LayoutChangedError,
@@ -103,7 +103,7 @@ def cmd_parse(args: argparse.Namespace) -> int:
         print(f"error: file not found: {pdf_path}", file=sys.stderr)
         return 1
 
-    markets, text_date = parse_pdf(pdf_path)
+    markets, text_date, layout = parse_pdf_with_layout(pdf_path)
     date = parse_date_from_filename(pdf_path) or text_date
     if date is None:
         print(
@@ -114,7 +114,7 @@ def cmd_parse(args: argparse.Namespace) -> int:
         return 2
 
     try:
-        run_sanity_checks(markets)
+        run_sanity_checks(markets, layout)
     except LayoutChangedError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
@@ -131,6 +131,7 @@ def cmd_parse(args: argparse.Namespace) -> int:
     payload = {
         "date": date.isoformat(),
         "source_url": source_url,
+        "layout": layout,
         "markets": markets,
     }
     os.makedirs(args.out_dir, exist_ok=True)
@@ -322,6 +323,14 @@ def cmd_trend(args: argparse.Namespace) -> int:
             for day, price in _db.price_series(conn, market, item)
             if day >= cutoff
         ]
+        # Printed range bounds (range layout only; low == high otherwise).
+        bounds = {
+            day: (low, high)
+            for day, _price, low, high in _db.price_range_series(
+                conn, market, item
+            )
+            if day >= cutoff
+        }
         known = [(day, price) for day, price in series if price is not None]
         if known:
             prices_only = [p for _, p in known]
@@ -367,7 +376,17 @@ def cmd_trend(args: argparse.Namespace) -> int:
     else:
         print(f"{stats['market']} — {stats['item']}")
         for day, price in series:
-            print(f"{day}: {'n/a' if price is None else f'₱{price:,.2f}'}")
+            if price is None:
+                print(f"{day}: n/a")
+                continue
+            low, high = bounds.get(day, (price, price))
+            if low is not None and high is not None and low != high:
+                print(
+                    f"{day}: ₱{price:,.2f} "
+                    f"(range ₱{low:,.2f}-₱{high:,.2f})"
+                )
+            else:
+                print(f"{day}: {'n/a' if price is None else f'₱{price:,.2f}'}")
         if stats["latest"] is None:
             print("no prices in range")
         else:
@@ -473,8 +492,10 @@ def build_parser() -> argparse.ArgumentParser:
     trend.set_defaults(func=cmd_trend)
 
     from .backfill import build_backfill_parser as _backfill_parser
+    from .reparse import build_reparse_parser as _reparse_parser
 
     _backfill_parser(sub)
+    _reparse_parser(sub)
     return parser
 
 

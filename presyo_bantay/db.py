@@ -79,6 +79,22 @@ def categorize_commodity(commodity_name: str) -> str:
     return "other"
 
 
+def _ensure_price_range_columns(conn: sqlite3.Connection) -> None:
+    """Add ``price_low``/``price_high`` to an old-schema ``prices`` table.
+
+    Uses plain ``ALTER TABLE ... ADD COLUMN`` (D1-compatible); the
+    duplicate-column error is ignored so this is safe to run on every
+    open, including databases that already have the columns.
+    """
+    for column in ("price_low", "price_high"):
+        try:
+            conn.execute(f"ALTER TABLE prices ADD COLUMN {column} REAL")
+        except sqlite3.OperationalError as exc:
+            if "duplicate column name" not in str(exc).lower():
+                raise
+    conn.commit()
+
+
 def connect(db_path: str) -> sqlite3.Connection:
     """Open *db_path* (creating parent dirs) and ensure the schema exists."""
     parent = os.path.dirname(os.path.abspath(db_path))
@@ -87,6 +103,7 @@ def connect(db_path: str) -> sqlite3.Connection:
     conn = sqlite3.connect(db_path)
     with open(SCHEMA_PATH, encoding="utf-8") as handle:
         conn.executescript(handle.read())
+    _ensure_price_range_columns(conn)
     return conn
 
 
@@ -148,14 +165,28 @@ def ingest_payload(
             spec = entry.get("spec") if isinstance(entry, dict) else None
             unit = entry.get("unit") if isinstance(entry, dict) else None
             price = entry.get("price") if isinstance(entry, dict) else None
+            # Older JSON payloads lack price_low/price_high: fall back to
+            # the (midpoint) price so they still load.
+            if isinstance(entry, dict) and "price_low" in entry:
+                price_low = entry.get("price_low")
+            else:
+                price_low = price
+            if isinstance(entry, dict) and "price_high" in entry:
+                price_high = entry.get("price_high")
+            else:
+                price_high = price
             commodity_id = _get_or_create_commodity(conn, commodity_name, spec, unit)
             n_commodities += 1
             conn.execute(
-                "INSERT INTO prices (date, market_id, commodity_id, price, source_url)"
-                " VALUES (?, ?, ?, ?, ?)"
+                "INSERT INTO prices (date, market_id, commodity_id, price,"
+                " price_low, price_high, source_url)"
+                " VALUES (?, ?, ?, ?, ?, ?, ?)"
                 " ON CONFLICT (date, market_id, commodity_id) DO UPDATE SET"
-                " price = excluded.price, source_url = excluded.source_url",
-                (date, market_id, commodity_id, price, source_url),
+                " price = excluded.price, price_low = excluded.price_low,"
+                " price_high = excluded.price_high,"
+                " source_url = excluded.source_url",
+                (date, market_id, commodity_id, price, price_low, price_high,
+                 source_url),
             )
             n_prices += 1
     conn.commit()
@@ -187,23 +218,40 @@ def latest_date(conn: sqlite3.Connection) -> str | None:
 
 def snapshot_for_date(conn: sqlite3.Connection, date: str) -> dict:
     """Rebuild a ``{market: {commodity: entry}}`` snapshot for *date*."""
-    rows = conn.execute(
-        "SELECT m.name, c.name, c.spec, c.unit, p.price, p.source_url"
-        " FROM prices p"
-        " JOIN markets m ON m.id = p.market_id"
-        " JOIN commodities c ON c.id = p.commodity_id"
-        " WHERE p.date = ?",
-        (date,),
-    ).fetchall()
+    try:
+        rows = conn.execute(
+            "SELECT m.name, c.name, c.spec, c.unit, p.price, p.price_low,"
+            " p.price_high, p.source_url"
+            " FROM prices p"
+            " JOIN markets m ON m.id = p.market_id"
+            " JOIN commodities c ON c.id = p.commodity_id"
+            " WHERE p.date = ?",
+            (date,),
+        ).fetchall()
+    except sqlite3.OperationalError:
+        # Pre-migration database without the range columns.
+        rows = [
+            (market, commodity, spec, unit, price, price, price, url)
+            for market, commodity, spec, unit, price, url in conn.execute(
+                "SELECT m.name, c.name, c.spec, c.unit, p.price, p.source_url"
+                " FROM prices p"
+                " JOIN markets m ON m.id = p.market_id"
+                " JOIN commodities c ON c.id = p.commodity_id"
+                " WHERE p.date = ?",
+                (date,),
+            ).fetchall()
+        ]
     markets: dict[str, dict[str, dict]] = {}
     source_url: str | None = None
-    for market, commodity, spec, unit, price, url in rows:
+    for market, commodity, spec, unit, price, low, high, url in rows:
         if source_url is None and url is not None:
             source_url = url
         markets.setdefault(market, {})[commodity] = {
             "spec": spec,
             "unit": unit,
             "price": price,
+            "price_low": low if low is not None else price,
+            "price_high": high if high is not None else price,
         }
     synthetic = (
         conn.execute(
@@ -238,7 +286,11 @@ def match_names(
 def price_series(
     conn: sqlite3.Connection, market: str, commodity: str
 ) -> list[tuple[str, float | None]]:
-    """``(date, price)`` series for one market/commodity, ascending by date."""
+    """``(date, price)`` series for one market/commodity, ascending by date.
+
+    ``price`` is the midpoint for range-layout rows; see
+    :func:`price_range_series` for the printed bounds.
+    """
     return [
         (str(date), price)
         for date, price in conn.execute(
@@ -248,4 +300,38 @@ def price_series(
             " WHERE m.name = ? AND c.name = ? ORDER BY p.date",
             (market, commodity),
         ).fetchall()
+    ]
+
+
+def price_range_series(
+    conn: sqlite3.Connection, market: str, commodity: str
+) -> list[tuple[str, float | None, float | None, float | None]]:
+    """``(date, price, low, high)`` series, ascending by date.
+
+    Falls back to ``(date, price, price, price)`` on pre-migration
+    databases lacking the range columns.
+    """
+    try:
+        rows = conn.execute(
+            "SELECT p.date, p.price, p.price_low, p.price_high FROM prices p"
+            " JOIN markets m ON m.id = p.market_id"
+            " JOIN commodities c ON c.id = p.commodity_id"
+            " WHERE m.name = ? AND c.name = ? ORDER BY p.date",
+            (market, commodity),
+        ).fetchall()
+    except sqlite3.OperationalError:
+        rows = [
+            (date, price, price, price)
+            for date, price in conn.execute(
+                "SELECT p.date, p.price FROM prices p"
+                " JOIN markets m ON m.id = p.market_id"
+                " JOIN commodities c ON c.id = p.commodity_id"
+                " WHERE m.name = ? AND c.name = ? ORDER BY p.date",
+                (market, commodity),
+            ).fetchall()
+        ]
+    return [
+        (str(date), price, low if low is not None else price,
+         high if high is not None else price)
+        for date, price, low, high in rows
     ]

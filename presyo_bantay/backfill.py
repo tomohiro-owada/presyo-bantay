@@ -28,7 +28,7 @@ import requests
 from . import db as _db
 from .cli import REQUEST_TIMEOUT, USER_AGENT
 from .listing import LISTING_URL, find_all_from_html
-from .pdfparse import parse_date_from_filename, parse_pdf
+from .pdfparse import infer_layout, parse_date_from_filename, parse_pdf
 from .sanity import (
     MARKETS_OF_INTEREST,
     MIN_COMMODITIES_PER_MARKET,
@@ -89,13 +89,27 @@ def select_targets(
     return targets, n_listed
 
 
-def run_backfill_checks(markets: dict) -> list[str]:
+def run_backfill_checks(markets: dict, layout: str = "single") -> list[str]:
     """Structural sanity checks for backfilled (possibly old) PDFs.
 
     Raises :class:`LayoutChangedError` on hard structural failure; returns a
     list of warnings (missing markets of interest are warnings here, unlike
-    the strict daily ``parse``/``fetch`` check).
+    the strict daily ``parse``/``fetch`` check). ``layout`` selects the
+    thresholds: the ``"range"`` layout holds ~13 commodities per market
+    (minimum 10) with ``Well-milled Rice (Local)`` + ``Egg (Medium)`` as
+    the core commodities (old PDFs have no Bangus and no La Huerta).
     """
+    from .sanity import RANGE_CORE_COMMODITIES, RANGE_MIN_COMMODITIES_PER_MARKET
+
+    if layout not in ("single", "range"):
+        raise LayoutChangedError(
+            f"Layout may have changed: unknown layout {layout!r}"
+        )
+    min_commodities = (
+        RANGE_MIN_COMMODITIES_PER_MARKET
+        if layout == "range"
+        else MIN_COMMODITIES_PER_MARKET
+    )
     problems: list[str] = []
     if len(markets) < MIN_MARKETS:
         problems.append(
@@ -104,23 +118,28 @@ def run_backfill_checks(markets: dict) -> list[str]:
     thin = {
         name: len(items)
         for name, items in markets.items()
-        if len(items) < MIN_COMMODITIES_PER_MARKET
+        if len(items) < min_commodities
     }
     if thin:
         worst = sorted(thin.items(), key=lambda kv: kv[1])[:5]
         detail = ", ".join(f"{name} ({count})" for name, count in worst)
         problems.append(
             f"{len(thin)} market(s) have fewer than "
-            f"{MIN_COMMODITIES_PER_MARKET} commodities: {detail}"
+            f"{min_commodities} commodities: {detail}"
         )
     present: set[str] = set()
     for items in markets.values():
         present.update(items.keys())
-    if not (present & _BACKFILL_RICE):
-        problems.append("no core rice commodity found in any market")
-    for core in ("Bangus", "Egg (Medium)"):
-        if core not in present:
-            problems.append(f"core commodity missing everywhere: {core!r}")
+    if layout == "range":
+        for core in RANGE_CORE_COMMODITIES:
+            if core not in present:
+                problems.append(f"core commodity missing everywhere: {core!r}")
+    else:
+        if not (present & _BACKFILL_RICE):
+            problems.append("no core rice commodity found in any market")
+        for core in ("Bangus", "Egg (Medium)"):
+            if core not in present:
+                problems.append(f"core commodity missing everywhere: {core!r}")
     if problems:
         raise LayoutChangedError(
             "Layout may have changed: " + "; ".join(problems)
@@ -397,7 +416,8 @@ class Backfiller:
 
                 try:
                     markets, text_date = parse_pdf(dest)
-                    warnings = run_backfill_checks(markets)
+                    layout = infer_layout(markets)
+                    warnings = run_backfill_checks(markets, layout)
                     date = parse_date_from_filename(dest) or text_date
                     if date is None:
                         raise LayoutChangedError(
@@ -427,6 +447,7 @@ class Backfiller:
                 payload = {
                     "date": date.isoformat(),
                     "source_url": url,
+                    "layout": layout,
                     "markets": markets,
                 }
                 os.makedirs(self.json_dir, exist_ok=True)
@@ -445,6 +466,7 @@ class Backfiller:
                     "url": url,
                     "timestamp": _utcnow(),
                     "error": None,
+                    "layout": layout,
                 }
                 if warnings:
                     entry["warnings"] = warnings

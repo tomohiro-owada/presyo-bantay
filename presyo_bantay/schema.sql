@@ -20,6 +20,8 @@ CREATE TABLE IF NOT EXISTS prices (
   market_id INTEGER NOT NULL REFERENCES markets(id),
   commodity_id INTEGER NOT NULL REFERENCES commodities(id),
   price REAL NULL,
+  price_low REAL NULL,
+  price_high REAL NULL,
   source_url TEXT,
   UNIQUE(date, market_id, commodity_id)
 );
