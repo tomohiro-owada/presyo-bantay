@@ -1,0 +1,75 @@
+name: pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "data/presyo.db"
+      - "data/json/**"
+      - "presyo_bantay/**"
+      - "requirements.txt"
+      - "Makefile"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["daily"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # For workflow_run, check out main so the build picks up the data
+          # commit the daily job pushed.
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - uses: actions/configure-pages@v5
+
+      # Python is needed because the site data in site/public/data is
+      # exported from data/presyo.db by `python -m presyo_bantay export-site`.
+      - name: Build static site
+        run: make site VENV_PY=python
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

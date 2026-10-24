@@ -1,0 +1,4976 @@
+{
+  "date": "2026-08-24",
+  "source_url": "https://www.da.gov.ph/wp-content/uploads/2026/08/Price-Monitoring-August-24-2026.pdf",
+  "markets": {
+    "Alabang Central Market": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 52.5
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 47.5
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 48.0
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 45.0
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 160.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 340.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 190.0
+      }
+    },
+    "Balintawak (Cloverleaf) Market": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 48.0
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 48.0
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 43.0
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 220.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 140.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 40.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 60.0
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 70.0
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": 100.0
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 75.0
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": 255.0
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 300.0
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 150.0
+      }
+    },
+    "Bicutan Market": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 48.0
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 240.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 140.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 120.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 140.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 100.0
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 100.0
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": 250.0
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 300.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "Cartimar Market": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 50.0
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 48.0
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 60.0
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 46.0
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 250.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 180.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 380.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 320.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "Commonwealth Market/Quezon City": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 48.0
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 60.0
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 70.0
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 70.0
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 70.0
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 70.0
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 50.0
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 300.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "Dagonoy Market": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 48.0
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 45.0
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 160.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 280.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 120.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 120.0
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 120.0
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "Farmers Market": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 60.0
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 200.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 9.0
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 120.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "Grace Marketplace": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 160.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 120.0
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": 360.0
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 380.0
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "Guadalupe Public Market/Makati": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 50.0
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 220.0
+      }
+    },
+    "Hulong Duhat Public Market": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 50.0
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 42.0
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "KLMV New Karuhatan Market": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 48.0
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 7.0
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 70.0
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "La Huerta Market/Parañaque": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 52.0
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 150.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 8.0
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 100.0
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 200.0
+      }
+    },
+    "Malabon Central Market": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 50.0
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 45.0
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 40.0
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "Mandaluyong Public Market I": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 58.0
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 350.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 8.0
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 220.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 220.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 100.0
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 120.0
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 120.0
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": 150.0
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 120.0
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 140.0
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 200.0
+      }
+    },
+    "Mandaluyong Public Market II": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 40.0
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 120.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 280.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 8.0
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 100.0
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 140.0
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": 100.0
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": 240.0
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 320.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "Marikina Public Market": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 42.0
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": 80.0
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "Maypajo Public Market/Caloocan": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 48.0
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 48.0
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 260.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 240.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 100.0
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": 100.0
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": 200.0
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 280.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "Mega Q-mart/Quezon City": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 50.0
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 48.0
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 47.0
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 140.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 100.0
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 140.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 120.0
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 120.0
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "Muñoz Market/Quezon City": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": 100.0
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "Murphy Public Market": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 50.0
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 48.0
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 45.0
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": 260.0
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 330.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "Mutya ng Pasig Mega Market": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 58.0
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "Navotas Agora Market": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 50.0
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 8.0
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "New Las Piñas City Public Market": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 270.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 170.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 345.0
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 185.0
+      }
+    },
+    "New Marulas Public Market/Valenzuela": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 48.0
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 42.0
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 360.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 120.0
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": 240.0
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "New Parang Market": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 50.0
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 48.0
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 52.0
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 47.0
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 70.0
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 100.0
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 130.0
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": 85.0
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 220.0
+      }
+    },
+    "North Diversion Market": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 50.0
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 48.0
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 50.0
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 48.0
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 48.0
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 7.0
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 180.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 100.0
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 90.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 120.0
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": 120.0
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 75.0
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": 65.0
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "Paco Market": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 48.0
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 320.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 100.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 120.0
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": 75.0
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 200.0
+      }
+    },
+    "Pasay City Market": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 50.0
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 170.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 270.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "Poblacion Public Market": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 48.0
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 40.0
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 280.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 160.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 7.5
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "Pritil Market/Manila": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 48.0
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 280.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 150.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 300.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 80.0
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 140.0
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "Quinta Market/Manila": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 50.0
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 260.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 160.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 8.0
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 120.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "San Andres Market/Manila": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 160.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 120.0
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 120.0
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 120.0
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": 340.0
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 390.0
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "Suki Market Moonwalk": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 46.0
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 170.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 300.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 7.5
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 160.0
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": 200.0
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": 230.0
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 290.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 190.0
+      }
+    },
+    "Taguig People's Market": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 50.0
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 48.0
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 140.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": 260.0
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 370.0
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 310.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    },
+    "Trabajo Market": {
+      "Premium Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": 45.0
+      },
+      "Premium Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 50.0
+      },
+      "Regular Milled (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 46.0
+      },
+      "Bangus": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 340.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": null
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 80.0
+      },
+      "Carrots (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 90.0
+      },
+      "Chayote": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Pechay Baguio": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "White Potato (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 130.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "White Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Chili (Green)": {
+        "spec": "Green",
+        "unit": "per kg",
+        "price": null
+      },
+      "Red Chili (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Calamansi": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      },
+      "Sugar (Refined)": {
+        "spec": "Refined",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Local": {
+        "spec": "Kasim, Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork (Kasim) Imported": {
+        "spec": "Kasim, Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Pork Liempo (Imported)": {
+        "spec": "Imported",
+        "unit": "per kg",
+        "price": null
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null
+      }
+    }
+  }
+}

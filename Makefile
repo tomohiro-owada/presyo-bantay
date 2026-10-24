@@ -4,7 +4,7 @@
 #   make site        site-data + npm ci + vite build (output: site/dist)
 #   make test        Python test suite + site vitest suite
 
-VENV_PY := .venv/bin/python
+VENV_PY ?= .venv/bin/python
 
 .PHONY: site-data site test
 

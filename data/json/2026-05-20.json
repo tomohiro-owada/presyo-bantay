@@ -1,0 +1,2797 @@
+{
+  "date": "2026-05-20",
+  "source_url": "https://www.da.gov.ph/wp-content/uploads/2026/05/Price-Monitoring-May-20-2026.pdf",
+  "layout": "range",
+  "markets": {
+    "Agora Public Market/San Juan": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 45.0,
+        "price_low": 45.0,
+        "price_high": 45.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 160.0,
+        "price_low": 160.0,
+        "price_high": 160.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 250.0,
+        "price_low": 250.0,
+        "price_high": 250.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 8.5,
+        "price_low": 8.5,
+        "price_high": 8.5
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 125.0,
+        "price_low": 120.0,
+        "price_high": 130.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 90.0,
+        "price_low": 80.0,
+        "price_high": 100.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 75.0,
+        "price_low": 70.0,
+        "price_high": 80.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 65.0,
+        "price_low": 60.0,
+        "price_high": 70.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 100.0,
+        "price_low": 100.0,
+        "price_high": 100.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 81.0,
+        "price_low": 80.0,
+        "price_high": 82.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 330.0,
+        "price_low": 320.0,
+        "price_high": 340.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 410.0,
+        "price_low": 400.0,
+        "price_high": 420.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 190.0,
+        "price_low": 190.0,
+        "price_high": 190.0
+      }
+    },
+    "Alabang Central Market": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 48.0,
+        "price_low": 47.0,
+        "price_high": 49.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 145.0,
+        "price_low": 140.0,
+        "price_high": 150.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null,
+        "price_low": null,
+        "price_high": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 8.1,
+        "price_low": 8.0,
+        "price_high": 8.2
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 110.0,
+        "price_low": 100.0,
+        "price_high": 120.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 75.0,
+        "price_low": 70.0,
+        "price_high": 80.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 42.5,
+        "price_low": 40.0,
+        "price_high": 45.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 45.0,
+        "price_low": 40.0,
+        "price_high": 50.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 85.0,
+        "price_low": 80.0,
+        "price_high": 90.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 77.5,
+        "price_low": 77.0,
+        "price_high": 78.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 340.0,
+        "price_low": 330.0,
+        "price_high": 350.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 375.0,
+        "price_low": 370.0,
+        "price_high": 380.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 180.0,
+        "price_low": 180.0,
+        "price_high": 180.0
+      }
+    },
+    "Balintawak (Cloverleaf) Market": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 48.5,
+        "price_low": 47.0,
+        "price_high": 50.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 120.0,
+        "price_low": 120.0,
+        "price_high": 120.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null,
+        "price_low": null,
+        "price_high": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 7.5,
+        "price_low": 7.0,
+        "price_high": 8.0
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 80.0,
+        "price_low": 70.0,
+        "price_high": 90.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 70.0,
+        "price_low": 60.0,
+        "price_high": 80.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 35.0,
+        "price_low": 30.0,
+        "price_high": 40.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 45.0,
+        "price_low": 30.0,
+        "price_high": 60.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 62.5,
+        "price_low": 55.0,
+        "price_high": 70.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 77.5,
+        "price_low": 75.0,
+        "price_high": 80.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 295.0,
+        "price_low": 280.0,
+        "price_high": 310.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 365.0,
+        "price_low": 350.0,
+        "price_high": 380.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 167.5,
+        "price_low": 160.0,
+        "price_high": 175.0
+      }
+    },
+    "Bicutan Market": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null,
+        "price_low": null,
+        "price_high": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 145.0,
+        "price_low": 140.0,
+        "price_high": 150.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null,
+        "price_low": null,
+        "price_high": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 7.75,
+        "price_low": 7.0,
+        "price_high": 8.5
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 105.0,
+        "price_low": 90.0,
+        "price_high": 120.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 75.0,
+        "price_low": 70.0,
+        "price_high": 80.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 50.0,
+        "price_low": 50.0,
+        "price_high": 50.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 50.0,
+        "price_low": 40.0,
+        "price_high": 60.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 80.0,
+        "price_low": 80.0,
+        "price_high": 80.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 84.0,
+        "price_low": 78.0,
+        "price_high": 90.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 360.0,
+        "price_low": 350.0,
+        "price_high": 370.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 380.0,
+        "price_low": 370.0,
+        "price_high": 390.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 180.0,
+        "price_low": 180.0,
+        "price_high": 180.0
+      }
+    },
+    "Cartimar Market": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null,
+        "price_low": null,
+        "price_high": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 160.0,
+        "price_low": 160.0,
+        "price_high": 160.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null,
+        "price_low": null,
+        "price_high": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 8.4,
+        "price_low": 8.3,
+        "price_high": 8.5
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 135.0,
+        "price_low": 130.0,
+        "price_high": 140.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 100.0,
+        "price_low": 100.0,
+        "price_high": 100.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 80.0,
+        "price_low": 80.0,
+        "price_high": 80.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 60.0,
+        "price_low": 60.0,
+        "price_high": 60.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 115.0,
+        "price_low": 110.0,
+        "price_high": 120.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 87.5,
+        "price_low": 85.0,
+        "price_high": 90.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 350.0,
+        "price_low": 350.0,
+        "price_high": 350.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 420.0,
+        "price_low": 420.0,
+        "price_high": 420.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 215.0,
+        "price_low": 210.0,
+        "price_high": 220.0
+      }
+    },
+    "Commonwealth Market/Quezon City": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 53.5,
+        "price_low": 52.0,
+        "price_high": 55.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 135.0,
+        "price_low": 130.0,
+        "price_high": 140.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 230.0,
+        "price_low": 220.0,
+        "price_high": 240.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 7.36,
+        "price_low": 6.38,
+        "price_high": 8.33
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 105.0,
+        "price_low": 70.0,
+        "price_high": 140.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 70.0,
+        "price_low": 50.0,
+        "price_high": 90.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 45.0,
+        "price_low": 30.0,
+        "price_high": 60.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 37.5,
+        "price_low": 25.0,
+        "price_high": 50.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 70.0,
+        "price_low": 60.0,
+        "price_high": 80.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 77.5,
+        "price_low": 75.0,
+        "price_high": 80.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 302.5,
+        "price_low": 285.0,
+        "price_high": 320.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 335.0,
+        "price_low": 320.0,
+        "price_high": 350.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 165.0,
+        "price_low": 160.0,
+        "price_high": 170.0
+      }
+    },
+    "Dagonoy Market": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 54.5,
+        "price_low": 54.0,
+        "price_high": 55.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 150.0,
+        "price_low": 140.0,
+        "price_high": 160.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 190.0,
+        "price_low": 180.0,
+        "price_high": 200.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 8.25,
+        "price_low": 8.0,
+        "price_high": 8.5
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 115.0,
+        "price_low": 110.0,
+        "price_high": 120.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 90.0,
+        "price_low": 80.0,
+        "price_high": 100.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 75.0,
+        "price_low": 70.0,
+        "price_high": 80.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 65.0,
+        "price_low": 60.0,
+        "price_high": 70.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 100.0,
+        "price_low": 80.0,
+        "price_high": 120.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 79.0,
+        "price_low": 78.0,
+        "price_high": 80.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 360.0,
+        "price_low": 350.0,
+        "price_high": 370.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 390.0,
+        "price_low": 380.0,
+        "price_high": 400.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 205.0,
+        "price_low": 200.0,
+        "price_high": 210.0
+      }
+    },
+    "Guadalupe Public Market/Makati": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 52.0,
+        "price_low": 50.0,
+        "price_high": 54.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 165.0,
+        "price_low": 150.0,
+        "price_high": 180.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 180.0,
+        "price_low": 160.0,
+        "price_high": 200.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 7.88,
+        "price_low": 7.5,
+        "price_high": 8.25
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 125.0,
+        "price_low": 100.0,
+        "price_high": 150.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 85.0,
+        "price_low": 70.0,
+        "price_high": 100.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 55.0,
+        "price_low": 50.0,
+        "price_high": 60.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 50.0,
+        "price_low": 40.0,
+        "price_high": 60.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 90.0,
+        "price_low": 80.0,
+        "price_high": 100.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 77.5,
+        "price_low": 70.0,
+        "price_high": 85.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 350.0,
+        "price_low": 330.0,
+        "price_high": 370.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 410.0,
+        "price_low": 380.0,
+        "price_high": 440.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 220.0,
+        "price_low": 220.0,
+        "price_high": 220.0
+      }
+    },
+    "Grace Marketplace": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null,
+        "price_low": null,
+        "price_high": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 165.0,
+        "price_low": 160.0,
+        "price_high": 170.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null,
+        "price_low": null,
+        "price_high": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 8.0,
+        "price_low": 8.0,
+        "price_high": 8.0
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 155.0,
+        "price_low": 150.0,
+        "price_high": 160.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 110.0,
+        "price_low": 100.0,
+        "price_high": 120.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 75.0,
+        "price_low": 70.0,
+        "price_high": 80.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 75.0,
+        "price_low": 70.0,
+        "price_high": 80.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 150.0,
+        "price_low": 140.0,
+        "price_high": 160.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 91.0,
+        "price_low": 90.0,
+        "price_high": 92.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 390.0,
+        "price_low": 390.0,
+        "price_high": 390.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 420.0,
+        "price_low": 420.0,
+        "price_high": 420.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 180.0,
+        "price_low": 180.0,
+        "price_high": 180.0
+      }
+    },
+    "Kamuning Public Market": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 47.0,
+        "price_low": 45.0,
+        "price_high": 49.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 170.0,
+        "price_low": 160.0,
+        "price_high": 180.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 280.0,
+        "price_low": 280.0,
+        "price_high": 280.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 8.5,
+        "price_low": 8.0,
+        "price_high": 9.0
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 110.0,
+        "price_low": 100.0,
+        "price_high": 120.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 85.0,
+        "price_low": 80.0,
+        "price_high": 90.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 65.0,
+        "price_low": 60.0,
+        "price_high": 70.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 65.0,
+        "price_low": 50.0,
+        "price_high": 80.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 90.0,
+        "price_low": 80.0,
+        "price_high": 100.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 85.0,
+        "price_low": 80.0,
+        "price_high": 90.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 355.0,
+        "price_low": 320.0,
+        "price_high": 390.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 465.0,
+        "price_low": 450.0,
+        "price_high": 480.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null,
+        "price_low": null,
+        "price_high": null
+      }
+    },
+    "La Huerta Market/Parañaque": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null,
+        "price_low": null,
+        "price_high": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 150.0,
+        "price_low": 150.0,
+        "price_high": 150.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null,
+        "price_low": null,
+        "price_high": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 0.0,
+        "price_low": 0.0,
+        "price_high": 0.0
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 125.0,
+        "price_low": 100.0,
+        "price_high": 150.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 100.0,
+        "price_low": 80.0,
+        "price_high": 120.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 50.0,
+        "price_low": 40.0,
+        "price_high": 60.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 55.0,
+        "price_low": 50.0,
+        "price_high": 60.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 80.0,
+        "price_low": 70.0,
+        "price_high": 90.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 85.0,
+        "price_low": 85.0,
+        "price_high": 85.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 350.0,
+        "price_low": 340.0,
+        "price_high": 360.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 405.0,
+        "price_low": 390.0,
+        "price_high": 420.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 185.0,
+        "price_low": 180.0,
+        "price_high": 190.0
+      }
+    },
+    "Malabon Central Market": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 45.5,
+        "price_low": 45.0,
+        "price_high": 46.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 155.0,
+        "price_low": 150.0,
+        "price_high": 160.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 220.0,
+        "price_low": 200.0,
+        "price_high": 240.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 8.0,
+        "price_low": 7.5,
+        "price_high": 8.5
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 115.0,
+        "price_low": 100.0,
+        "price_high": 130.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 70.0,
+        "price_low": 60.0,
+        "price_high": 80.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 60.0,
+        "price_low": 50.0,
+        "price_high": 70.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 65.0,
+        "price_low": 60.0,
+        "price_high": 70.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 90.0,
+        "price_low": 80.0,
+        "price_high": 100.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 82.5,
+        "price_low": 80.0,
+        "price_high": 85.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 320.0,
+        "price_low": 300.0,
+        "price_high": 340.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 420.0,
+        "price_low": 400.0,
+        "price_high": 440.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 180.0,
+        "price_low": 180.0,
+        "price_high": 180.0
+      }
+    },
+    "Mandaluyong Public Market": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 57.5,
+        "price_low": 57.0,
+        "price_high": 58.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 160.0,
+        "price_low": 160.0,
+        "price_high": 160.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 300.0,
+        "price_low": 300.0,
+        "price_high": 300.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 8.0,
+        "price_low": 8.0,
+        "price_high": 8.0
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 130.0,
+        "price_low": 120.0,
+        "price_high": 140.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 85.0,
+        "price_low": 70.0,
+        "price_high": 100.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 75.0,
+        "price_low": 70.0,
+        "price_high": 80.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 70.0,
+        "price_low": 60.0,
+        "price_high": 80.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 110.0,
+        "price_low": 100.0,
+        "price_high": 120.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 85.0,
+        "price_low": 85.0,
+        "price_high": 85.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 382.5,
+        "price_low": 375.0,
+        "price_high": 390.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 425.0,
+        "price_low": 420.0,
+        "price_high": 430.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 220.0,
+        "price_low": 220.0,
+        "price_high": 220.0
+      }
+    },
+    "Marikina Public Market": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 46.5,
+        "price_low": 45.0,
+        "price_high": 48.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 155.0,
+        "price_low": 150.0,
+        "price_high": 160.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 270.0,
+        "price_low": 260.0,
+        "price_high": 280.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 8.5,
+        "price_low": 8.5,
+        "price_high": 8.5
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 130.0,
+        "price_low": 120.0,
+        "price_high": 140.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 85.0,
+        "price_low": 80.0,
+        "price_high": 90.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 65.0,
+        "price_low": 60.0,
+        "price_high": 70.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 60.0,
+        "price_low": 60.0,
+        "price_high": 60.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 110.0,
+        "price_low": 100.0,
+        "price_high": 120.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 83.5,
+        "price_low": 82.0,
+        "price_high": 85.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 325.0,
+        "price_low": 320.0,
+        "price_high": 330.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 375.0,
+        "price_low": 370.0,
+        "price_high": 380.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 225.0,
+        "price_low": 220.0,
+        "price_high": 230.0
+      }
+    },
+    "Maypajo Public Market/Caloocan": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null,
+        "price_low": null,
+        "price_high": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 155.0,
+        "price_low": 150.0,
+        "price_high": 160.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 150.0,
+        "price_low": 140.0,
+        "price_high": 160.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 7.75,
+        "price_low": 7.0,
+        "price_high": 8.5
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 120.0,
+        "price_low": 120.0,
+        "price_high": 120.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 80.0,
+        "price_low": 70.0,
+        "price_high": 90.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 70.0,
+        "price_low": 60.0,
+        "price_high": 80.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 75.0,
+        "price_low": 60.0,
+        "price_high": 90.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 110.0,
+        "price_low": 90.0,
+        "price_high": 130.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 85.0,
+        "price_low": 85.0,
+        "price_high": 85.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 365.0,
+        "price_low": 360.0,
+        "price_high": 370.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 400.0,
+        "price_low": 400.0,
+        "price_high": 400.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 195.0,
+        "price_low": 190.0,
+        "price_high": 200.0
+      }
+    },
+    "Mega Q-mart/Quezon City": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 52.5,
+        "price_low": 50.0,
+        "price_high": 55.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 140.0,
+        "price_low": 140.0,
+        "price_high": 140.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 200.0,
+        "price_low": 180.0,
+        "price_high": 220.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 7.75,
+        "price_low": 7.0,
+        "price_high": 8.5
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 120.0,
+        "price_low": 100.0,
+        "price_high": 140.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 80.0,
+        "price_low": 70.0,
+        "price_high": 90.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 55.0,
+        "price_low": 50.0,
+        "price_high": 60.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 60.0,
+        "price_low": 50.0,
+        "price_high": 70.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 90.0,
+        "price_low": 80.0,
+        "price_high": 100.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 90.0,
+        "price_low": 80.0,
+        "price_high": 100.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 325.0,
+        "price_low": 310.0,
+        "price_high": 340.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 400.0,
+        "price_low": 380.0,
+        "price_high": 420.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 185.0,
+        "price_low": 180.0,
+        "price_high": 190.0
+      }
+    },
+    "Muñoz Market/Quezon City": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 54.0,
+        "price_low": 54.0,
+        "price_high": 54.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 145.0,
+        "price_low": 140.0,
+        "price_high": 150.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 230.0,
+        "price_low": 200.0,
+        "price_high": 260.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 8.0,
+        "price_low": 7.0,
+        "price_high": 9.0
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 105.0,
+        "price_low": 90.0,
+        "price_high": 120.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 65.0,
+        "price_low": 60.0,
+        "price_high": 70.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 40.0,
+        "price_low": 40.0,
+        "price_high": 40.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 40.0,
+        "price_low": 30.0,
+        "price_high": 50.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 77.5,
+        "price_low": 75.0,
+        "price_high": 80.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 87.5,
+        "price_low": 80.0,
+        "price_high": 95.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 360.0,
+        "price_low": 360.0,
+        "price_high": 360.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 410.0,
+        "price_low": 400.0,
+        "price_high": 420.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 200.0,
+        "price_low": 180.0,
+        "price_high": 220.0
+      }
+    },
+    "Murphy Public Market": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 48.0,
+        "price_low": 48.0,
+        "price_high": 48.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 155.0,
+        "price_low": 150.0,
+        "price_high": 160.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 340.0,
+        "price_low": 340.0,
+        "price_high": 340.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 7.75,
+        "price_low": 7.0,
+        "price_high": 8.5
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 120.0,
+        "price_low": 100.0,
+        "price_high": 140.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 90.0,
+        "price_low": 60.0,
+        "price_high": 120.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 67.5,
+        "price_low": 55.0,
+        "price_high": 80.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 57.5,
+        "price_low": 35.0,
+        "price_high": 80.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 100.0,
+        "price_low": 80.0,
+        "price_high": 120.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 87.5,
+        "price_low": 80.0,
+        "price_high": 95.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 335.0,
+        "price_low": 320.0,
+        "price_high": 350.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 380.0,
+        "price_low": 360.0,
+        "price_high": 400.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 200.0,
+        "price_low": 200.0,
+        "price_high": 200.0
+      }
+    },
+    "Mutya ng Pasig Mega Market": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 52.5,
+        "price_low": 52.0,
+        "price_high": 53.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 170.0,
+        "price_low": 160.0,
+        "price_high": 180.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 280.0,
+        "price_low": 260.0,
+        "price_high": 300.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 8.1,
+        "price_low": 8.0,
+        "price_high": 8.2
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 145.0,
+        "price_low": 130.0,
+        "price_high": 160.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 110.0,
+        "price_low": 100.0,
+        "price_high": 120.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 65.0,
+        "price_low": 60.0,
+        "price_high": 70.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 65.0,
+        "price_low": 60.0,
+        "price_high": 70.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 130.0,
+        "price_low": 120.0,
+        "price_high": 140.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 77.5,
+        "price_low": 75.0,
+        "price_high": 80.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 355.0,
+        "price_low": 350.0,
+        "price_high": 360.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 410.0,
+        "price_low": 400.0,
+        "price_high": 420.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 185.0,
+        "price_low": 180.0,
+        "price_high": 190.0
+      }
+    },
+    "Navotas Agora Market": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 47.5,
+        "price_low": 47.0,
+        "price_high": 48.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 145.0,
+        "price_low": 140.0,
+        "price_high": 150.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 170.0,
+        "price_low": 160.0,
+        "price_high": 180.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 6.5,
+        "price_low": 6.0,
+        "price_high": 7.0
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 115.0,
+        "price_low": 100.0,
+        "price_high": 130.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 110.0,
+        "price_low": 100.0,
+        "price_high": 120.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 65.0,
+        "price_low": 60.0,
+        "price_high": 70.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 65.0,
+        "price_low": 60.0,
+        "price_high": 70.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 110.0,
+        "price_low": 100.0,
+        "price_high": 120.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 78.5,
+        "price_low": 75.0,
+        "price_high": 82.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 330.0,
+        "price_low": 320.0,
+        "price_high": 340.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 380.0,
+        "price_low": 360.0,
+        "price_high": 400.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 190.0,
+        "price_low": 180.0,
+        "price_high": 200.0
+      }
+    },
+    "New Las Piñas City Public Market": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null,
+        "price_low": null,
+        "price_high": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 170.0,
+        "price_low": 170.0,
+        "price_high": 170.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null,
+        "price_low": null,
+        "price_high": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 8.5,
+        "price_low": 8.5,
+        "price_high": 8.5
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 125.0,
+        "price_low": 120.0,
+        "price_high": 130.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 95.0,
+        "price_low": 90.0,
+        "price_high": 100.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 62.5,
+        "price_low": 60.0,
+        "price_high": 65.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 65.0,
+        "price_low": 60.0,
+        "price_high": 70.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 85.0,
+        "price_low": 80.0,
+        "price_high": 90.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 79.0,
+        "price_low": 78.0,
+        "price_high": 80.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 325.0,
+        "price_low": 320.0,
+        "price_high": 330.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 370.0,
+        "price_low": 370.0,
+        "price_high": 370.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 182.5,
+        "price_low": 180.0,
+        "price_high": 185.0
+      }
+    },
+    "New Marulas Public Market/Valenzuela": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 55.5,
+        "price_low": 55.0,
+        "price_high": 56.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 175.0,
+        "price_low": 170.0,
+        "price_high": 180.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null,
+        "price_low": null,
+        "price_high": null
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 8.45,
+        "price_low": 8.4,
+        "price_high": 8.5
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 125.0,
+        "price_low": 120.0,
+        "price_high": 130.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 85.0,
+        "price_low": 80.0,
+        "price_high": 90.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 75.0,
+        "price_low": 70.0,
+        "price_high": 80.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 70.0,
+        "price_low": 60.0,
+        "price_high": 80.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 115.0,
+        "price_low": 110.0,
+        "price_high": 120.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 81.0,
+        "price_low": 80.0,
+        "price_high": 82.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 345.0,
+        "price_low": 330.0,
+        "price_high": 360.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 410.0,
+        "price_low": 400.0,
+        "price_high": 420.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 230.0,
+        "price_low": 220.0,
+        "price_high": 240.0
+      }
+    },
+    "Obrero Market": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 45.5,
+        "price_low": 43.0,
+        "price_high": 48.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 150.0,
+        "price_low": 150.0,
+        "price_high": 150.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 260.0,
+        "price_low": 260.0,
+        "price_high": 260.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 7.75,
+        "price_low": 7.5,
+        "price_high": 8.0
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 125.0,
+        "price_low": 120.0,
+        "price_high": 130.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 90.0,
+        "price_low": 80.0,
+        "price_high": 100.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 70.0,
+        "price_low": 60.0,
+        "price_high": 80.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 70.0,
+        "price_low": 60.0,
+        "price_high": 80.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 100.0,
+        "price_low": 90.0,
+        "price_high": 110.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 81.5,
+        "price_low": 78.0,
+        "price_high": 85.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 375.0,
+        "price_low": 370.0,
+        "price_high": 380.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 435.0,
+        "price_low": 430.0,
+        "price_high": 440.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 215.0,
+        "price_low": 210.0,
+        "price_high": 220.0
+      }
+    },
+    "Paco Market": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 53.5,
+        "price_low": 52.0,
+        "price_high": 55.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 145.0,
+        "price_low": 140.0,
+        "price_high": 150.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 190.0,
+        "price_low": 180.0,
+        "price_high": 200.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 8.0,
+        "price_low": 7.5,
+        "price_high": 8.5
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 110.0,
+        "price_low": 100.0,
+        "price_high": 120.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 75.0,
+        "price_low": 60.0,
+        "price_high": 90.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 75.0,
+        "price_low": 70.0,
+        "price_high": 80.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 65.0,
+        "price_low": 50.0,
+        "price_high": 80.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 85.0,
+        "price_low": 70.0,
+        "price_high": 100.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 77.5,
+        "price_low": 75.0,
+        "price_high": 80.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 335.0,
+        "price_low": 330.0,
+        "price_high": 340.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 375.0,
+        "price_low": 370.0,
+        "price_high": 380.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 195.0,
+        "price_low": 190.0,
+        "price_high": 200.0
+      }
+    },
+    "Pasay City Market": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": null,
+        "price_low": null,
+        "price_high": null
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 145.0,
+        "price_low": 140.0,
+        "price_high": 150.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 210.0,
+        "price_low": 200.0,
+        "price_high": 220.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 8.5,
+        "price_low": 8.5,
+        "price_high": 8.5
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 105.0,
+        "price_low": 100.0,
+        "price_high": 110.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 75.0,
+        "price_low": 70.0,
+        "price_high": 80.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 57.5,
+        "price_low": 55.0,
+        "price_high": 60.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 40.0,
+        "price_low": 40.0,
+        "price_high": 40.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 80.0,
+        "price_low": 80.0,
+        "price_high": 80.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 92.5,
+        "price_low": 90.0,
+        "price_high": 95.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 335.0,
+        "price_low": 330.0,
+        "price_high": 340.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 390.0,
+        "price_low": 390.0,
+        "price_high": 390.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 195.0,
+        "price_low": 190.0,
+        "price_high": 200.0
+      }
+    },
+    "Pritil Market/Manila": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 51.0,
+        "price_low": 50.0,
+        "price_high": 52.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 155.0,
+        "price_low": 150.0,
+        "price_high": 160.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 220.0,
+        "price_low": 200.0,
+        "price_high": 240.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 8.0,
+        "price_low": 7.5,
+        "price_high": 8.5
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 130.0,
+        "price_low": 120.0,
+        "price_high": 140.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 110.0,
+        "price_low": 100.0,
+        "price_high": 120.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 70.0,
+        "price_low": 60.0,
+        "price_high": 80.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 55.0,
+        "price_low": 50.0,
+        "price_high": 60.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 110.0,
+        "price_low": 100.0,
+        "price_high": 120.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 83.5,
+        "price_low": 82.0,
+        "price_high": 85.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 355.0,
+        "price_low": 350.0,
+        "price_high": 360.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 435.0,
+        "price_low": 430.0,
+        "price_high": 440.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 200.0,
+        "price_low": 190.0,
+        "price_high": 210.0
+      }
+    },
+    "Quinta Market/Manila": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 46.0,
+        "price_low": 46.0,
+        "price_high": 46.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 155.0,
+        "price_low": 150.0,
+        "price_high": 160.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 220.0,
+        "price_low": 200.0,
+        "price_high": 240.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 8.0,
+        "price_low": 8.0,
+        "price_high": 8.0
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 130.0,
+        "price_low": 120.0,
+        "price_high": 140.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 85.0,
+        "price_low": 80.0,
+        "price_high": 90.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 75.0,
+        "price_low": 70.0,
+        "price_high": 80.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 70.0,
+        "price_low": 60.0,
+        "price_high": 80.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 110.0,
+        "price_low": 100.0,
+        "price_high": 120.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 85.0,
+        "price_low": 85.0,
+        "price_high": 85.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 370.0,
+        "price_low": 370.0,
+        "price_high": 370.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 425.0,
+        "price_low": 420.0,
+        "price_high": 430.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 200.0,
+        "price_low": 190.0,
+        "price_high": 210.0
+      }
+    },
+    "San Andres Market/Manila": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 47.5,
+        "price_low": 45.0,
+        "price_high": 50.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 160.0,
+        "price_low": 160.0,
+        "price_high": 160.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 220.0,
+        "price_low": 200.0,
+        "price_high": 240.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 8.0,
+        "price_low": 8.0,
+        "price_high": 8.0
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 115.0,
+        "price_low": 110.0,
+        "price_high": 120.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 90.0,
+        "price_low": 80.0,
+        "price_high": 100.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 75.0,
+        "price_low": 70.0,
+        "price_high": 80.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 65.0,
+        "price_low": 50.0,
+        "price_high": 80.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 110.0,
+        "price_low": 100.0,
+        "price_high": 120.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 87.5,
+        "price_low": 85.0,
+        "price_high": 90.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 370.0,
+        "price_low": 360.0,
+        "price_high": 380.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 425.0,
+        "price_low": 420.0,
+        "price_high": 430.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": null,
+        "price_low": null,
+        "price_high": null
+      }
+    },
+    "Taguig People's Market": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 52.5,
+        "price_low": 49.0,
+        "price_high": 56.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 140.0,
+        "price_low": 130.0,
+        "price_high": 150.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 230.0,
+        "price_low": 200.0,
+        "price_high": 260.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 8.15,
+        "price_low": 7.5,
+        "price_high": 8.8
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 130.0,
+        "price_low": 120.0,
+        "price_high": 140.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 105.0,
+        "price_low": 90.0,
+        "price_high": 120.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 65.0,
+        "price_low": 60.0,
+        "price_high": 70.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 60.0,
+        "price_low": 50.0,
+        "price_high": 70.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 100.0,
+        "price_low": 100.0,
+        "price_high": 100.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 80.0,
+        "price_low": 75.0,
+        "price_high": 85.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 360.0,
+        "price_low": 360.0,
+        "price_high": 360.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 370.0,
+        "price_low": 370.0,
+        "price_high": 370.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 185.0,
+        "price_low": 180.0,
+        "price_high": 190.0
+      }
+    },
+    "Trabajo Market": {
+      "Well-milled Rice (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 50.0,
+        "price_low": 50.0,
+        "price_high": 50.0
+      },
+      "Tilapia": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 155.0,
+        "price_low": 150.0,
+        "price_high": 160.0
+      },
+      "Galunggong (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 250.0,
+        "price_low": 240.0,
+        "price_high": 260.0
+      },
+      "Egg (Medium)": {
+        "spec": "Medium",
+        "unit": "per piece",
+        "price": 7.9,
+        "price_low": 7.5,
+        "price_high": 8.3
+      },
+      "Ampalaya": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 110.0,
+        "price_low": 100.0,
+        "price_high": 120.0
+      },
+      "Eggplant": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 85.0,
+        "price_low": 80.0,
+        "price_high": 90.0
+      },
+      "Tomato": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 55.0,
+        "price_low": 50.0,
+        "price_high": 60.0
+      },
+      "Cabbage": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 70.0,
+        "price_low": 60.0,
+        "price_high": 80.0
+      },
+      "Red Onion (Local)": {
+        "spec": "Local",
+        "unit": "per kg",
+        "price": 95.0,
+        "price_low": 80.0,
+        "price_high": 110.0
+      },
+      "Sugar (Washed)": {
+        "spec": "Washed",
+        "unit": "per kg",
+        "price": 82.5,
+        "price_low": 80.0,
+        "price_high": 85.0
+      },
+      "Fresh Pork Kasim/Pigue": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 360.0,
+        "price_low": 340.0,
+        "price_high": 380.0
+      },
+      "Fresh Pork Liempo": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 450.0,
+        "price_low": 440.0,
+        "price_high": 460.0
+      },
+      "Fresh Whole Chicken": {
+        "spec": null,
+        "unit": "per kg",
+        "price": 220.0,
+        "price_low": 210.0,
+        "price_high": 230.0
+      }
+    }
+  }
+}

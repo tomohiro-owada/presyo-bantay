@@ -1,9 +1,15 @@
 import { defineConfig } from "vitest/config";
 
-// base './' keeps asset URLs relative so the build works both on a
-// GitHub Pages project subpath and on Cloudflare Pages.
-export default defineConfig({
-  base: "./",
+// Minimal Node process typing so `tsc --noEmit` passes without @types/node.
+declare const process: { env: Record<string, string | undefined> };
+
+// Production builds use base '/presyo-bantay/' for the GitHub Pages project
+// subpath; the dev server keeps '/'. PRESYO_BASE env var overrides both.
+// The app fetches data via import.meta.env.BASE_URL + "data/", so it keeps
+// working under the subpath.
+export default defineConfig(({ command }) => ({
+  base:
+    process.env.PRESYO_BASE ?? (command === "build" ? "/presyo-bantay/" : "/"),
   build: {
     outDir: "dist",
     sourcemap: false,
@@ -13,4 +19,4 @@ export default defineConfig({
     environment: "node",
     include: ["src/**/*.test.ts"],
   },
-});
+}));

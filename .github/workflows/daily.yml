@@ -56,7 +56,7 @@ jobs:
           cache-dependency-path: site/package-lock.json
 
       - name: Build static site
-        run: make site
+        run: make site VENV_PY=python
 
       - name: Upload site artifact
         uses: actions/upload-artifact@v4

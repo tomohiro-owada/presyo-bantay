@@ -169,16 +169,21 @@ make site        # export data from data/presyo.db + npm ci + vite build -> site
 make test        # pytest + site vitest suite (stats.ts unit tests)
 ```
 
-Deployment options (decision pending):
+## Publishing / GitHub Pages
 
-- Cloudflare Pages: connect the repo (build command `make site`, output
-  directory `site/dist`) or `wrangler pages deploy site/dist`.
-- GitHub Pages: build `site/dist` in Actions and publish with
-  `actions/deploy-pages` (the build uses a relative `./` base, so it works on
-  project subpaths too).
+Live site: <https://tomohiro-owada.github.io/presyo-bantay/>
 
-The daily workflow builds the site with `make site` and uploads `site/dist`
-as a workflow artifact (build only, no deploy yet).
+Repo: <https://github.com/tomohiro-owada/presyo-bantay> (default branch `main`).
+
+In the repo, go to Settings > Pages > Source and select "GitHub Actions".
+
+`.github/workflows/pages.yml` (workflow "pages") builds `site/dist` with
+`make site VENV_PY=python` and deploys it with `actions/deploy-pages`. It
+runs on push to `main` (site/data/Makefile/workflow paths), on manual
+`workflow_dispatch`, and after a successful `daily` run (`workflow_run`).
+
+The daily workflow builds the site with `make site VENV_PY=python` and
+uploads `site/dist` as a workflow artifact (build only, no deploy).
 
 ## Weekly summary
 
@@ -309,7 +314,8 @@ mocked in fetch and FX tests).
 `python -m presyo_bantay ingest data/json`, updates FX rates with
 `python -m presyo_bantay fx-update`, and commits new
 `data/json/*.json` files plus `data/presyo.db` with the github-actions bot
-identity. It then sets up Node 20, builds the site with `make site`, and
+identity. It then sets up Node 20, builds the site with
+`make site VENV_PY=python`, and
 uploads `site/dist` as a workflow artifact (build only, no deploy).
 
 ## Weekly automation
