@@ -13,7 +13,8 @@
 #   3. aborts unless `ssh $VPS_HOST uname -m` reports x86_64,
 #   4. copies the binary to $REMOTE_DIR/bin/presyo.new, then atomically
 #      `mv`s it over $REMOTE_DIR/bin/presyo,
-#   5. prints the remote `presyo version`, then the suggested crontab lines.
+#   5. copies scripts/daily.sh to $REMOTE_DIR/bin/daily.sh (chmod 755),
+#   6. prints the remote `presyo version`, then the suggested crontab lines.
 #
 # This script NEVER touches crontab and NEVER runs as root.
 set -euo pipefail
@@ -60,16 +61,15 @@ fi
 run ssh "${VPS_HOST}" "mkdir -p ${REMOTE_DIR}/bin ${REMOTE_DIR}/logs"
 run scp bin/presyo "${VPS_HOST}:${REMOTE_BIN}.new"
 run ssh "${VPS_HOST}" "mv ${REMOTE_BIN}.new ${REMOTE_BIN}"
+run scp scripts/daily.sh "${VPS_HOST}:${REMOTE_DIR}/bin/daily.sh"
+run ssh "${VPS_HOST}" "chmod 755 ${REMOTE_DIR}/bin/daily.sh"
 run ssh "${VPS_HOST}" "${REMOTE_BIN} version"
 
 cat <<'EOF'
 deploy done. This script never touches crontab; install the schedule with
-`crontab -e` on the VPS (TZ <SERVER_TZ> = UTC+9; DA posts evenings Manila
-time; the old Python GitHub Action ran at 22:00 UTC = 07:00 server-TZ):
+`crontab -e` on the VPS (TZ <SERVER_TZ> = UTC+9; 07:15 and 23:15 server-TZ =
+06:15 and 22:15 Manila time, catching the DA evening posts):
 
 <CRON_LINE_REMOVED>
-
-Optional second (evening) run:
-
 <CRON_LINE_REMOVED>
 EOF

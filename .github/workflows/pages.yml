@@ -5,17 +5,9 @@ on:
     branches: [main]
     paths:
       - "site/**"
-      - "data/presyo.db"
       - "data/json/**"
-      - "presyo_bantay/**"
-      - "requirements.txt"
-      - "Makefile"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
-  workflow_run:
-    workflows: ["daily"]
-    types: [completed]
-    branches: [main]
 
 permissions:
   contents: read
@@ -29,22 +21,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     steps:
       - uses: actions/checkout@v4
-        with:
-          # For workflow_run, check out main so the build picks up the data
-          # commit the daily job pushed.
-          ref: main
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
 
       - uses: actions/setup-node@v4
         with:
@@ -54,10 +32,15 @@ jobs:
 
       - uses: actions/configure-pages@v5
 
-      # Python is needed because the site data in site/public/data is
-      # exported from data/presyo.db by `python -m presyo_bantay export-site`.
+      # Site data is committed (site/public/data from `presyo export` on the
+      # VPS); this workflow only builds, never ingests or touches a DB.
       - name: Build static site
-        run: make site VENV_PY=python
+        run: |
+          if [ ! -f site/public/data/meta.json ]; then
+            echo "error: site/public/data/meta.json is missing (run presyo export on the VPS first)" >&2
+            exit 1
+          fi
+          cd site && npm ci && npm run build
 
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -183,8 +183,8 @@ lives in `internal/store` and is tested there), `render.py` except the
 
 ## Deploy
 
-`deploy.sh` builds the static binary and ships it to the VPS; it never
-touches crontab and never runs as root:
+`deploy.sh` builds the static binary and ships it plus `scripts/daily.sh`
+to the VPS; it never touches crontab and never runs as root:
 
 ```sh
 cd go
@@ -204,19 +204,21 @@ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath \
 
 The script checks `ssh <VPS_HOST> uname -m` is `x86_64`, copies the binary
 to `<VPS_HOST>:$HOME/bin/presyo.new`, atomically `mv`s it to
-`$HOME/bin/presyo`, then prints the remote `presyo version`.
+`$HOME/bin/presyo`, copies `scripts/daily.sh` to
+`$HOME/bin/daily.sh` (chmod 755), then prints the remote
+`presyo version`.
 
-Suggested crontab on the VPS (TZ <SERVER_TZ> = UTC+9; DA posts evenings
-Manila time; the old Python GitHub Action ran at 22:00 UTC = 07:00 server-TZ —
-install with `crontab -e`; `deploy.sh` prints this too and never edits
-crontab itself):
-
-```
-<CRON_LINE_REMOVED>
-```
-
-Optional second (evening) run:
+Suggested crontab on the VPS (TZ <SERVER_TZ> = UTC+9; 07:15 and 23:15 server-TZ =
+06:15 and 22:15 Manila time, catching the DA evening posts — install with
+`crontab -e`; `deploy.sh` prints this too and never edits crontab itself):
 
 ```
 <CRON_LINE_REMOVED>
+<CRON_LINE_REMOVED>
 ```
+
+`scripts/daily.sh` is the daily job: log rotation, `flock`, pull, `presyo
+ingest` / `fx` / `export`, then commit + push `data/json` and
+`site/public/data` (skipping the commit when only `generated_at` changed).
+Test it with `scripts/daily_test.sh` (fake binary + temp bare repo, no
+network).

@@ -27,13 +27,13 @@ jobs:
         run: python -m pytest -q
 
       - name: Build weekly summary
-        run: python -m presyo_bantay summarize --week-ending $(TZ=Asia/Manila date +%F) --db data/presyo.db --out summary.html
+        run: python -m presyo_bantay summarize --week-ending $(TZ=Asia/Manila date +%F) --data-dir data/json --out summary.html
         # Optional LLM rephrase (uncomment after setting the secrets):
         # env:
         #   PRESYO_LLM_BASE_URL: ${{ secrets.PRESYO_LLM_BASE_URL }}
         #   PRESYO_LLM_API_KEY: ${{ secrets.PRESYO_LLM_API_KEY }}
         #   PRESYO_LLM_MODEL: ${{ secrets.PRESYO_LLM_MODEL }}
-        # run: python -m presyo_bantay summarize --week-ending $(TZ=Asia/Manila date +%F) --db data/presyo.db --out summary.html --llm
+        # run: python -m presyo_bantay summarize --week-ending $(TZ=Asia/Manila date +%F) --data-dir data/json --out summary.html --llm
 
       - name: Post to Telegram
         env:

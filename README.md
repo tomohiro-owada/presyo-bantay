@@ -150,9 +150,10 @@ so the output is correct even before `normalize-commodities` has run):
 
 The public static site lives in `site/` (plain Vite + vanilla TypeScript +
 uPlot for charts: small bundle, no frameworks, no web fonts, no external CDNs
-at runtime, no tracking). Chart/table data is generated at build time from
-`data/presyo.db` via `export-site`; `site/public/data/` is gitignored and
-rebuilt on every build.
+at runtime, no tracking). Chart data (`site/public/data/`, output of
+`presyo export`, ~3 MB compact JSON) is committed to git: the VPS exports
+and pushes it daily, and both local builds and GitHub Pages build straight
+from it.
 
 Local dev (never write to `data/`; use the scratch copy):
 
@@ -165,7 +166,7 @@ cd site && npm install && npm run dev
 Build and test:
 
 ```bash
-make site        # export data from data/presyo.db + npm ci + vite build -> site/dist
+make site        # npm ci + vite build -> site/dist (uses committed site/public/data)
 make test        # pytest + site vitest suite (stats.ts unit tests)
 ```
 
@@ -178,12 +179,11 @@ Repo: <https://github.com/tomohiro-owada/presyo-bantay> (default branch `main`).
 In the repo, go to Settings > Pages > Source and select "GitHub Actions".
 
 `.github/workflows/pages.yml` (workflow "pages") builds `site/dist` with
-`make site VENV_PY=python` and deploys it with `actions/deploy-pages`. It
-runs on push to `main` (site/data/Makefile/workflow paths), on manual
-`workflow_dispatch`, and after a successful `daily` run (`workflow_run`).
-
-The daily workflow builds the site with `make site VENV_PY=python` and
-uploads `site/dist` as a workflow artifact (build only, no deploy).
+plain Node (`cd site && npm ci && npm run build`) from the committed
+`site/public/data/` and deploys it with `actions/deploy-pages`. It runs on
+push to `main` touching `site/**`, `data/json/**` or the workflow itself,
+plus manual `workflow_dispatch`. No Python, no DB: the VPS already exported
+and committed the site data.
 
 ## Weekly summary
 
@@ -244,6 +244,23 @@ are only a warning in the state file. Every run prints a per-file progress
 line plus a final `listed / selected / skipped-cached / downloaded / ok /
 failed` summary, and appends both to `data/backfill/backfill.log`
 (ignored by git; `state.json` and `failures.jsonl` may be committed).
+
+## After the historical backfill finishes
+
+The backfill runs on this box (writing `data/json/*.json` plus the local
+`data/presyo.db`); the VPS cron must stay paused until the handover so the
+two writers never overlap. Cutover plan:
+
+1. On the VPS, pause cron (keep a backup to resume later):
+   `crontab -l > ~/crontab.bak && crontab -r`
+2. Copy the backfilled snapshots from this box to the VPS repo, e.g.
+   `scp data/json/*.json <VPS_HOST>:repo/data/json/` (or a staging dir).
+3. On the VPS, load them into the authoritative DB (idempotent upsert):
+   `presyo ingest-json -db $HOME/data/presyo.db <dir>`
+   (alternatively `sqlite3` with `ATTACH` + `INSERT OR IGNORE`).
+4. Run `$HOME/bin/daily.sh` once on the VPS so it exports the full
+   site data and pushes one `data: YYYY-MM-DD` commit.
+5. On the VPS, resume cron: `crontab ~/crontab.bak`.
 
 ## Telegram posting
 
@@ -306,27 +323,58 @@ slightly (e.g. `La Huerta Market/Parañaque`, `Bicutan Market`).
 Tests use only the saved fixtures in `tests/fixtures/` (no network; HTTP is
 mocked in fetch and FX tests).
 
-## Daily automation
+## Daily automation (VPS)
 
-`.github/workflows/daily.yml` runs every day at 06:00 Asia/Manila
-(`0 22 * * *` UTC): it installs dependencies, runs pytest, runs
-`python -m presyo_bantay fetch --parse`, ingests snapshots with
-`python -m presyo_bantay ingest data/json`, updates FX rates with
-`python -m presyo_bantay fx-update`, and commits new
-`data/json/*.json` files plus `data/presyo.db` with the github-actions bot
-identity. It then sets up Node 20, builds the site with
-`make site VENV_PY=python`, and
-uploads `site/dist` as a workflow artifact (build only, no deploy).
+Ingest runs on the VPS (user `presyo`, non-root, Ubuntu x86_64,
+TZ <SERVER_TZ>), which is the ONLY writer of data. Layout:
+`$HOME/bin/presyo` (Go binary), `$HOME/bin/daily.sh`,
+`$HOME/data/presyo.db` (authoritative DB, NOT in git),
+`$HOME/data/raw` (PDF cache), `$HOME/logs`,
+`$HOME/repo` (git clone of this repo over SSH via the
+`git@<DEPLOY_KEY_HOST>:tomohiro-owada/presyo-bantay.git` remote, using a deploy
+key scoped to this repo only).
+
+Cron (07:15 and 23:15 server-TZ = 06:15 / 22:15 Manila, catching the DA evening
+posts):
+
+```cron
+<CRON_LINE_REMOVED>
+<CRON_LINE_REMOVED>
+```
+
+`daily.sh` (see `go/scripts/daily.sh`, covered by
+`go/scripts/daily_test.sh`): rotates `logs/daily.log` past 5 MB, takes a
+`flock`, `git pull --rebase` (continues on failure), then runs
+`presyo ingest`, `presyo fx`, `presyo export`, recording each exit code
+without aborting. Change detection: if the only diff is `generated_at` in
+`site/public/data/meta.json` (and nothing under `data/json`), it restores
+`meta.json` and treats the run as no-change; otherwise it commits
+`data/json` + `site/public/data` as `data: YYYY-MM-DD` (Manila date),
+`git pull --rebase`s and pushes (one retry). It exits non-zero if any step
+failed, but always pushes whatever succeeded. It never adds
+`data/presyo.db` or raw PDFs, never uses sudo, and never writes outside
+`$PRESYO_HOME`.
+
+`data/presyo.db` is NOT committed: it is a ~20-25 MB binary blob rewritten
+daily, and git history keeps every old copy forever, so tracking it would
+bloat the repo. The authoritative DB lives on the VPS; what IS committed is
+the exported site data (`site/public/data/`, ~3 MB compact JSON) plus the
+daily snapshots (`data/json/*.json`), which GitHub Pages builds from.
+
+Ship binary + script updates with `cd go && ./deploy.sh` (`DRY_RUN=1` to
+preview; it never touches crontab itself).
 
 ## Weekly automation
 
 `.github/workflows/weekly.yml` runs every Sunday at 08:00 Asia/Manila
 (`0 0 * * 0` UTC, plus `workflow_dispatch`): it installs dependencies, runs
 pytest, builds the summary with
-`python -m presyo_bantay summarize --week-ending $(TZ=Asia/Manila date +%F) --db data/presyo.db --out summary.html`,
+`python -m presyo_bantay summarize --week-ending $(TZ=Asia/Manila date +%F) --data-dir data/json --out summary.html`,
 and posts it with `post-telegram --file summary.html` using the
 `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` secrets (LLM secrets optional,
-commented out). Permissions: `contents: read`.
+commented out). `--data-dir` ingests the committed JSON snapshots into an
+in-memory DB, so no `data/presyo.db` is needed. Permissions:
+`contents: read`.
 
 ## Synthetic test fixtures
 
@@ -356,6 +404,6 @@ MIT — see `LICENSE`. Copyright 2026 Presyo Bantay contributors.
 
 ## 日本語概要
 
-Presyo Bantay（プレショ・バンタイ）は、フィリピン農業省（DA）が公表する日次価格モニタリング PDF を収集・解析し、ラス・ピニャス周辺の小売価格を JSON として記録する非営利の市民ツールです。最新の `Price-Monitoring` PDF を取得し、主要4市場（New Las Piñas、Alabang、La Huerta、Bicutan）のコメ・バングス・卵などの価格を抽出します。レイアウト変化を検出する sanity check と、毎日 06:00（マニラ時間）に実行される GitHub Actions ワークフローを備えています。ライセンスは MIT です。
+Presyo Bantay（プレショ・バンタイ）は、フィリピン農業省（DA）が公表する日次価格モニタリング PDF を収集・解析し、ラス・ピニャス周辺の小売価格を JSON として記録する非営利の市民ツールです。最新の `Price-Monitoring` PDF を取得し、主要4市場（New Las Piñas、Alabang、La Huerta、Bicutan）のコメ・バングス・卵などの価格を抽出します。レイアウト変化を検出する sanity check と、VPS 上で cron（日本時間 07:15／23:15＝マニラ時間 06:15／22:15）により毎日実行される Go バイナリ＋daily.sh パイプラインを備えています。SQLite の DB（`data/presyo.db`）はリポジトリ肥大化を避けるため git 管理外とし、VPS 上の正本と、コミットされる JSON スナップショット（`data/json/`）＋サイト用データ（`site/public/data/`）で運用します。ライセンスは MIT です。
 
 第2週の追加機能：スナップショットを SQLite（`data/presyo.db`）に取り込む `ingest`、価格推移を表示する `trend`、週次タガログ語サマリーを作成する `summarize`（HTML／MarkdownV2 対応、数値検証つきの任意 LLM 言い換えフックあり）、Telegram チャンネルへ投稿する `post-telegram`、毎週日曜 08:00（マニラ時間）にサマリーを投稿する `weekly.yml` ワークフローを追加しました。公開用ウェブサイト（`site/`、Vite + 素の TypeScript + uPlot、Taglish／英語切替つき）は `make site` で `site/dist` にビルドします。デプロイ先（Cloudflare Pages／GitHub Pages）は検討中です。過去の `Price-Monitoring` PDF を丁寧に一括取得する `backfill`（順次取得・間隔確保・再開可能・`data/backfill/state.json` に進捗記録）もあります。Telegram のセットアップは BotFather でボットを作成し、チャンネルの管理者に登録して、トークンとチャット ID を GitHub Secrets（`TELEGRAM_BOT_TOKEN`、`TELEGRAM_CHAT_ID`）に保存します。トークンをリポジトリにコミットしてはいけません。テストは `tests/fixtures/synthetic/` の合成データのみを使い、ネットワークには一切接続しません。

@@ -9,7 +9,7 @@ data/backfill/backfill.log
 node_modules/
 site/node_modules/
 site/dist/
-site/public/data/
+data/presyo.db
 *.db-wal
 *.db-shm
 *.db-journal

@@ -1,0 +1,159 @@
+#!/usr/bin/env bash
+# Daily ingest/export/push job for the presyo VPS.
+#
+# Runs on the VPS as user presyo from cron. The VPS is the ONLY writer of
+# data: ingest PDFs -> SQLite -> export site JSON -> commit + push.
+#
+# Layout (all overridable via env for tests):
+#   PRESYO_HOME=$HOME  REPO=$PRESYO_HOME/repo  DB=$PRESYO_HOME/data/presyo.db
+#   RAW=$PRESYO_HOME/data/raw  BIN=$PRESYO_HOME/bin/presyo  LOG=$PRESYO_HOME/logs/daily.log
+#
+# Flow: rotate log, take flock, git pull --rebase, run ingest/fx/export
+# (recording each exit code without aborting), commit+push data/json and
+# site/public/data (skipping the commit when only meta.json generated_at
+# changed), exit non-zero if anything failed.
+#
+# Never uses sudo and never writes outside $PRESYO_HOME.
+set -euo pipefail
+
+PRESYO_HOME="${PRESYO_HOME:-$HOME}"
+REPO="${REPO:-$PRESYO_HOME/repo}"
+DB="${DB:-$PRESYO_HOME/data/presyo.db}"
+RAW="${RAW:-$PRESYO_HOME/data/raw}"
+BIN="${BIN:-$PRESYO_HOME/bin/presyo}"
+LOG="${LOG:-$PRESYO_HOME/logs/daily.log}"
+LOCK="${LOCK:-$PRESYO_HOME/.daily.lock}"
+
+# Safety: every path we touch must live under $PRESYO_HOME.
+for p in "$REPO" "$DB" "$RAW" "$BIN" "$LOG" "$LOCK"; do
+  case "$p" in
+    "$PRESYO_HOME"/*) ;;
+    *)
+      echo "error: path $p is outside PRESYO_HOME=$PRESYO_HOME" >&2
+      exit 1
+      ;;
+  esac
+done
+
+mkdir -p "$PRESYO_HOME/logs" "$PRESYO_HOME/data" "$(dirname "$LOCK")"
+
+# Lock first so concurrent cron runs (and log rotation) cannot overlap.
+exec 9>"$LOCK"
+if ! flock -n 9; then
+  echo "daily.sh: already running, exiting"
+  exit 0
+fi
+
+# Simple log rotation: keep one old file.
+if [ -f "$LOG" ]; then
+  size="$(wc -c <"$LOG" 2>/dev/null || echo 0)"
+  if [ "${size:-0}" -gt 5242880 ]; then
+    mv -f "$LOG" "${LOG}.1"
+  fi
+fi
+
+# shellcheck disable=SC2094
+exec >>"$LOG" 2>&1
+
+ts() { date '+%Y-%m-%d %H:%M:%S %Z'; }
+echo "=== daily.sh start $(ts) ==="
+
+fail=0
+
+# Current snapshot dir first; a failure here must not stop the run.
+if ! git -C "$REPO" pull --rebase --quiet; then
+  echo "warning: initial git pull --rebase failed, continuing"
+fi
+
+mkdir -p "$RAW" "$(dirname "$DB")" "$REPO/data/json" "$REPO/site/public/data"
+
+ingest_rc=0
+fx_rc=0
+export_rc=0
+
+if "$BIN" ingest -db "$DB" -raw "$RAW" -json-dir "$REPO/data/json"; then
+  ingest_rc=0
+else
+  ingest_rc=$?
+  echo "error: presyo ingest failed (rc=$ingest_rc)"
+fi
+
+if "$BIN" fx -db "$DB"; then
+  fx_rc=0
+else
+  fx_rc=$?
+  echo "error: presyo fx failed (rc=$fx_rc)"
+fi
+
+if "$BIN" export -db "$DB" -out "$REPO/site/public/data"; then
+  export_rc=0
+else
+  export_rc=$?
+  echo "error: presyo export failed (rc=$export_rc)"
+fi
+
+[ "$ingest_rc" -ne 0 ] && fail=1
+[ "$fx_rc" -ne 0 ] && fail=1
+[ "$export_rc" -ne 0 ] && fail=1
+
+# --- change detection + commit + push (only these two dirs, never the DB) ---
+commit_rc=0
+push_rc=0
+
+json_status="$(git -C "$REPO" status --porcelain -- data/json || true)"
+site_status="$(git -C "$REPO" status --porcelain -- site/public/data || true)"
+
+only_generated_at=0
+if [ -z "$json_status" ] && [ -n "$site_status" ]; then
+  # Exactly one modified tracked meta.json and nothing else?
+  if [ "$site_status" = " M site/public/data/meta.json" ]; then
+    old_tmp="$(mktemp)"
+    new_tmp="$(mktemp)"
+    if git -C "$REPO" show "HEAD:site/public/data/meta.json" >"$old_tmp" 2>/dev/null; then
+      norm="s/\"generated_at\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/\"generated_at\":\"\"/g"
+      if [ "$(sed -E "$norm" "$old_tmp")" = "$(sed -E "$norm" "$REPO/site/public/data/meta.json")" ]; then
+        only_generated_at=1
+      fi
+    fi
+    rm -f "$old_tmp" "$new_tmp"
+  fi
+fi
+
+if [ -z "$json_status$site_status" ]; then
+  echo "no data changes, nothing to commit"
+elif [ "$only_generated_at" = "1" ]; then
+  git -C "$REPO" checkout -- site/public/data/meta.json
+  echo "only generated_at changed, restored meta.json, nothing to commit"
+else
+  git -C "$REPO" add data/json site/public/data
+  if git -C "$REPO" diff --cached --quiet; then
+    echo "nothing staged after add, nothing to commit"
+  else
+    today="$(TZ=Asia/Manila date +%F)"
+    if git -C "$REPO" commit -m "data: $today"; then
+      commit_rc=0
+    else
+      commit_rc=$?
+      echo "error: git commit failed (rc=$commit_rc)"
+      fail=1
+    fi
+    if [ "$commit_rc" -eq 0 ]; then
+      # Pull first so the push does not fail on a race, retry once.
+      if git -C "$REPO" pull --rebase && git -C "$REPO" push; then
+        push_rc=0
+      else
+        echo "warning: pull/push failed, retrying once"
+        if git -C "$REPO" pull --rebase && git -C "$REPO" push; then
+          push_rc=0
+        else
+          push_rc=$?
+          echo "error: git push failed after retry (rc=$push_rc)"
+          fail=1
+        fi
+      fi
+    fi
+  fi
+fi
+
+echo "=== daily.sh end $(ts) rc=$fail (ingest=$ingest_rc fx=$fx_rc export=$export_rc commit=$commit_rc push=$push_rc) ==="
+exit "$fail"
