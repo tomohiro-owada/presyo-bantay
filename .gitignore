@@ -5,3 +5,6 @@ data/raw/
 data/backfill/backfill.log
 .pytest_cache/
 .scratch/
+site/node_modules/
+site/dist/
+site/public/data/

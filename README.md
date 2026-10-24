@@ -146,6 +146,40 @@ so the output is correct even before `normalize-commodities` has run):
   baseline (5–10 day window), change %, and cheapest market among the
   default 4 and among all (reuses `summary.py` logic).
 
+## Website
+
+The public static site lives in `site/` (plain Vite + vanilla TypeScript +
+uPlot for charts: small bundle, no frameworks, no web fonts, no external CDNs
+at runtime, no tracking). Chart/table data is generated at build time from
+`data/presyo.db` via `export-site`; `site/public/data/` is gitignored and
+rebuilt on every build.
+
+Local dev (never write to `data/`; use the scratch copy):
+
+```bash
+cp data/presyo.db .scratch/x.db   # refresh the scratch copy when needed
+.venv/bin/python -m presyo_bantay export-site --db .scratch/x.db --out site/public/data
+cd site && npm install && npm run dev
+```
+
+Build and test:
+
+```bash
+make site        # export data from data/presyo.db + npm ci + vite build -> site/dist
+make test        # pytest + site vitest suite (stats.ts unit tests)
+```
+
+Deployment options (decision pending):
+
+- Cloudflare Pages: connect the repo (build command `make site`, output
+  directory `site/dist`) or `wrangler pages deploy site/dist`.
+- GitHub Pages: build `site/dist` in Actions and publish with
+  `actions/deploy-pages` (the build uses a relative `./` base, so it works on
+  project subpaths too).
+
+The daily workflow builds the site with `make site` and uploads `site/dist`
+as a workflow artifact (build only, no deploy yet).
+
 ## Weekly summary
 
 ```bash
@@ -272,9 +306,11 @@ mocked in fetch and FX tests).
 `.github/workflows/daily.yml` runs every day at 06:00 Asia/Manila
 (`0 22 * * *` UTC): it installs dependencies, runs pytest, runs
 `python -m presyo_bantay fetch --parse`, ingests snapshots with
-`python -m presyo_bantay ingest data/json`, and commits new
+`python -m presyo_bantay ingest data/json`, updates FX rates with
+`python -m presyo_bantay fx-update`, and commits new
 `data/json/*.json` files plus `data/presyo.db` with the github-actions bot
-identity.
+identity. It then sets up Node 20, builds the site with `make site`, and
+uploads `site/dist` as a workflow artifact (build only, no deploy).
 
 ## Weekly automation
 
@@ -316,4 +352,4 @@ MIT — see `LICENSE`. Copyright 2026 Presyo Bantay contributors.
 
 Presyo Bantay（プレショ・バンタイ）は、フィリピン農業省（DA）が公表する日次価格モニタリング PDF を収集・解析し、ラス・ピニャス周辺の小売価格を JSON として記録する非営利の市民ツールです。最新の `Price-Monitoring` PDF を取得し、主要4市場（New Las Piñas、Alabang、La Huerta、Bicutan）のコメ・バングス・卵などの価格を抽出します。レイアウト変化を検出する sanity check と、毎日 06:00（マニラ時間）に実行される GitHub Actions ワークフローを備えています。ライセンスは MIT です。
 
-第2週の追加機能：スナップショットを SQLite（`data/presyo.db`）に取り込む `ingest`、価格推移を表示する `trend`、週次タガログ語サマリーを作成する `summarize`（HTML／MarkdownV2 対応、数値検証つきの任意 LLM 言い換えフックあり）、Telegram チャンネルへ投稿する `post-telegram`、毎週日曜 08:00（マニラ時間）にサマリーを投稿する `weekly.yml` ワークフローを追加しました。過去の `Price-Monitoring` PDF を丁寧に一括取得する `backfill`（順次取得・間隔確保・再開可能・`data/backfill/state.json` に進捗記録）もあります。Telegram のセットアップは BotFather でボットを作成し、チャンネルの管理者に登録して、トークンとチャット ID を GitHub Secrets（`TELEGRAM_BOT_TOKEN`、`TELEGRAM_CHAT_ID`）に保存します。トークンをリポジトリにコミットしてはいけません。テストは `tests/fixtures/synthetic/` の合成データのみを使い、ネットワークには一切接続しません。
+第2週の追加機能：スナップショットを SQLite（`data/presyo.db`）に取り込む `ingest`、価格推移を表示する `trend`、週次タガログ語サマリーを作成する `summarize`（HTML／MarkdownV2 対応、数値検証つきの任意 LLM 言い換えフックあり）、Telegram チャンネルへ投稿する `post-telegram`、毎週日曜 08:00（マニラ時間）にサマリーを投稿する `weekly.yml` ワークフローを追加しました。公開用ウェブサイト（`site/`、Vite + 素の TypeScript + uPlot、Taglish／英語切替つき）は `make site` で `site/dist` にビルドします。デプロイ先（Cloudflare Pages／GitHub Pages）は検討中です。過去の `Price-Monitoring` PDF を丁寧に一括取得する `backfill`（順次取得・間隔確保・再開可能・`data/backfill/state.json` に進捗記録）もあります。Telegram のセットアップは BotFather でボットを作成し、チャンネルの管理者に登録して、トークンとチャット ID を GitHub Secrets（`TELEGRAM_BOT_TOKEN`、`TELEGRAM_CHAT_ID`）に保存します。トークンをリポジトリにコミットしてはいけません。テストは `tests/fixtures/synthetic/` の合成データのみを使い、ネットワークには一切接続しません。
