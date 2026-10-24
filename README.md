@@ -248,8 +248,9 @@ failed` summary, and appends both to `data/backfill/backfill.log`
 ## After the historical backfill finishes
 
 The backfill runs on this box (writing `data/json/*.json` plus the local
-`data/presyo.db`); the VPS cron must stay paused until the handover so the
-two writers never overlap. Cutover plan:
+`data/presyo.db`). The VPS cron keeps running meanwhile: it only ingests
+dates newer than its DB, while the backfill fills older dates into the box's
+own DB, so they never touch the same file. Pause cron only for the merge:
 
 1. On the VPS, pause cron (keep a backup to resume later):
    `crontab -l > ~/crontab.bak && crontab -r`
@@ -257,7 +258,8 @@ two writers never overlap. Cutover plan:
    `scp data/json/*.json <VPS_HOST>:repo/data/json/` (or a staging dir).
 3. On the VPS, load them into the authoritative DB (idempotent upsert):
    `presyo ingest-json -db $HOME/data/presyo.db <dir>`
-   (alternatively `sqlite3` with `ATTACH` + `INSERT OR IGNORE`).
+   (alternatively `sqlite3` with `ATTACH` + `INSERT OR IGNORE`; note the VPS has
+   no `sqlite3` CLI installed and installing it needs root, so prefer `ingest-json`).
 4. Run `$HOME/bin/daily.sh` once on the VPS so it exports the full
    site data and pushes one `data: YYYY-MM-DD` commit.
 5. On the VPS, resume cron: `crontab ~/crontab.bak`.
