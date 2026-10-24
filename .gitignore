@@ -4,3 +4,4 @@ __pycache__/
 data/raw/
 data/backfill/backfill.log
 .pytest_cache/
+.scratch/

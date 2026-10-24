@@ -34,3 +34,13 @@ CREATE INDEX IF NOT EXISTS idx_prices_market_commodity_date
 CREATE TABLE IF NOT EXISTS synthetic_dates (
   date TEXT PRIMARY KEY
 );
+
+-- USD/PHP reference rates (European Central Bank via Frankfurter).
+CREATE TABLE IF NOT EXISTS fx_rates (
+  date TEXT NOT NULL,
+  base TEXT NOT NULL,
+  quote TEXT NOT NULL,
+  rate REAL NOT NULL,
+  source TEXT NOT NULL,
+  UNIQUE(date, base, quote, source)
+);

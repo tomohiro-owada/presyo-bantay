@@ -493,9 +493,17 @@ def build_parser() -> argparse.ArgumentParser:
 
     from .backfill import build_backfill_parser as _backfill_parser
     from .reparse import build_reparse_parser as _reparse_parser
+    from .aliases import build_normalize_parser as _normalize_parser
+    from .fx import build_fx_parser as _fx_parser
+    from .stats import build_stats_parser as _stats_parser
+    from .export_site import build_export_parser as _export_parser
 
     _backfill_parser(sub)
     _reparse_parser(sub)
+    _normalize_parser(sub)
+    _fx_parser(sub)
+    _stats_parser(sub)
+    _export_parser(sub)
     return parser
 
 

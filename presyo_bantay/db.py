@@ -164,6 +164,16 @@ def ingest_payload(
         for commodity_name, entry in (items or {}).items():
             spec = entry.get("spec") if isinstance(entry, dict) else None
             unit = entry.get("unit") if isinstance(entry, dict) else None
+            # Store canonical commodity names (typo/case/qualifier variants
+            # collapse to one series); raw JSON payloads are left untouched.
+            from .aliases import canonicalize as _canonicalize
+
+            canonical, cspec, cunit, _ccat = _canonicalize(commodity_name)
+            if canonical != commodity_name:
+                spec, unit = cspec, cunit
+            else:
+                spec = spec if spec is not None else cspec
+                unit = unit if unit is not None else cunit
             price = entry.get("price") if isinstance(entry, dict) else None
             # Older JSON payloads lack price_low/price_high: fall back to
             # the (midpoint) price so they still load.
@@ -175,7 +185,7 @@ def ingest_payload(
                 price_high = entry.get("price_high")
             else:
                 price_high = price
-            commodity_id = _get_or_create_commodity(conn, commodity_name, spec, unit)
+            commodity_id = _get_or_create_commodity(conn, canonical, spec, unit)
             n_commodities += 1
             conn.execute(
                 "INSERT INTO prices (date, market_id, commodity_id, price,"

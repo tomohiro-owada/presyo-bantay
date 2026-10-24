@@ -72,6 +72,80 @@ payloads flagged `"synthetic": true` unless `--allow-synthetic` is given.
 `trend` matches market/item by case-insensitive substring and lists
 candidates when the match is ambiguous or missing.
 
+Commodity names are canonicalized on ingest (`presyo_bantay/aliases.py`):
+typos and qualifier variants that clearly mean the same item and spec
+collapse to one series (`Premium Rice (Loca)` → `Premium Rice (Local)`,
+`PREMIUM RICE (Imported, 5% broken)` → `Premium Rice (Imported)`, pure
+case/whitespace/`*` variants generally). Names that differ in spec stay
+separate but carry a `group` (`pork_kasim`, `pork_liempo`, `sugar`) so the
+site can show them as related series.
+
+```bash
+python -m presyo_bantay normalize-commodities --db data/presyo.db --dry-run
+python -m presyo_bantay normalize-commodities --db data/presyo.db
+```
+
+`normalize-commodities` is an idempotent DB migration for snapshots
+ingested before canonicalization existed: it moves each alias row's prices
+to the canonical commodity row (an existing non-null price wins, otherwise
+the alias price is taken), deletes the alias row, and commits per alias
+with a 30 s busy timeout. `--dry-run` only prints the merges.
+
+## USD/PHP reference rates
+
+```bash
+python -m presyo_bantay fx-update --db data/presyo.db
+python -m presyo_bantay fx-update --db data/presyo.db --since 2026-10-01 --until 2026-10-23
+```
+
+`fx-update` fetches daily USD/PHP rates from the keyless Frankfurter API
+(ECB reference rates) into the `fx_rates` table (`source='ECB via
+Frankfurter'`). Defaults: `--since` is the day after the latest stored FX
+date (or the earliest price date when empty), `--until` is today
+(Asia/Manila). One request per run; ranges over a year are split into
+yearly chunks with a 2 s delay. If `--since` is after `--until` nothing is
+downloaded. ECB publishes business days only, so weekends resolve as-of the
+previous business day (`fx.fx_asof`).
+
+Attribution: "USD/PHP: European Central Bank reference rates via
+Frankfurter (frankfurter.dev)".
+
+## Price/FX correlation
+
+```bash
+python -m presyo_bantay correlate --market 'Las Piñas' --item Bangus
+python -m presyo_bantay correlate --market 'Las Piñas' --item Bangus --days all --lags 0,7,14,30 --json
+```
+
+`correlate` prints the Pearson `r` and sample count `n` per lag: the price
+on date *d* is paired with the FX rate as-of *d − lag* (last available
+rate, skipped when more than 5 days stale). `r` is `None` with fewer than 3
+pairs or zero variance. Market/item matching is fuzzy, like `trend`.
+
+Note: correlation ≠ causation — a high `r` only says the two series moved
+together over the window, not that FX moves caused the price moves.
+
+## Site data export
+
+```bash
+python -m presyo_bantay export-site --db data/presyo.db --out site/public/data
+```
+
+`export-site` writes compact JSON for the static site (no indentation,
+short keys, prices rounded to 2 decimals; aliases canonicalized at export
+so the output is correct even before `normalize-commodities` has run):
+
+- `meta.json`: latest price date, generation time, markets (`id`, `name`,
+  `short`, `city`), commodities (`id`, `name`, `unit`, `category`,
+  `group`), the 4 default market ids (Las Piñas, Alabang, La Huerta,
+  Bicutan), FX/price attributions, date range.
+- `series/c<commodity_id>.json`: `{d: [...dates...], m: {market_id: [...]}}`
+  per commodity (all markets; the site fetches only the selected item).
+- `fx.json`: `{d: [...], r: [...]}` USD/PHP series.
+- `week.json`: per commodity, per market latest price, ~7-day-earlier
+  baseline (5–10 day window), change %, and cheapest market among the
+  default 4 and among all (reuses `summary.py` logic).
+
 ## Weekly summary
 
 ```bash
@@ -191,7 +265,7 @@ slightly (e.g. `La Huerta Market/Parañaque`, `Bicutan Market`).
 ```
 
 Tests use only the saved fixtures in `tests/fixtures/` (no network; HTTP is
-mocked in fetch tests).
+mocked in fetch and FX tests).
 
 ## Daily automation
 
