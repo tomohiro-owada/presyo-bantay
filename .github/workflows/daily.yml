@@ -31,11 +31,14 @@ jobs:
       - name: Fetch and parse latest prices
         run: python -m presyo_bantay fetch --parse
 
-      - name: Commit updated JSON
+      - name: Ingest snapshots into SQLite
+        run: python -m presyo_bantay ingest data/json
+
+      - name: Commit updated JSON and DB
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/json/*.json
+          git add data/json/*.json data/presyo.db
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else

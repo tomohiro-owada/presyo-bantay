@@ -1,0 +1,42 @@
+name: weekly
+
+on:
+  schedule:
+    # Sunday 00:00 UTC = Sunday 08:00 Asia/Manila.
+    - cron: "0 0 * * 0"
+  workflow_dispatch:
+
+jobs:
+  weekly-summary:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Run tests
+        run: python -m pytest -q
+
+      - name: Build weekly summary
+        run: python -m presyo_bantay summarize --week-ending $(TZ=Asia/Manila date +%F) --db data/presyo.db --out summary.html
+        # Optional LLM rephrase (uncomment after setting the secrets):
+        # env:
+        #   PRESYO_LLM_BASE_URL: ${{ secrets.PRESYO_LLM_BASE_URL }}
+        #   PRESYO_LLM_API_KEY: ${{ secrets.PRESYO_LLM_API_KEY }}
+        #   PRESYO_LLM_MODEL: ${{ secrets.PRESYO_LLM_MODEL }}
+        # run: python -m presyo_bantay summarize --week-ending $(TZ=Asia/Manila date +%F) --db data/presyo.db --out summary.html --llm
+
+      - name: Post to Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python -m presyo_bantay post-telegram --file summary.html
