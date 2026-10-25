@@ -386,6 +386,38 @@ area-deal); `internal/fbchart.RenderWeekly` renders the 1080x1350 PNG.
   `$BIN fbweekly -db $DB -auto -site-public $REPO/site/public`.
   Test it with `scripts/weekly_test.sh` (fake BIN, no network).
 
+## Household utilities (prototype)
+
+Dry-run only prototype for household utility costs (fuel / LPG /
+Meralco / Maynilad): fetch + parse official public sources, render
+sample Facebook-style post images + trilingual captions locally. No
+Facebook code, no posting, no cron/VPS changes.
+
+```sh
+./bin/presyo utilities fetch -cache /tmp/ucache -out /tmp/snapshot.json [-city "Las Piñas"] [-max-oil 6]
+./bin/presyo utilities render -snapshot /tmp/snapshot.json -kind fuel|bills -out-dir /tmp/uout
+```
+
+- `utilities fetch` is the ONLY network-touching mode (DOE Oil
+  Monitor + NCR pump/LPG pages, Meralco news releases, Maynilad
+  interruption/maintenance endpoints; same UA as the daily pipeline,
+  60 s timeout, one attempt per URL, ≥ 5 s between two requests to
+  the same host, PDFs cached by file name). Writes indented
+  `snapshot.json`. Exit 0 even with partial source errors (to
+  stderr), 1 if nothing parsed.
+- `utilities render` is offline: writes `<kind>.txt` (TL/EN/JA post),
+  `<kind>.png` (1080x1350 compact chart, same style as the weekly
+  chart) and `<kind>.check.json` (`{ok, problems}`); exit 3 when the
+  checker fails. Kinds: `fuel` (newest DOE oil adjustment + the NCR
+  pump week before it) and `bills` (newest Meralco rate + LPG months
+  + Maynilad status for the city).
+- Sources: DOE Oil Monitor / NCR pump / NCR LPG PDFs (parsed with the
+  existing pure-Go `internal/pdftext`), Meralco rate releases,
+  Maynilad advisories. Every number in text/charts comes from parsed
+  data or a documented derivation (10× fuel amounts, LPG
+  month-on-month diff, 200 kWh impact); missing fields omit their
+  line. See `internal/utilities` and `UTILITIES_SPEC.md`.
+
 ## Deploy
 
 `deploy.sh` builds the static binary and ships it plus `scripts/daily.sh`

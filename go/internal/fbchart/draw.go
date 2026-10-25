@@ -21,6 +21,10 @@ var (
 	mutCol  = color.RGBA{0x3D, 0x6B, 0x4A, 0xFF}
 	white   = color.RGBA{0xFF, 0xFF, 0xFF, 0xFF}
 	zeroCol = color.RGBA{0x14, 0x35, 0x1F, 0xFF}
+	// Light fills for the utilities history diesel bars (same hues as
+	// green/red, readable on cream; inside labels use the dark hue).
+	greenLt = color.RGBA{0x5C, 0x90, 0x6E, 0xFF}
+	redLt   = color.RGBA{0xE8, 0x76, 0x58, 0xFF}
 )
 
 var (
