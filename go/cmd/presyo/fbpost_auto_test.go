@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
@@ -182,6 +184,41 @@ func TestAutoStale(t *testing.T) {
 	}
 	if _, err := os.Stat(e.out); !os.IsNotExist(err) {
 		t.Error("stale D: nothing should render")
+	}
+}
+
+func TestAutoDryRunNeverTouchesNetworkOrState(t *testing.T) {
+	e := setupAuto(t, []string{"2026-10-24"})
+	// No credentials: dry-run must not need them.
+	t.Setenv("PRESYO_FB_PAGE_ID", "")
+	t.Setenv("PRESYO_FB_PAGE_TOKEN", "")
+	var hits int
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hits++
+	}))
+	defer srv.Close()
+	before := []byte(`{"posts":[]}`)
+	if err := os.WriteFile(e.state, before, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	args := []string{"fbpost", "-db", e.db, "-auto", "-dry-run",
+		"-out-dir", e.out, "-state", e.state,
+		"-graph-base", srv.URL, "-now", "2026-10-24T07:00:00+08:00"}
+	if code := run(args); code != 0 {
+		t.Fatalf("exit = %d", code)
+	}
+	if hits != 0 {
+		t.Errorf("auto dry-run must make no HTTP request, hits = %d", hits)
+	}
+	after, err := os.ReadFile(e.state)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(after) != string(before) {
+		t.Errorf("state file changed by dry-run: before %q after %q", before, after)
+	}
+	if _, err := os.Stat(filepath.Join(e.out, "south.txt")); err != nil {
+		t.Errorf("auto dry-run should render south.txt: %v", err)
 	}
 }
 

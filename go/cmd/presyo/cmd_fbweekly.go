@@ -131,6 +131,38 @@ type fbweeklyOptions struct {
 	now         time.Time
 }
 
+// fbweeklyOutDir resolves the output directory for weekly artifacts.
+func fbweeklyOutDir(opt fbweeklyOptions) string {
+	if opt.outDir != "" {
+		return opt.outDir
+	}
+	if os.Getenv("PRESYO_HOME") == "" {
+		return filepath.Join("fbweekly", opt.week)
+	}
+	return filepath.Join(opt.presyoHome, "fbweekly", opt.week)
+}
+
+// writeFrozenDryRun stages the frozen page text+PNG into the out dir for
+// dry-run runs (no network, no credentials, no state write).
+func writeFrozenDryRun(opt fbweeklyOptions, frozen *frozenWeek) (txtPath, pngPath string, rc int) {
+	out := fbweeklyOutDir(opt)
+	if err := os.MkdirAll(out, 0o755); err != nil {
+		fmt.Fprintf(os.Stderr, "fbweekly: error: %s\n", err.Error())
+		return "", "", 1
+	}
+	txtPath = filepath.Join(out, "weekly.txt")
+	pngPath = filepath.Join(out, "weekly.png")
+	if err := os.WriteFile(txtPath, []byte(frozen.doc.Text+"\n"), 0o644); err != nil {
+		fmt.Fprintf(os.Stderr, "fbweekly: error: %s\n", err.Error())
+		return "", "", 1
+	}
+	if err := os.WriteFile(pngPath, frozen.png, 0o644); err != nil {
+		fmt.Fprintf(os.Stderr, "fbweekly: error: %s\n", err.Error())
+		return "", "", 1
+	}
+	return txtPath, pngPath, 0
+}
+
 func fbweeklyRun(db *sql.DB, opt fbweeklyOptions) int {
 	manila := opt.now.In(manilaZone)
 
@@ -212,6 +244,16 @@ func fbweeklyRun(db *sql.DB, opt fbweeklyOptions) int {
 			fmt.Fprintf(os.Stderr, "fbweekly: auto skip: last post %s ago (< %s)\n", manila.Sub(latest).Truncate(time.Second), opt.minGap)
 			return 0
 		}
+		// Auto + dry-run: stage frozen bytes locally, never post.
+		if opt.dryRun {
+			txtPath, pngPath, rc := writeFrozenDryRun(opt, frozen)
+			if rc != 0 {
+				return rc
+			}
+			fmt.Fprintf(os.Stderr, "fbweekly: auto selected week=%s (dry-run, not posted)\n", opt.week)
+			fmt.Printf("dry-run: %s %s\n", txtPath, pngPath)
+			return 0
+		}
 		// Post the frozen page.
 		return fbweeklyPost(frozen.doc.Text, frozen.png, opt, nil)
 	}
@@ -245,14 +287,7 @@ func fbweeklyRun(db *sql.DB, opt fbweeklyOptions) int {
 			return 1
 		}
 		// Write files.
-		out := opt.outDir
-		if out == "" {
-			if os.Getenv("PRESYO_HOME") == "" {
-				out = filepath.Join("fbweekly", opt.week)
-			} else {
-				out = filepath.Join(opt.presyoHome, "fbweekly", opt.week)
-			}
-		}
+		out := fbweeklyOutDir(opt)
 		if err := os.MkdirAll(out, 0o755); err != nil {
 			fmt.Fprintf(os.Stderr, "fbweekly: error: %s\n", err.Error())
 			return 1
@@ -304,20 +339,17 @@ func fbweeklyRun(db *sql.DB, opt fbweeklyOptions) int {
 			return 0
 		}
 	}
-	if opt.dryRun {
-		fmt.Printf("dry-run: %s (frozen page)\n", filepath.Join(opt.sitePublic, "w", opt.week))
+	if opt.dryRun && frozen != nil {
+		txtPath, pngPath, rc := writeFrozenDryRun(opt, frozen)
+		if rc != 0 {
+			return rc
+		}
+		fmt.Printf("dry-run: %s %s\n", txtPath, pngPath)
 		return 0
 	}
 	if frozen != nil {
 		// Stage the frozen PNG under the out dir for the uploader.
-		out := opt.outDir
-		if out == "" {
-			if os.Getenv("PRESYO_HOME") == "" {
-				out = filepath.Join("fbweekly", opt.week)
-			} else {
-				out = filepath.Join(opt.presyoHome, "fbweekly", opt.week)
-			}
-		}
+		out := fbweeklyOutDir(opt)
 		if err := os.MkdirAll(out, 0o755); err != nil {
 			fmt.Fprintf(os.Stderr, "fbweekly: error: %s\n", err.Error())
 			return 1

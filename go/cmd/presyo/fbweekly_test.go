@@ -160,10 +160,116 @@ func TestFBWeeklyDryRunFresh(t *testing.T) {
 func TestFBWeeklyFrozenDryRun(t *testing.T) {
 	e := setupWeekly(t)
 	e.bakeFrozen(t, "2026-W43")
+	t.Setenv("PRESYO_FB_PAGE_ID", "")
+	t.Setenv("PRESYO_FB_PAGE_TOKEN", "")
+	var hits int
+	srv := graphOK(t, &hits)
+	defer srv.Close()
 	args := []string{"fbweekly", "-db", e.db, "-week", "2026-W43",
-		"-dry-run", "-out-dir", e.out, "-state", e.state, "-site-public", e.site}
+		"-dry-run", "-out-dir", e.out, "-state", e.state, "-site-public", e.site,
+		"-graph-base", srv.URL}
 	if code := run(args); code != 0 {
 		t.Fatalf("exit = %d", code)
+	}
+	if hits != 0 {
+		t.Errorf("dry-run must make no HTTP request, hits = %d", hits)
+	}
+	// Frozen bytes must be staged into the out dir.
+	txt, err := os.ReadFile(filepath.Join(e.out, "weekly.txt"))
+	if err != nil {
+		t.Fatalf("missing weekly.txt: %v", err)
+	}
+	png, err := os.ReadFile(filepath.Join(e.out, "weekly.png"))
+	if err != nil {
+		t.Fatalf("missing weekly.png: %v", err)
+	}
+	wantJSON, err := os.ReadFile(filepath.Join(e.site, "w", "2026-W43", "week.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var wantDoc struct {
+		Text string `json:"text"`
+	}
+	if err := json.Unmarshal(wantJSON, &wantDoc); err != nil {
+		t.Fatal(err)
+	}
+	if string(txt) != wantDoc.Text+"\n" {
+		t.Error("weekly.txt does not match frozen page text")
+	}
+	wantPNG, err := os.ReadFile(filepath.Join(e.site, "w", "2026-W43", "week.png"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(png) != string(wantPNG) {
+		t.Error("weekly.png does not match frozen page PNG")
+	}
+}
+
+func TestFBWeeklyAutoDryRunNoPost(t *testing.T) {
+	e := setupWeekly(t)
+	e.bakeFrozen(t, "2026-W43")
+	// No credentials: dry-run must not need them.
+	t.Setenv("PRESYO_FB_PAGE_ID", "")
+	t.Setenv("PRESYO_FB_PAGE_TOKEN", "")
+	var hits int
+	srv := graphOK(t, &hits)
+	defer srv.Close()
+	// Pre-existing state; dry-run must leave it byte-identical.
+	before := []byte(`{"posts":[]}`)
+	if err := os.WriteFile(e.state, before, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	args := []string{"fbweekly", "-db", e.db, "-auto", "-week", "2026-W43",
+		"-dry-run", "-site-public", e.site, "-state", e.state, "-graph-base", srv.URL,
+		"-out-dir", e.out, "-now", "2026-10-25T18:30:00+08:00"}
+	if code := run(args); code != 0 {
+		t.Fatalf("exit = %d", code)
+	}
+	if hits != 0 {
+		t.Errorf("auto dry-run must make no HTTP request, hits = %d", hits)
+	}
+	after, err := os.ReadFile(e.state)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(after) != string(before) {
+		t.Errorf("state file changed by dry-run: before %q after %q", before, after)
+	}
+	if _, err := os.Stat(e.state + ".lock"); !os.IsNotExist(err) {
+		t.Error("dry-run must not take the state lock")
+	}
+	for _, f := range []string{"weekly.txt", "weekly.png"} {
+		if _, err := os.Stat(filepath.Join(e.out, f)); err != nil {
+			t.Errorf("missing %s: %v", f, err)
+		}
+	}
+	txt, err := os.ReadFile(filepath.Join(e.out, "weekly.txt"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantJSON, err := os.ReadFile(filepath.Join(e.site, "w", "2026-W43", "week.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var wantDoc struct {
+		Text string `json:"text"`
+	}
+	if err := json.Unmarshal(wantJSON, &wantDoc); err != nil {
+		t.Fatal(err)
+	}
+	if string(txt) != wantDoc.Text+"\n" {
+		t.Error("weekly.txt does not match frozen page text")
+	}
+	wantPNG, err := os.ReadFile(filepath.Join(e.site, "w", "2026-W43", "week.png"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	gotPNG, err := os.ReadFile(filepath.Join(e.out, "weekly.png"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(gotPNG) != string(wantPNG) {
+		t.Error("weekly.png does not match frozen page PNG")
 	}
 }
 
