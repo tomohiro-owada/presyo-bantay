@@ -71,6 +71,7 @@ ingest_rc=0
 fx_rc=0
 export_rc=0
 daypages_rc=0
+weekpages_rc=0
 
 if "$BIN" ingest -db "$DB" -raw "$RAW" -json-dir "$REPO/data/json"; then
   ingest_rc=0
@@ -139,6 +140,21 @@ else
   fi
 fi
 
+# Static Sunday weekly report pages (weekpages, on by default unless
+# PRESYO_WEEKPAGES=0). A failure is logged and fails the run but must not
+# block the commit/push of the other data below.
+if [ "${PRESYO_WEEKPAGES:-1}" = "0" ]; then
+  echo "weekpages skipped (PRESYO_WEEKPAGES=0)"
+else
+  if "$BIN" weekpages -db "$DB" -site-public "$REPO/site/public"; then
+    weekpages_rc=0
+  else
+    weekpages_rc=$?
+    echo "error: presyo weekpages failed (rc=$weekpages_rc)"
+    fail=1
+  fi
+fi
+
 # --- change detection + commit + push (only these dirs, never the DB) ---
 commit_rc=0
 push_rc=0
@@ -146,9 +162,10 @@ push_rc=0
 json_status="$(git -C "$REPO" status --porcelain -- data/json || true)"
 site_status="$(git -C "$REPO" status --porcelain -- site/public/data || true)"
 days_status="$(git -C "$REPO" status --porcelain -- site/public/d || true)"
+weeks_status="$(git -C "$REPO" status --porcelain -- site/public/w || true)"
 
 only_generated_at=0
-if [ -z "$json_status" ] && [ -z "$days_status" ] && [ -n "$site_status" ]; then
+  if [ -z "$json_status" ] && [ -z "$days_status" ] && [ -z "$weeks_status" ] && [ -n "$site_status" ]; then
   # Exactly one modified tracked meta.json and nothing else?
   if [ "$site_status" = " M site/public/data/meta.json" ]; then
     old_tmp="$(mktemp)"
@@ -163,13 +180,13 @@ if [ -z "$json_status" ] && [ -z "$days_status" ] && [ -n "$site_status" ]; then
   fi
 fi
 
-if [ -z "$json_status$site_status$days_status" ]; then
-  echo "no data changes, nothing to commit"
-elif [ "$only_generated_at" = "1" ]; then
+  if [ -z "$json_status$site_status$days_status$weeks_status" ]; then
+    echo "no data changes, nothing to commit"
+  elif [ "$only_generated_at" = "1" ]; then
   git -C "$REPO" checkout -- site/public/data/meta.json
   echo "only generated_at changed, restored meta.json, nothing to commit"
 else
-  git -C "$REPO" add data/json site/public/data site/public/d
+    git -C "$REPO" add data/json site/public/data site/public/d site/public/w
   if git -C "$REPO" diff --cached --quiet; then
     echo "nothing staged after add, nothing to commit"
   else
@@ -199,5 +216,5 @@ else
   fi
 fi
 
-echo "=== daily.sh end $(ts) rc=$fail (ingest=$ingest_rc fx=$fx_rc export=$export_rc deals=$deals_rc daypages=$daypages_rc commit=$commit_rc push=$push_rc) ==="
+echo "=== daily.sh end $(ts) rc=$fail (ingest=$ingest_rc fx=$fx_rc export=$export_rc deals=$deals_rc daypages=$daypages_rc weekpages=$weekpages_rc commit=$commit_rc push=$push_rc) ==="
 exit "$fail"

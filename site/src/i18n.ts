@@ -59,6 +59,9 @@ export interface Strings {
   daysTitle: string;
   daysLatest: (date: string) => string;
   daysAll: string;
+  weeksTitle: string;
+  weeksLatest: (date: string) => string;
+  weeksAll: string;
   chartTitle: string;
   chartHint: string;
   weekTitle: string;
@@ -121,6 +124,9 @@ const tl: Strings = {
   daysTitle: "Araw-araw na ulat",
   daysLatest: (date) => `Tingnan ang ulat ngayong ${date} — 5 rehiyon →`,
   daysAll: "Lahat ng ulat →",
+  weeksTitle: "Lingguhang ulat",
+  weeksLatest: (date) => `Tingnan ang lingguhang ulat ${date} →`,
+  weeksAll: "Lahat ng lingguhang ulat →",
   chartTitle: "Presyo sa paglipas ng panahon",
   chartHint: "I-hover o i-tap ang chart para makita ang presyo kada araw.",
   weekTitle: "Ngayong linggo",
@@ -189,6 +195,9 @@ const en: Strings = {
   daysTitle: "Daily reports",
   daysLatest: (date) => `See the ${date} report — 5 areas →`,
   daysAll: "All reports →",
+  weeksTitle: "Weekly reports",
+  weeksLatest: (date) => `See the ${date} weekly report →`,
+  weeksAll: "All weekly reports →",
   chartTitle: "Price over time",
   chartHint: "Hover or tap the chart to see daily prices.",
   weekTitle: "This week",
@@ -254,6 +263,9 @@ const ja: Strings = {
   daysTitle: "毎日のレポート",
   daysLatest: (date) => `${date}のレポート（5地域）→`,
   daysAll: "すべてのレポート →",
+  weeksTitle: "週間レポート",
+  weeksLatest: (date) => `${date}の週間レポート →`,
+  weeksAll: "すべての週間レポート →",
   chartTitle: "価格の推移",
   chartHint: "チャートにホバーまたはタップすると毎日の価格が表示されます。",
   weekTitle: "今週",

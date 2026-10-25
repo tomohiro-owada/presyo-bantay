@@ -21,6 +21,7 @@ import (
 	"github.com/tomohiro-owada/presyo-bantay/go/internal/regionrender"
 	"github.com/tomohiro-owada/presyo-bantay/go/internal/regions"
 	"github.com/tomohiro-owada/presyo-bantay/go/internal/signals"
+	"github.com/tomohiro-owada/presyo-bantay/go/internal/weekly"
 )
 
 // manilaZone is Asia/Manila (UTC+8, no DST) as a fixed zone so the static
@@ -159,12 +160,60 @@ func cmdFBPost(argv []string) int {
 	}
 	defer db.Close()
 
+	// Resolve the state path early so the lock file is known.
+	stPath := *statePath
+	if stPath == "" {
+		stPath = filepath.Join(presyoHome, "state", "fbpost.json")
+	}
+
+	body := func() int {
+		return fbpostBody(db, fbpostParams{
+			regionID: *regionID, dateFlag: *dateFlag, outDir: *outDir,
+			dryRun: *dryRun, statePath: stPath, envFile: *envFile,
+			maxAge: *maxAge, disableFile: *disableFile, graphBase: *graphBase,
+			useLLM: *useLLM, autoMode: *autoMode, windowStart: *windowStart,
+			windowEnd: *windowEnd, minGap: *minGap, nowFlag: *nowFlag,
+			presyoHome: presyoHome,
+		})
+	}
+	if *dryRun {
+		return body()
+	}
+	// Serialize read-check-post-write with fbweekly through the
+	// state lock file.
+	return withStateLock(stPath, body)
+}
+
+// fbpostParams carries cmdFBPost flag values into fbpostBody.
+type fbpostParams struct {
+	regionID    string
+	dateFlag    string
+	outDir      string
+	dryRun      bool
+	statePath   string
+	envFile     string
+	maxAge      int
+	disableFile string
+	graphBase   string
+	useLLM      bool
+	autoMode    bool
+	windowStart string
+	windowEnd   string
+	minGap      time.Duration
+	nowFlag     string
+	presyoHome  string
+}
+
+func fbpostBody(db *sql.DB, p fbpostParams) int {
+	regionID := p.regionID
+	dateFlag := p.dateFlag
+
 	// -auto: decide which region is due (at most one post per run).
-	if *autoMode {
+	if p.autoMode {
 		next, asOf, ok := autoSelect(db, autoOptions{
-			nowFlag: *nowFlag, windowStart: *windowStart,
-			windowEnd: *windowEnd, minGap: *minGap,
-			statePath: *statePath, presyoHome: presyoHome,
+			nowFlag: p.nowFlag, windowStart: p.windowStart,
+			windowEnd: p.windowEnd, minGap: p.minGap,
+			statePath: p.statePath, presyoHome: p.presyoHome,
 		})
 		if !ok {
 			return 0 // skip reason already logged
@@ -172,12 +221,12 @@ func cmdFBPost(argv []string) int {
 		if next == "" {
 			return 0
 		}
-		*regionID = next
-		*dateFlag = asOf
+		regionID = next
+		dateFlag = asOf
 	}
 
 	// 1. Region signals.
-	sig, err := signals.ComputeRegion(db, *regionID, signals.RegionOptions{AsOf: *dateFlag})
+	sig, err := signals.ComputeRegion(db, regionID, signals.RegionOptions{AsOf: dateFlag})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "fbpost: error: %s\n", err.Error())
 		return 1
@@ -194,7 +243,7 @@ func cmdFBPost(argv []string) int {
 	nowManila := time.Now().In(manilaZone)
 	todayDate := time.Date(nowManila.Year(), nowManila.Month(), nowManila.Day(), 0, 0, 0, 0, manilaZone)
 	ageDays := int(todayDate.Sub(asOfT).Hours() / 24)
-	if ageDays > *maxAge {
+	if ageDays > p.maxAge {
 		fmt.Fprintf(os.Stderr, "fbpost: stale data, skip (as-of %s, %d days old)\n", sig.AsOf, ageDays)
 		return 0
 	}
@@ -205,7 +254,7 @@ func cmdFBPost(argv []string) int {
 		fmt.Fprintf(os.Stderr, "fbpost: error: %s\n", rerr.Error())
 		return 1
 	}
-	if *useLLM {
+	if p.useLLM {
 		if rw, rerr := fbregion.RewriteWithLLM(text, advice.DefaultModel, "opencode", 10*time.Minute); rerr != nil {
 			fmt.Fprintf(os.Stderr, "fbpost: WARNING llm rewrite failed, using template (%s)\n", rerr.Error())
 		} else if rep2, cerr := checkRegionPost(sig, rw); cerr == nil && rep2.Status == fbregion.StatusPass {
@@ -217,22 +266,22 @@ func cmdFBPost(argv []string) int {
 	}
 
 	// 4. Write <region>.txt/.png/.signals.json/.check.json.
-	out := *outDir
+	out := p.outDir
 	if out == "" {
 		if os.Getenv("PRESYO_HOME") == "" {
 			out = filepath.Join("fbpost", sig.AsOf)
 		} else {
-			out = filepath.Join(presyoHome, "fbpost", sig.AsOf)
+			out = filepath.Join(p.presyoHome, "fbpost", sig.AsOf)
 		}
 	}
 	if err := os.MkdirAll(out, 0o755); err != nil {
 		fmt.Fprintf(os.Stderr, "fbpost: error: %s\n", err.Error())
 		return 1
 	}
-	txtPath := filepath.Join(out, *regionID+".txt")
-	pngPath := filepath.Join(out, *regionID+".png")
-	sigPath := filepath.Join(out, *regionID+".signals.json")
-	checkPath := filepath.Join(out, *regionID+".check.json")
+	txtPath := filepath.Join(out, regionID+".txt")
+	pngPath := filepath.Join(out, regionID+".png")
+	sigPath := filepath.Join(out, regionID+".signals.json")
+	checkPath := filepath.Join(out, regionID+".check.json")
 	if err := os.WriteFile(txtPath, []byte(text+"\n"), 0o644); err != nil {
 		fmt.Fprintf(os.Stderr, "fbpost: error: %s\n", err.Error())
 		return 1
@@ -276,15 +325,15 @@ func cmdFBPost(argv []string) int {
 	}
 
 	// 5. Dry run: no network, token not needed.
-	if *dryRun {
+	if p.dryRun {
 		fmt.Printf("dry-run: %s %s %s %s\n", txtPath, pngPath, sigPath, checkPath)
 		return 0
 	}
 
 	// 6. Disable file.
-	disPath := *disableFile
+	disPath := p.disableFile
 	if disPath == "" {
-		disPath = filepath.Join(presyoHome, ".config", "presyo", "fbpost.disabled")
+		disPath = filepath.Join(p.presyoHome, ".config", "presyo", "fbpost.disabled")
 	}
 	if _, err := os.Stat(disPath); err == nil {
 		fmt.Fprintf(os.Stderr, "fbpost: disabled (%s exists), skip\n", disPath)
@@ -292,9 +341,9 @@ func cmdFBPost(argv []string) int {
 	}
 
 	// 7. State dedupe.
-	stPath := *statePath
+	stPath := p.statePath
 	if stPath == "" {
-		stPath = filepath.Join(presyoHome, "state", "fbpost.json")
+		stPath = filepath.Join(p.presyoHome, "state", "fbpost.json")
 	}
 	st, err := loadFBState(stPath)
 	if err != nil {
@@ -302,7 +351,7 @@ func cmdFBPost(argv []string) int {
 		return 1
 	}
 	for _, p := range st.Posts {
-		if p.Region == *regionID && p.AsOf == sig.AsOf {
+		if p.Region == regionID && p.AsOf == sig.AsOf {
 			fmt.Fprintf(os.Stderr, "fbpost: already posted (region=%s as-of=%s post_id=%s), skip\n",
 				p.Region, p.AsOf, p.PostID)
 			return 0
@@ -310,9 +359,9 @@ func cmdFBPost(argv []string) int {
 	}
 
 	// 8. Credentials: env file then same-named env vars override.
-	envPath := *envFile
+	envPath := p.envFile
 	if envPath == "" {
-		envPath = filepath.Join(presyoHome, ".config", "presyo", "fb.env")
+		envPath = filepath.Join(p.presyoHome, ".config", "presyo", "fb.env")
 	}
 	pageID, token := "", ""
 	if data, rerr := readEnvFile(envPath); rerr == nil {
@@ -339,20 +388,20 @@ func cmdFBPost(argv []string) int {
 	}
 
 	// 9. POST multipart to {graph-base}/{page-id}/photos (one attempt).
-	postID, photoID, gerr := postPhoto(*graphBase, pageID, token, text, pngPath)
+	postID, photoID, gerr := postPhoto(p.graphBase, pageID, token, text, pngPath)
 	if gerr != nil {
 		fmt.Fprintf(os.Stderr, "fbpost: error: %s\n", scrub(gerr.Error()))
 		return 1
 	}
 	st.Posts = append(st.Posts, fbPostEntry{
-		Region: *regionID, AsOf: sig.AsOf, PostID: postID, PhotoID: photoID,
+		Region: regionID, AsOf: sig.AsOf, PostID: postID, PhotoID: photoID,
 		PostedAt: time.Now().In(manilaZone).Format(time.RFC3339),
 	})
 	if err := saveFBState(stPath, st); err != nil {
 		fmt.Fprintf(os.Stderr, "fbpost: error: %s\n", scrub(err.Error()))
 		return 1
 	}
-	fmt.Printf("fbpost: posted region=%s as-of=%s post_id=%s\n", *regionID, sig.AsOf, postID)
+	fmt.Printf("fbpost: posted region=%s as-of=%s post_id=%s\n", regionID, sig.AsOf, postID)
 	return 0
 }
 
@@ -516,12 +565,32 @@ func autoSelect(db *sql.DB, opt autoOptions) (string, string, bool) {
 	posted := map[string]bool{}
 	var latest time.Time
 	for _, p := range st.Posts {
-		if p.Region != "" && p.AsOf == D {
+		// "weekly" entries never satisfy a region slot, but they
+		// still count for the min-gap spacing below.
+		if p.Region != "" && p.Region != "weekly" && p.AsOf == D {
 			posted[p.Region] = true
 		}
 		if t, err := time.Parse(time.RFC3339, p.PostedAt); err == nil {
 			if t.After(latest) {
 				latest = t
+			}
+		}
+	}
+	// Sunday hold: on Sunday Manila from 16:00 until the weekly post for
+	// this week exists or 20:00, daily -auto skips ("holding for weekly
+	// post").
+	if manila.Weekday() == time.Sunday {
+		if tod >= 16*60 && tod < 20*60 {
+			w := weekly.WeekIDOf(manila)
+			hasWeekly := false
+			for _, p := range st.Posts {
+				if p.Region == "weekly" && p.AsOf == w {
+					hasWeekly = true
+					break
+				}
+			}
+			if !hasWeekly {
+				return skip("holding for weekly post (week %s)", w)
 			}
 		}
 	}

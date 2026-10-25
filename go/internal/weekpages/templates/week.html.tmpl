@@ -1,0 +1,104 @@
+{{define "week"}}<!doctype html>
+<html lang="fil">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Title}}</title>
+<meta name="description" content="{{.Description}}">
+<link rel="canonical" href="{{.Canonical}}">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Presyo Bantay">
+<meta property="og:title" content="{{.Title}}">
+<meta property="og:description" content="{{.Description}}">
+<meta property="og:url" content="{{.Canonical}}">
+{{if .OGImage}}<meta property="og:image" content="{{.OGImage}}">
+<meta property="og:image:width" content="1080">
+<meta property="og:image:height" content="1350">
+<meta property="og:image:alt" content="{{.OGAlt}}">
+{{end}}<meta property="og:locale" content="fil_PH">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:locale:alternate" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{.Title}}">
+<meta name="twitter:description" content="{{.Description}}">
+{{if .OGImage}}<meta name="twitter:image" content="{{.OGImage}}">
+{{end}}<meta property="article:published_time" content="{{.Published}}">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-VL047YCMK8"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-VL047YCMK8');</script>
+<style>
+:root{--bg:#faf8f2;--card:#fff;--ink:#1c1a15;--muted:#5c5648;--line:#e2dccb;--accent:#0b5d3b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;line-height:1.5;font-size:16px}
+.wrap{max-width:880px;margin:0 auto;padding:0 12px}
+.site-header{background:var(--accent);color:#fff;padding:14px 0}
+.site-header a.home{color:#fff;text-decoration:none;font-size:1.4rem;font-weight:700}
+.lang-toggle{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:8px;font-size:.9rem}
+.lang-toggle button{border:1px solid currentColor;background:transparent;border-radius:999px;padding:4px 12px;font:inherit;cursor:pointer;white-space:nowrap}
+.lang-toggle button[aria-pressed="true"]{background:#fff;color:var(--accent);font-weight:700}
+@media(max-width:519px){.lang-toggle .lang-label{display:none}}
+main.wrap{padding-top:12px;padding-bottom:24px;display:grid;gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.hint{margin:0 0 8px;color:var(--muted);font-size:.88rem}
+.pagenav{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.pagenav a{color:var(--accent)}
+.region img{max-width:100%;height:auto;display:block;margin:8px auto}
+@media(min-width:700px){.region img{max-width:540px}}
+.ph{font-weight:700;margin:8px 0 4px}
+.deals-list{margin:4px 0;padding-left:1.4em}
+.nw{white-space:nowrap}
+.daylist{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}
+.daylist a{color:var(--accent);font-weight:700}
+.site-footer{border-top:1px solid var(--line);padding:16px 0 24px;color:var(--muted);font-size:.9rem}
+.site-footer a{color:var(--accent)}
+</style>
+</head>
+<body>
+<header class="site-header"><div class="wrap">
+<a class="home" href="../../">Presyo Bantay</a>
+<div class="lang-toggle" role="group" aria-label="Wika / Language / 言語"><span class="lang-label">Taglish / English / 日本語:</span>
+<button type="button" data-setlang="tl">Taglish</button>
+<button type="button" data-setlang="en">English</button>
+<button type="button" data-setlang="ja">日本語</button>
+</div>
+</div></header>
+<main class="wrap">
+<div>
+<h1><span data-lang="tl">{{.RangeTL}}</span><span data-lang="en">{{.RangeEN}}</span><span data-lang="ja">{{.RangeJA}}</span></h1>
+<p><strong><span data-lang="tl">Lingguhang ulat</span><span data-lang="en">Weekly report</span><span data-lang="ja">週間レポート</span></strong></p>
+<p class="hint"><span data-lang="tl">% = average ngayong linggo vs nakaraang linggo; area deals vs usual na presyo (30 araw)</span><span data-lang="en">% = this week vs last week average; area deals vs 30-day usual price</span><span data-lang="ja">% = 今週と先週の平均比；地域別は30日間のいつもの価格比</span></p>
+</div>
+<nav class="pagenav card" aria-label="week navigation">
+<span>{{if .HasOlder}}<a href="{{.OlderPath}}">&larr; <span data-lang="tl">{{.OlderTL}}</span><span data-lang="en">{{.OlderEN}}</span><span data-lang="ja">{{.OlderJA}}</span></a>{{end}}</span>
+<span>{{if .HasNewer}}<a href="{{.NewerPath}}"><span data-lang="tl">{{.NewerTL}}</span><span data-lang="en">{{.NewerEN}}</span><span data-lang="ja">{{.NewerJA}}</span> &rarr;</a>{{end}}</span>
+</nav>
+<section class="card region" aria-label="weekly chart">
+<img src="week.png" width="1080" height="1350" alt="{{.OGAlt}}" fetchpriority="high">
+<div data-lang="tl">{{range .BlocksTL}}{{template "wblock" .}}{{end}}</div>
+<div data-lang="en">{{range .BlocksEN}}{{template "wblock" .}}{{end}}</div>
+<div data-lang="ja">{{range .BlocksJA}}{{template "wblock" .}}{{end}}</div>
+</section>
+{{if .DayLinks}}<div class="card">
+<p><strong><span data-lang="tl">Ulat kada araw ngayong linggo</span><span data-lang="en">Daily reports this week</span><span data-lang="ja">今週の日別レポート</span></strong></p>
+<ul class="daylist">
+{{range .DayLinks}}<li><a href="{{.Path}}"><span data-lang="tl">{{.DateTL}}</span><span data-lang="en">{{.DateEN}}</span><span data-lang="ja">{{.DateJA}}</span></a></li>
+{{end}}</ul>
+</div>{{end}}
+<nav class="pagenav card" aria-label="week navigation">
+<span>{{if .HasOlder}}<a href="{{.OlderPath}}">&larr; <span data-lang="tl">{{.OlderTL}}</span><span data-lang="en">{{.OlderEN}}</span><span data-lang="ja">{{.OlderJA}}</span></a>{{end}}</span>
+<span>{{if .HasNewer}}<a href="{{.NewerPath}}"><span data-lang="tl">{{.NewerTL}}</span><span data-lang="en">{{.NewerEN}}</span><span data-lang="ja">{{.NewerJA}}</span> &rarr;</a>{{end}}</span>
+</nav>
+</main>
+<footer class="site-footer"><div class="wrap">
+<p>Source: <a href="https://www.da.gov.ph/price-monitoring/">DA Price Monitoring (Bantay Presyo)</a></p>
+<p><span data-lang="tl">Hindi opisyal na DA page</span><span data-lang="en">Not an official DA page</span><span data-lang="ja">農業省の公式ページではありません</span></p>
+<p><span data-lang="tl">Gumagamit ang site na ito ng Google Analytics para sa bilang ng bisita.</span><span data-lang="en">This site uses Google Analytics to count visits.</span><span data-lang="ja">アクセス解析にGoogleアナリティクスを使っています。</span></p>
+<p><a href="../"><span data-lang="tl">Lahat ng lingguhang ulat</span><span data-lang="en">All weekly reports</span><span data-lang="ja">すべての週間レポート</span></a> · <a href="../../d/"><span data-lang="tl">Araw-araw na ulat</span><span data-lang="en">Daily reports</span><span data-lang="ja">毎日のレポート</span></a> · <a href="../../">Presyo Bantay</a></p>
+<p><span data-lang="tl">{{.FooterTL}}</span><span data-lang="en">{{.FooterEN}}</span><span data-lang="ja">{{.FooterJA}}</span></p>
+</div></footer>
+<script>
+(function(){var KEY="pb-lang";function setLang(l){if(l!=="tl"&&l!=="en"&&l!=="ja")l="tl";try{localStorage.setItem(KEY,l);}catch(e){}document.documentElement.lang=l==="tl"?"fil":l;var els=document.querySelectorAll("[data-lang]");for(var i=0;i<els.length;i++){els[i].style.display=els[i].getAttribute("data-lang")===l?"":"none";}var btns=document.querySelectorAll("[data-setlang]");for(var k=0;k<btns.length;k++){btns[k].setAttribute("aria-pressed",btns[k].getAttribute("data-setlang")===l?"true":"false");}}var init="tl";try{init=localStorage.getItem(KEY)||"tl";}catch(e){}setLang(init);var btns=document.querySelectorAll("[data-setlang]");for(var k=0;k<btns.length;k++){(function(b){b.addEventListener("click",function(){setLang(b.getAttribute("data-setlang"));});})(btns[k]);}})();
+</script>
+</body>
+</html>
+{{end}}
+{{define "wblock"}}{{if eq .Kind "head"}}<p class="ph">{{range .Segs}}{{if .Nowrap}}<span class="nw">{{.Text}}</span>{{else}}{{.Text}}{{end}}{{end}}</p>{{else if eq .Kind "para"}}<p>{{range .Segs}}{{if .Nowrap}}<span class="nw">{{.Text}}</span>{{else}}{{.Text}}{{end}}{{end}}</p>{{else if eq .Kind "list"}}<ul class="deals-list">{{range .Items}}<li>{{range .Segs}}{{if .Nowrap}}<span class="nw">{{.Text}}</span>{{else}}{{.Text}}{{end}}{{end}}</li>{{end}}</ul>{{end}}{{end}}

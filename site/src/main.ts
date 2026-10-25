@@ -23,6 +23,14 @@ import {
   recentDays,
   type DaysFile,
 } from "./days";
+import {
+  weekLabelForLang,
+  weekSummaryForLang,
+  weekUrl,
+  latestWeek,
+  recentWeeks,
+  type WeeksFile,
+} from "./weeks";
 import { resolveDeals } from "./dealsSource";
 
 /* ---------- Data shapes (see presyo_bantay/export_site.py) ---------- */
@@ -127,6 +135,7 @@ let fxFailed = false;
 let deals: DealsFile | null = null;
 let dealsMissing = false;
 let days: DaysFile | null = null;
+let weeks: WeeksFile | null = null;
 const seriesCache = new Map<number, SeriesFile>();
 const state: State = {
   commodityId: null,
@@ -298,6 +307,7 @@ function applyStrings(): void {
   $("foot-code").textContent = s.footerCode;
   renderDeals();
   renderDays();
+  renderWeeks();
   if (meta?.updated) {
     const t = $("foot-updated");
     t.textContent = meta.updated;
@@ -424,6 +434,43 @@ function renderDays(): void {
   if (all instanceof HTMLAnchorElement) {
     all.href = dayUrl(import.meta.env.BASE_URL, "d/");
     all.textContent = s.daysAll;
+  }
+}
+
+/* ---------- Weekly reports card ---------- */
+
+function renderWeeks(): void {
+  const card = document.getElementById("weeks-card");
+  if (!card) return;
+  const s = STRINGS[lang];
+  const latest = latestWeek(weeks);
+  if (!latest) {
+    card.hidden = true;
+    return;
+  }
+  card.hidden = false;
+  $("weeks-h").textContent = s.weeksTitle;
+  const latestA = $("weeks-latest");
+  if (latestA instanceof HTMLAnchorElement) {
+    latestA.href = weekUrl(import.meta.env.BASE_URL, latest.path);
+    latestA.textContent = s.weeksLatest(weekLabelForLang(latest, lang));
+  }
+  const list = $("weeks-list");
+  list.innerHTML = "";
+  for (const e of recentWeeks(weeks, 7)) {
+    const li = document.createElement("li");
+    const a = document.createElement("a");
+    a.href = weekUrl(import.meta.env.BASE_URL, e.path);
+    const label = weekLabelForLang(e, lang);
+    const summary = weekSummaryForLang(e, lang);
+    a.textContent = summary ? `${label} — ${summary}` : label;
+    li.append(a);
+    list.append(li);
+  }
+  const all = $("weeks-all");
+  if (all instanceof HTMLAnchorElement) {
+    all.href = weekUrl(import.meta.env.BASE_URL, "w/");
+    all.textContent = s.weeksAll;
   }
 }
 
@@ -1178,6 +1225,17 @@ async function boot(): Promise<void> {
     }
   } catch {
     days = null;
+  }
+  // Weekly report pages manifest (missing file => no-op).
+  try {
+    const w = await fetchJson<WeeksFile>("weeks.json");
+    if (w && typeof w.latest === "string" && Array.isArray(w.weeks)) {
+      weeks = w;
+    } else {
+      weeks = null;
+    }
+  } catch {
+    weeks = null;
   }
 
   readURL();

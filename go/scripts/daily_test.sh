@@ -84,6 +84,12 @@ case "$cmd" in
     mkdir -p "$SITE/d/2026-10-24"
     echo '{"date":"2026-10-24"}' >"$SITE/d/2026-10-24/day.json"
     ;;
+  weekpages)
+    echo "weekpages called" >>"${FAKE_CALLS:-/dev/null}"
+    if [ "${FAKE_WEEKPAGES_FAIL:-0}" = "1" ]; then echo "fake weekpages fail" >&2; exit 5; fi
+    mkdir -p "$SITE/w/2026-W43"
+    echo '{"week":"2026-W43"}' >"$SITE/w/2026-W43/week.json"
+    ;;
   *) echo "fake presyo: unknown command $cmd" >&2; exit 1 ;;
 esac
 FAKE
@@ -187,7 +193,7 @@ unset FAKE_CALLS
 export FAKE_MODE=change PRESYO_DAYPAGES=0 FAKE_CALLS="$TMP/calls.log"
 rm -f "$FAKE_CALLS"
 if ! "$DAILY"; then bad "daily.sh exited non-zero with PRESYO_DAYPAGES=0"; else ok "daily.sh exit 0 with PRESYO_DAYPAGES=0"; fi
-[ ! -f "$FAKE_CALLS" ] && ok "daypages skipped with PRESYO_DAYPAGES=0" || bad "daypages called despite PRESYO_DAYPAGES=0"
+grep -q "daypages called" "$FAKE_CALLS" 2>/dev/null && bad "daypages called despite PRESYO_DAYPAGES=0" || ok "daypages skipped with PRESYO_DAYPAGES=0"
 grep -q "daypages skipped" "$LOG" && ok "daypages skip logged" || bad "daypages skip not logged"
 unset PRESYO_DAYPAGES FAKE_CALLS
 
@@ -199,6 +205,35 @@ if bash "$DAILY" >/dev/null 2>&1; then bad "daily.sh exited 0 despite daypages f
 [ "$(origin_rev)" = "$(rev)" ] && ok "commit pushed despite daypages failure" || bad "push blocked by daypages failure"
 grep -q "presyo daypages failed" "$LOG" && ok "daypages failure logged" || bad "daypages failure not logged"
 unset FAKE_DAYPAGES_FAIL
+
+# --- 10. weekpages runs by default: called, rc recorded, w/ files committed ---
+export FAKE_MODE=change FAKE_CALLS="$TMP/calls.log"
+rm -f "$FAKE_CALLS"
+before10="$(rev)"
+if ! "$DAILY"; then bad "daily.sh exited non-zero on weekpages run"; else ok "daily.sh exit 0 with weekpages"; fi
+grep -q "weekpages called" "$FAKE_CALLS" && ok "weekpages called by default" || bad "weekpages not called"
+[ -f "$REPO/site/public/w/2026-W43/week.json" ] && ok "w/ week.json present" || bad "w/ week.json missing"
+git -C "$REPO" ls-files --error-unmatch "site/public/w/2026-W43/week.json" >/dev/null \
+  && ok "w/ files committed" || bad "w/ files not tracked in git"
+grep -q "weekpages=0" "$LOG" && ok "weekpages rc recorded in log" || bad "weekpages rc missing in log"
+unset FAKE_CALLS
+
+# --- 11. PRESYO_WEEKPAGES=0 skips weekpages ---
+export FAKE_MODE=change PRESYO_WEEKPAGES=0 FAKE_CALLS="$TMP/calls.log"
+rm -f "$FAKE_CALLS"
+if ! "$DAILY"; then bad "daily.sh exited non-zero with PRESYO_WEEKPAGES=0"; else ok "daily.sh exit 0 with PRESYO_WEEKPAGES=0"; fi
+grep -q "weekpages called" "$FAKE_CALLS" 2>/dev/null && bad "weekpages called despite PRESYO_WEEKPAGES=0" || ok "weekpages skipped with PRESYO_WEEKPAGES=0"
+grep -q "weekpages skipped" "$LOG" && ok "weekpages skip logged" || bad "weekpages skip not logged"
+unset PRESYO_WEEKPAGES FAKE_CALLS
+
+# --- 12. weekpages failure fails the run but still commits other data ---
+export FAKE_MODE=change FAKE_WEEKPAGES_FAIL=1
+before12="$(rev)"
+if bash "$DAILY" >/dev/null 2>&1; then bad "daily.sh exited 0 despite weekpages failure"; else ok "daily.sh exits non-zero when weekpages fails"; fi
+[ "$(rev)" != "$before12" ] && ok "other data still committed despite weekpages failure" || bad "commit blocked by weekpages failure"
+[ "$(origin_rev)" = "$(rev)" ] && ok "commit pushed despite weekpages failure" || bad "push blocked by weekpages failure"
+grep -q "presyo weekpages failed" "$LOG" && ok "weekpages failure logged" || bad "weekpages failure not logged"
+unset FAKE_WEEKPAGES_FAIL
 
 echo "---"
 echo "pass=$pass fail=$fail"

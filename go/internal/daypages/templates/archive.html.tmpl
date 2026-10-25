@@ -66,6 +66,7 @@ main.wrap{padding-top:12px;padding-bottom:24px;display:grid;gap:12px}
 <main class="wrap">
 <div class="card">
 <h1><span data-lang="tl">Araw-araw na ulat</span><span data-lang="en">Daily reports</span><span data-lang="ja">毎日のレポート</span></h1>
+<p><a href="../w/"><span data-lang="tl">Lingguhang ulat</span><span data-lang="en">Weekly reports</span><span data-lang="ja">週間レポート</span> →</a></p>
 {{range .Months}}<h2><span data-lang="tl">{{.MonthTL}}</span><span data-lang="en">{{.MonthEN}}</span><span data-lang="ja">{{.MonthJA}}</span></h2>
 <ul class="daylist">
 {{range .Days}}<li><a href="{{.Path}}"><span data-lang="tl">{{.DateTL}}</span><span data-lang="en">{{.DateEN}}</span><span data-lang="ja">{{.DateJA}}</span></a><br><span class="hint"><span data-lang="tl">{{.DealTL}}</span><span data-lang="en">{{.DealEN}}</span><span data-lang="ja">{{.DealJA}}</span></span></li>

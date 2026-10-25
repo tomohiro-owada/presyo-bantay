@@ -34,7 +34,9 @@ Common flags: `-db` (default `data/presyo.db`), `-raw` (default
 | `advise -signals FILE -out-dir DIR [-model] [-opencode] [-timeout] [-retries] [-no-llm]` | Run the opencode CLI over a signals.json file to draft trilingual advice (`advice.md`), then check its numbers (`check.json`). Falls back to the deterministic template when the call/check fails. Never run with the live DB; numbers come only from signals. |
 | `advice-check -signals FILE -advice FILE [-out]` | Verify every peso amount / percentage in advice text exists in (or derives from) signals.json. Exit 3 when numbers are flagged. |
 | `deals -signals FILE [-advice-dir DIR] -out FILE` | Build the site `deals.json` (texts + deals/pricier + thresholds). Reuses llm texts from an advise dir only when they passed; else the template. |
-| `daypages -db DB -site-public site/public [-date D\|-from F -to T] [-force] [-base-url URL] [-html-only]` | Publish static daily report pages: for each date render the 5 regional posts through the same pipeline as `fbpost` (same signals, same text, same checker, same chart pixels, compact paletted PNGs) into `site/public/d/D/`, plus `day.json`, `data/days.json`, per-day `index.html` and the `d/` archive index. See "Daily report pages" below. |
+| `daypages -db DB -site-public site/public [-date D|-from F -to T] [-force] [-base-url URL] [-html-only]` | Publish static daily report pages: for each date render the 5 regional posts through the same pipeline as `fbpost` (same signals, same text, same checker, same chart pixels, compact paletted PNGs) into `site/public/d/D/`, plus `day.json`, `data/days.json`, per-day `index.html` and the `d/` archive index. See "Daily report pages" below. |
+| `weekpages -db DB -site-public site/public [-week W\|-from-week A -to-week B] [-force] [-base-url URL] [-html-only] [-now RFC3339]` | Publish the static Sunday weekly report (`internal/weekly` signals + `RenderWeekly` text + `CheckWeekly` + `fbchart.RenderWeekly`, compact PNG) into `site/public/w/W/`, plus `w/index.html` and `data/weeks.json`. Frozen: existing `week.json` never re-renders without `-force`. See "Sunday weekly report" below. |
+| `fbweekly -db DB [-week W] [-dry-run] [-out-dir] [-auto] [-site-public DIR] [-state] [-env-file] [-disable-file] [-min-gap 2h] [-window-start 18:00] [-window-end 20:00] [-graph-base] [-now RFC3339]` | Post the Sunday weekly report: one combined trilingual post + 1080x1350 chart. Manual mode reuses the frozen `w/W/` page when present (FB == site), else computes fresh; `-auto` posts only on Sunday 18:00-20:00 Manila when the page exists and spacing/state allow. State entry `{region:"weekly", as_of:"2026-W43"}` in the shared state file (flocked). See "Sunday weekly report" below. |
 | `version` | Print the binary version. |
 
 Exit codes: `0` ok, `1` error, `2` layout changed.
@@ -331,9 +333,58 @@ nearest-colour mapping, no dithering, `png.BestCompression`).
   (prev/next, OG/Twitter meta, GA4) and the `d/index.html` archive.
   HTML carries no timestamps, so re-runs are byte-identical.
 - `scripts/daily.sh` runs `daypages` after export/deals unless
-  `PRESYO_DAYPAGES=0`, records `daypages_rc`, and commits
-  `site/public/d` with the other data (a daypages failure still
-  commits/pushes everything else).
+  `PRESYO_DAYPAGES=0`, records `daypages_rc`, then runs `weekpages`
+  unless `PRESYO_WEEKPAGES=0` (records `weekpages_rc`), and commits
+  `site/public/d` and `site/public/w` with the other data (a daypages or
+  weekpages failure still commits/pushes everything else).
+
+## Sunday weekly report (`weekpages` / `fbweekly`)
+
+The Sunday report covers ISO week `YYYY-Www` (e.g. `2026-W43` = Mon Oct
+19..Sun Oct 25): report dates are the DB price dates Mon..Sat of that
+week (Sunday excluded). A week is reportable with >= 3 covered dates
+this week and >= 3 last week. Only mapped markets are used.
+
+Deterministic Go code computes ALL numbers (`internal/weekly`):
+Metro Manila-wide per commodity (weekly average = mean of daily medians
+across mapped markets; week-over-week pct; drops <= −5 top 5, rises >=
++5 top 3) plus best area deals per region (weekly pct = rounded mean of
+daily pcts vs each market's own 30-day median; <= −10, up to 2 per
+region, one entry per commodity). `internal/weekly.RenderWeekly` renders
+the one combined trilingual post; `internal/weekly.CheckWeekly` binds
+every peso amount / percentage to its commodity (and market/region for
+area deals) with the right sign and metric (week-over-week vs
+area-deal); `internal/fbchart.RenderWeekly` renders the 1080x1350 PNG.
+
+```sh
+./bin/presyo weekpages -db /tmp/presyo-snap.db -site-public ../site/public
+./bin/presyo weekpages -db /tmp/presyo-snap.db -site-public ../site/public -week 2026-W43
+./bin/presyo weekpages -db /tmp/presyo-snap.db -site-public ../site/public -from-week 2026-W40 -to-week 2026-W43
+./bin/presyo fbweekly -db /tmp/presyo-snap.db -week 2026-W43 -dry-run -out-dir /tmp/fbweek
+```
+
+- `weekpages`: default target is the latest reportable week whose
+  Sunday is on or before today (Manila). Writes
+  `SITE/w/W/{week.png,week.json,index.html}`, `SITE/w/index.html`
+  (newest first) and `SITE/data/weeks.json`. A published week is FROZEN:
+  an existing `week.json` is never re-rendered without `-force`. Also
+  refreshes the `d/` archive link to the weekly reports.
+- `fbweekly`: posts the combined text + chart. Manual mode reuses the
+  FROZEN page output when `SITE/w/W/week.json` exists (so FB == site),
+  else computes fresh. `-auto` posts only on Sunday 18:00-20:00 Manila
+  when the frozen page exists, the week is reportable, no `weekly`
+  state entry exists for the week, and the last post of any kind is at
+  least 2h old. State entries are `{region:"weekly", as_of:"2026-W43",
+  ...}` in the same state file as `fbpost`; both commands hold an
+  exclusive flock on `<state>.lock` around read-check-post-write.
+- `fbpost -auto` ignores `weekly` state entries when choosing the next
+  region, counts weekly posts in the min-gap spacing, and on Sundays
+  from 16:00 holds daily posts until the weekly post for that week
+  exists or 20:00 ("holding for weekly post").
+- `scripts/weekly.sh` (own flock, log `$PRESYO_HOME/logs/weekly.log`,
+  respects `fbpost.disabled`) runs
+  `$BIN fbweekly -db $DB -auto -site-public $REPO/site/public`.
+  Test it with `scripts/weekly_test.sh` (fake BIN, no network).
 
 ## Deploy
 
@@ -358,9 +409,9 @@ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath \
 
 The script checks `ssh <VPS_HOST> uname -m` is `x86_64`, copies the binary
 to `<VPS_HOST>:$HOME/bin/presyo.new`, atomically `mv`s it to
-`$HOME/bin/presyo`, copies `scripts/daily.sh` and `scripts/watch.sh`
-to `$HOME/bin/` (chmod 755), then prints the remote
-`presyo version`.
+`$HOME/bin/presyo`, copies `scripts/daily.sh`, `scripts/watch.sh`
+and `scripts/weekly.sh` to `$HOME/bin/` (chmod 755), then prints
+the remote `presyo version`.
 
 Suggested crontab on the VPS for the daily safety net (TZ <SERVER_TZ> =
 UTC+9; 07:15 and 23:15 server-TZ = 06:15 and 22:15 Manila time — install with

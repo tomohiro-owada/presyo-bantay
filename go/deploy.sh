@@ -66,6 +66,8 @@ run scp scripts/daily.sh "${VPS_HOST}:${REMOTE_DIR}/bin/daily.sh"
 run ssh "${VPS_HOST}" "chmod 755 ${REMOTE_DIR}/bin/daily.sh"
 run scp scripts/watch.sh "${VPS_HOST}:${REMOTE_DIR}/bin/watch.sh"
 run ssh "${VPS_HOST}" "chmod 755 ${REMOTE_DIR}/bin/watch.sh"
+run scp scripts/weekly.sh "${VPS_HOST}:${REMOTE_DIR}/bin/weekly.sh"
+run ssh "${VPS_HOST}" "chmod 755 ${REMOTE_DIR}/bin/weekly.sh"
 run ssh "${VPS_HOST}" "${REMOTE_BIN} version"
 
 cat <<'EOF'
@@ -73,6 +75,7 @@ deploy done. This script never touches crontab; the orchestrator installs
 the schedule COMMENTED OUT (enable with
 `crontab -l | sed 's/^#FBPOST //' | crontab`):
 
+<CRON_LINE_REMOVED>
 <CRON_LINE_REMOVED>
 <CRON_LINE_REMOVED>
 <CRON_LINE_REMOVED>
