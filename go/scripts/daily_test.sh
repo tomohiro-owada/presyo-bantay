@@ -34,12 +34,16 @@ cat >"$BIN" <<'FAKE'
 #!/usr/bin/env bash
 set -euo pipefail
 cmd="${1:-}"; shift || true
-JSON_DIR=""; OUT=""
+JSON_DIR=""; OUT=""; SIGNALS=""; OUTDIR=""; ADVICE_OUT=""; SITE=""
 while [ $# -gt 0 ]; do
   case "$1" in
     -json-dir) JSON_DIR="$2"; shift 2 ;;
     -out) OUT="$2"; shift 2 ;;
+    -signals) SIGNALS="$2"; shift 2 ;;
+    -out-dir) OUTDIR="$2"; shift 2 ;;
+    -site-public) SITE="$2"; shift 2 ;;
     -db|-raw) shift 2 ;;
+    -no-llm) shift ;;
     *) shift ;;
   esac
 done
@@ -61,6 +65,24 @@ case "$cmd" in
         "$OUT/meta.json" >"$OUT/meta.json.new"
       mv "$OUT/meta.json.new" "$OUT/meta.json"
     fi
+    ;;
+  signals)
+    if [ "${FAKE_DEALS_FAIL:-0}" = "1" ]; then echo "fake signals fail" >&2; exit 3; fi
+    mkdir -p "$(dirname "$OUT")"
+    echo '{"as_of":"2026-10-24","deals":[],"pricier":[],"uses_nearby_basis":false}' >"$OUT"
+    ;;
+  advise)
+    if [ "${FAKE_DEALS_FAIL:-0}" = "1" ]; then echo "fake advise fail" >&2; exit 3; fi
+    mkdir -p "$OUTDIR"
+    echo '{"text_source":"template"}' >"$OUTDIR/run.json"
+    echo '{"status":"pass"}' >"$OUTDIR/check.json"
+    echo '{"as_of":"2026-10-24"}' >"$OUTDIR/deals.json"
+    ;;
+  daypages)
+    echo "daypages called" >>"${FAKE_CALLS:-/dev/null}"
+    if [ "${FAKE_DAYPAGES_FAIL:-0}" = "1" ]; then echo "fake daypages fail" >&2; exit 4; fi
+    mkdir -p "$SITE/d/2026-10-24"
+    echo '{"date":"2026-10-24"}' >"$SITE/d/2026-10-24/day.json"
     ;;
   *) echo "fake presyo: unknown command $cmd" >&2; exit 1 ;;
 esac
@@ -128,6 +150,55 @@ wait "$holder"
 export FAKE_MODE=change FAKE_FX_RC=3
 if bash "$DAILY" >/dev/null 2>&1; then bad "daily.sh exited 0 despite fx failure"; else ok "daily.sh exits non-zero when a step fails"; fi
 unset FAKE_FX_RC
+
+# --- 5. PRESYO_DEALS=1 writes deals.json and includes it in the commit ---
+export FAKE_MODE=change PRESYO_DEALS=1
+rm -f "$REPO/site/public/data/deals.json"
+before5="$(rev)"
+if ! "$DAILY"; then bad "daily.sh with PRESYO_DEALS=1 exited non-zero"; else ok "daily.sh exit 0 with PRESYO_DEALS=1"; fi
+[ -f "$REPO/site/public/data/deals.json" ] && ok "deals.json staged for commit" || bad "deals.json missing after PRESYO_DEALS=1 run"
+[ "$(rev)" != "$before5" ] && ok "new commit created with deals.json" || bad "no commit with PRESYO_DEALS=1"
+grep -q "deals=" "$LOG" && ok "deals rc recorded in log" || bad "deals rc missing in log"
+unset PRESYO_DEALS
+
+# --- 6. deals failure must not fail the daily job ---
+export FAKE_MODE=change PRESYO_DEALS=1 FAKE_DEALS_FAIL=1
+if ! "$DAILY"; then bad "daily.sh exited non-zero despite deals-only failure"; else ok "daily.sh exit 0 when only deals step fails"; fi
+grep -q "deals step failed" "$LOG" && ok "deals failure logged" || bad "deals failure not logged"
+unset PRESYO_DEALS FAKE_DEALS_FAIL
+
+# --- 7. daypages runs by default: called, rc recorded, d/ files committed ---
+export FAKE_MODE=change FAKE_CALLS="$TMP/calls.log"
+rm -f "$FAKE_CALLS"
+before7="$(rev)"
+if ! "$DAILY"; then bad "daily.sh exited non-zero on daypages run"; else ok "daily.sh exit 0 with daypages"; fi
+grep -q "daypages called" "$FAKE_CALLS" && ok "daypages called by default" || bad "daypages not called"
+[ -f "$REPO/site/public/d/2026-10-24/day.json" ] && ok "d/ day.json present" || bad "d/ day.json missing"
+[ "$(rev)" != "$before7" ] && ok "new commit created" || bad "no commit"
+git -C "$REPO" ls-files --error-unmatch "site/public/d/2026-10-24/day.json" >/dev/null \
+  && ok "d/ files committed" || bad "d/ files not tracked in git"
+[ -n "$(git -C "$REPO" log --format=%H -- site/public/d/2026-10-24/day.json)" ] \
+  && ok "d/ files have commit history" || bad "d/ files have no commit"
+[ "$(origin_rev)" = "$(rev)" ] && ok "commit with d/ pushed to origin" || bad "commit not pushed"
+grep -q "daypages=0" "$LOG" && ok "daypages rc recorded in log" || bad "daypages rc missing in log"
+unset FAKE_CALLS
+
+# --- 8. PRESYO_DAYPAGES=0 skips daypages ---
+export FAKE_MODE=change PRESYO_DAYPAGES=0 FAKE_CALLS="$TMP/calls.log"
+rm -f "$FAKE_CALLS"
+if ! "$DAILY"; then bad "daily.sh exited non-zero with PRESYO_DAYPAGES=0"; else ok "daily.sh exit 0 with PRESYO_DAYPAGES=0"; fi
+[ ! -f "$FAKE_CALLS" ] && ok "daypages skipped with PRESYO_DAYPAGES=0" || bad "daypages called despite PRESYO_DAYPAGES=0"
+grep -q "daypages skipped" "$LOG" && ok "daypages skip logged" || bad "daypages skip not logged"
+unset PRESYO_DAYPAGES FAKE_CALLS
+
+# --- 9. daypages failure fails the run but still commits other data ---
+export FAKE_MODE=change FAKE_DAYPAGES_FAIL=1
+before9="$(rev)"
+if bash "$DAILY" >/dev/null 2>&1; then bad "daily.sh exited 0 despite daypages failure"; else ok "daily.sh exits non-zero when daypages fails"; fi
+[ "$(rev)" != "$before9" ] && ok "other data still committed despite daypages failure" || bad "commit blocked by daypages failure"
+[ "$(origin_rev)" = "$(rev)" ] && ok "commit pushed despite daypages failure" || bad "push blocked by daypages failure"
+grep -q "presyo daypages failed" "$LOG" && ok "daypages failure logged" || bad "daypages failure not logged"
+unset FAKE_DAYPAGES_FAIL
 
 echo "---"
 echo "pass=$pass fail=$fail"

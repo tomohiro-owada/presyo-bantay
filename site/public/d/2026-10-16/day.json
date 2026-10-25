@@ -1,0 +1,151 @@
+{
+  "date": "2026-10-16",
+  "generated_at": "2026-10-25T08:25:01+08:00",
+  "regions": [
+    {
+      "id": "south",
+      "order": 1,
+      "title": {
+        "tl": "South Metro",
+        "en": "South Metro",
+        "ja": "南部（ラス・ピニャス周辺）"
+      },
+      "has_data": true,
+      "image": "south.png",
+      "image_bytes": 59888,
+      "alt": {
+        "tl": "South Metro: mas mura ang Sayote −57%, Pechay Baguio −49%, Repolyo −44%",
+        "en": "South Metro: cheaper than usual: Chayote −57%, Pechay Baguio −49%, Cabbage −44%",
+        "ja": "南部（ラス・ピニャス周辺）のお買い得：サヨテ −57%、ペチャイ・バギオ −49%、キャベツ −44%"
+      },
+      "text": {
+        "tl": "🛒 Sulit sa South Metro — presyo noong Okt 16\n\n✅ Mas mura kaysa usual:\n• Sayote ₱50/kg (−57%) · Alabang\n• Pechay Baguio ₱120/kg (−49%) · Alabang\n• Repolyo ₱110/kg (−44%) · La Huerta\n• Talong ₱70/kg (−38%) · Alabang\n• Ampalaya ₱100/kg (−29%) · La Huerta\n",
+        "en": "🇬🇧 Deals in South Metro — prices of Oct 16\n✅ Chayote ₱50 (−57%), Pechay Baguio ₱120 (−49%), Cabbage ₱110 (−44%), Eggplant ₱70 (−38%), Ampalaya ₱100 (−29%)\n",
+        "ja": "🇯🇵 南部（ラス・ピニャス周辺）のお買い得 — 10/16の価格\n✅ サヨテ ₱50（−57%）、ペチャイ・バギオ ₱120（−49%）、キャベツ ₱110（−44%）、ナス ₱70（−38%）、ゴーヤ ₱100（−29%）\n"
+      },
+      "summary": {
+        "tl": "Sayote ₱50/kg (−57%) · Alabang",
+        "en": "Chayote ₱50 (−57%)",
+        "ja": "サヨテ ₱50（−57%）"
+      },
+      "check": "pass"
+    },
+    {
+      "id": "manila",
+      "order": 2,
+      "title": {
+        "tl": "Maynila at Pasay",
+        "en": "Manila & Pasay",
+        "ja": "マニラ・パサイ"
+      },
+      "has_data": true,
+      "image": "manila.png",
+      "image_bytes": 66964,
+      "alt": {
+        "tl": "Maynila at Pasay: mas mura ang Sayote −60%, Pechay Baguio −56%, Repolyo −43%",
+        "en": "Manila & Pasay: cheaper than usual: Chayote −60%, Pechay Baguio −56%, Cabbage −43%",
+        "ja": "マニラ・パサイのお買い得：サヨテ −60%、ペチャイ・バギオ −56%、キャベツ −43%"
+      },
+      "text": {
+        "tl": "🛒 Sulit sa Maynila at Pasay — presyo noong Okt 16\n\n✅ Mas mura kaysa usual:\n• Sayote ₱40/kg (−60%) · Pasay\n• Pechay Baguio ₱80/kg (−56%) · Cartimar\n• Repolyo ₱120/kg (−43%) · Pasay\n• Talong ₱80/kg (−43%) · Pritil\n• Ampalaya ₱100/kg (−38%) · Cartimar\n\n⚠️ Mas mahal ngayon:\n• Siling pula ₱300/kg (+38%)\n• Sibuyas puti ₱235/kg (+31%)\n",
+        "en": "🇬🇧 Deals in Manila & Pasay — prices of Oct 16\n✅ Chayote ₱40 (−60%), Pechay Baguio ₱80 (−56%), Cabbage ₱120 (−43%), Eggplant ₱80 (−43%), Ampalaya ₱100 (−38%)\n⚠️ Pricier: Red chili ₱300 (+38%), White onion ₱235 (+31%)\n",
+        "ja": "🇯🇵 マニラ・パサイのお買い得 — 10/16の価格\n✅ サヨテ ₱40（−60%）、ペチャイ・バギオ ₱80（−56%）、キャベツ ₱120（−43%）、ナス ₱80（−43%）、ゴーヤ ₱100（−38%）\n⚠️ 高め：赤唐辛子 ₱300（+38%）、白玉ねぎ ₱235（+31%）\n"
+      },
+      "summary": {
+        "tl": "Sayote ₱40/kg (−60%) · Pasay",
+        "en": "Chayote ₱40 (−60%)",
+        "ja": "サヨテ ₱40（−60%）"
+      },
+      "check": "pass"
+    },
+    {
+      "id": "qc",
+      "order": 3,
+      "title": {
+        "tl": "Quezon City",
+        "en": "Quezon City",
+        "ja": "ケソン市"
+      },
+      "has_data": true,
+      "image": "qc.png",
+      "image_bytes": 74661,
+      "alt": {
+        "tl": "Quezon City: mas mura ang Talong −65%, Sayote −60%, Pechay Baguio −52%",
+        "en": "Quezon City: cheaper than usual: Eggplant −65%, Chayote −60%, Pechay Baguio −52%",
+        "ja": "ケソン市のお買い得：ナス −65%、サヨテ −60%、ペチャイ・バギオ −52%"
+      },
+      "text": {
+        "tl": "🛒 Sulit sa Quezon City — presyo noong Okt 16\n\n✅ Mas mura kaysa usual:\n• Talong ₱30/kg (−65%) · Balintawak\n• Sayote ₱40/kg (−60%) · Muñoz\n• Pechay Baguio ₱120/kg (−52%) · Farmers, Cubao\n• Siling berde ₱80/kg (−47%) · Balintawak\n• Repolyo ₱120/kg (−40%) · Muñoz\n\n⚠️ Mas mahal ngayon:\n• Sibuyas puti ₱200/kg (+43%)\n• Siling pula ₱290/kg (+38%)\n• Manok ₱202.50/kg (+19%)\n",
+        "en": "🇬🇧 Deals in Quezon City — prices of Oct 16\n✅ Eggplant ₱30 (−65%), Chayote ₱40 (−60%), Pechay Baguio ₱120 (−52%), Green chili ₱80 (−47%), Cabbage ₱120 (−40%)\n⚠️ Pricier: White onion ₱200 (+43%), Red chili ₱290 (+38%), Chicken ₱202.50 (+19%)\n",
+        "ja": "🇯🇵 ケソン市のお買い得 — 10/16の価格\n✅ ナス ₱30（−65%）、サヨテ ₱40（−60%）、ペチャイ・バギオ ₱120（−52%）、青唐辛子 ₱80（−47%）、キャベツ ₱120（−40%）\n⚠️ 高め：白玉ねぎ ₱200（+43%）、赤唐辛子 ₱290（+38%）、丸鶏 ₱202.50（+19%）\n"
+      },
+      "summary": {
+        "tl": "Talong ₱30/kg (−65%) · Balintawak",
+        "en": "Eggplant ₱30 (−65%)",
+        "ja": "ナス ₱30（−65%）"
+      },
+      "check": "pass"
+    },
+    {
+      "id": "north",
+      "order": 4,
+      "title": {
+        "tl": "CAMANAVA",
+        "en": "North (CAMANAVA)",
+        "ja": "北部（カマナバ）"
+      },
+      "has_data": true,
+      "image": "north.png",
+      "image_bytes": 67083,
+      "alt": {
+        "tl": "CAMANAVA: mas mura ang Sayote −50%, Pechay Baguio −50%, Repolyo −46%",
+        "en": "North (CAMANAVA): cheaper than usual: Chayote −50%, Pechay Baguio −50%, Cabbage −46%",
+        "ja": "北部（カマナバ）のお買い得：サヨテ −50%、ペチャイ・バギオ −50%、キャベツ −46%"
+      },
+      "text": {
+        "tl": "🛒 Sulit sa CAMANAVA — presyo noong Okt 16\n\n✅ Mas mura kaysa usual:\n• Sayote ₱70/kg (−50%) · Karuhatan\n• Pechay Baguio ₱100/kg (−50%) · Maypajo\n• Repolyo ₱120/kg (−46%) · Karuhatan\n• Talong ₱80/kg (−43%) · Hulong Duhat\n• Ampalaya ₱100/kg (−29%) · Hulong Duhat\n\n⚠️ Mas mahal ngayon:\n• Siling pula ₱312.50/kg (+35%)\n",
+        "en": "🇬🇧 Deals in North (CAMANAVA) — prices of Oct 16\n✅ Chayote ₱70 (−50%), Pechay Baguio ₱100 (−50%), Cabbage ₱120 (−46%), Eggplant ₱80 (−43%), Ampalaya ₱100 (−29%)\n⚠️ Pricier: Red chili ₱312.50 (+35%)\n",
+        "ja": "🇯🇵 北部（カマナバ）のお買い得 — 10/16の価格\n✅ サヨテ ₱70（−50%）、ペチャイ・バギオ ₱100（−50%）、キャベツ ₱120（−46%）、ナス ₱80（−43%）、ゴーヤ ₱100（−29%）\n⚠️ 高め：赤唐辛子 ₱312.50（+35%）\n"
+      },
+      "summary": {
+        "tl": "Sayote ₱70/kg (−50%) · Karuhatan",
+        "en": "Chayote ₱70 (−50%)",
+        "ja": "サヨテ ₱70（−50%）"
+      },
+      "check": "pass"
+    },
+    {
+      "id": "east",
+      "order": 5,
+      "title": {
+        "tl": "Silangan",
+        "en": "East Metro",
+        "ja": "東部"
+      },
+      "has_data": true,
+      "image": "east.png",
+      "image_bytes": 70598,
+      "alt": {
+        "tl": "Silangan: mas mura ang Sayote −55%, Pechay Baguio −47%, Repolyo −40%",
+        "en": "East Metro: cheaper than usual: Chayote −55%, Pechay Baguio −47%, Cabbage −40%",
+        "ja": "東部のお買い得：サヨテ −55%、ペチャイ・バギオ −47%、キャベツ −40%"
+      },
+      "text": {
+        "tl": "🛒 Sulit sa Silangan — presyo noong Okt 16\n\n✅ Mas mura kaysa usual:\n• Sayote ₱45/kg (−55%) · Parang\n• Pechay Baguio ₱100/kg (−47%) · Parang\n• Repolyo ₱120/kg (−40%) · Guadalupe\n• Talong ₱60/kg (−40%) · Guadalupe\n• Kamatis ₱90/kg (−25%) · Marikina\n\n⚠️ Mas mahal ngayon:\n• Siling pula ₱350/kg (+40%)\n• Sibuyas puti ₱180/kg (+20%)\n• Manok ₱220/kg (+10%)\n",
+        "en": "🇬🇧 Deals in East Metro — prices of Oct 16\n✅ Chayote ₱45 (−55%), Pechay Baguio ₱100 (−47%), Cabbage ₱120 (−40%), Eggplant ₱60 (−40%), Tomato ₱90 (−25%)\n⚠️ Pricier: Red chili ₱350 (+40%), White onion ₱180 (+20%), Chicken ₱220 (+10%)\n",
+        "ja": "🇯🇵 東部のお買い得 — 10/16の価格\n✅ サヨテ ₱45（−55%）、ペチャイ・バギオ ₱100（−47%）、キャベツ ₱120（−40%）、ナス ₱60（−40%）、トマト ₱90（−25%）\n⚠️ 高め：赤唐辛子 ₱350（+40%）、白玉ねぎ ₱180（+20%）、丸鶏 ₱220（+10%）\n"
+      },
+      "summary": {
+        "tl": "Sayote ₱45/kg (−55%) · Parang",
+        "en": "Chayote ₱45 (−55%)",
+        "ja": "サヨテ ₱45（−55%）"
+      },
+      "check": "pass"
+    }
+  ],
+  "footer": {
+    "tl": "% = kumpara sa usual na presyo (30 araw)\nSource: DA Price Monitoring · Hindi opisyal na DA page",
+    "en": "% = vs. 30-day usual price\nSource: DA Price Monitoring · Hindi opisyal na DA page",
+    "ja": "% = 30日間のいつもの価格比\nSource: DA Price Monitoring · Hindi opisyal na DA page"
+  }
+}

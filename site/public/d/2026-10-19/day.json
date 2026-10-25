@@ -1,0 +1,151 @@
+{
+  "date": "2026-10-19",
+  "generated_at": "2026-10-25T08:25:05+08:00",
+  "regions": [
+    {
+      "id": "south",
+      "order": 1,
+      "title": {
+        "tl": "South Metro",
+        "en": "South Metro",
+        "ja": "南部（ラス・ピニャス周辺）"
+      },
+      "has_data": true,
+      "image": "south.png",
+      "image_bytes": 67967,
+      "alt": {
+        "tl": "South Metro: mas mura ang Sayote −39%, Repolyo −35%, Pechay Baguio −29%",
+        "en": "South Metro: cheaper than usual: Chayote −39%, Cabbage −35%, Pechay Baguio −29%",
+        "ja": "南部（ラス・ピニャス周辺）のお買い得：サヨテ −39%、キャベツ −35%、ペチャイ・バギオ −29%"
+      },
+      "text": {
+        "tl": "🛒 Sulit sa South Metro — presyo noong Okt 19\n\n✅ Mas mura kaysa usual:\n• Sayote ₱70/kg (−39%) · Bicutan\n• Repolyo ₱120/kg (−35%) · La Huerta\n• Pechay Baguio ₱135/kg (−29%) · La Huerta\n• Kasim ₱270/kg (−25%) · Grace, Pateros\n• Kamatis ₱95/kg (−21%) · Bicutan\n\n⚠️ Mas mahal ngayon:\n• Siling pula ₱235/kg (+18%)\n• Patatas ₱170/kg (+17%)\n",
+        "en": "🇬🇧 Deals in South Metro — prices of Oct 19\n✅ Chayote ₱70 (−39%), Cabbage ₱120 (−35%), Pechay Baguio ₱135 (−29%), Fresh Pork (Kasim) Local ₱270 (−25%), Tomato ₱95 (−21%)\n⚠️ Pricier: Red chili ₱235 (+18%), Potato ₱170 (+17%)\n",
+        "ja": "🇯🇵 南部（ラス・ピニャス周辺）のお買い得 — 10/19の価格\n✅ サヨテ ₱70（−39%）、キャベツ ₱120（−35%）、ペチャイ・バギオ ₱135（−29%）、豚肩ロース ₱270（−25%）、トマト ₱95（−21%）\n⚠️ 高め：赤唐辛子 ₱235（+18%）、じゃがいも ₱170（+17%）\n"
+      },
+      "summary": {
+        "tl": "Sayote ₱70/kg (−39%) · Bicutan",
+        "en": "Chayote ₱70 (−39%)",
+        "ja": "サヨテ ₱70（−39%）"
+      },
+      "check": "pass"
+    },
+    {
+      "id": "manila",
+      "order": 2,
+      "title": {
+        "tl": "Maynila at Pasay",
+        "en": "Manila & Pasay",
+        "ja": "マニラ・パサイ"
+      },
+      "has_data": true,
+      "image": "manila.png",
+      "image_bytes": 70684,
+      "alt": {
+        "tl": "Maynila at Pasay: mas mura ang Sayote −68%, Pechay Baguio −59%, Repolyo −27%",
+        "en": "Manila & Pasay: cheaper than usual: Chayote −68%, Pechay Baguio −59%, Cabbage −27%",
+        "ja": "マニラ・パサイのお買い得：サヨテ −68%、ペチャイ・バギオ −59%、キャベツ −27%"
+      },
+      "text": {
+        "tl": "🛒 Sulit sa Maynila at Pasay — presyo noong Okt 19\n\n✅ Mas mura kaysa usual:\n• Sayote ₱30/kg (−68%) · Cartimar\n• Pechay Baguio ₱70/kg (−59%) · Pasay\n• Repolyo ₱150/kg (−27%) · San Andres\n• Kamatis ₱100/kg (−23%) · Cartimar\n• Siling berde ₱200/kg (−20%) · Pritil\n\n⚠️ Mas mahal ngayon:\n• Siling pula ₱300/kg (+50%)\n• Sibuyas puti ₱250/kg (+22%)\n• Patatas ₱175/kg (+18%)\n",
+        "en": "🇬🇧 Deals in Manila & Pasay — prices of Oct 19\n✅ Chayote ₱30 (−68%), Pechay Baguio ₱70 (−59%), Cabbage ₱150 (−27%), Tomato ₱100 (−23%), Green chili ₱200 (−20%)\n⚠️ Pricier: Red chili ₱300 (+50%), White onion ₱250 (+22%), Potato ₱175 (+18%)\n",
+        "ja": "🇯🇵 マニラ・パサイのお買い得 — 10/19の価格\n✅ サヨテ ₱30（−68%）、ペチャイ・バギオ ₱70（−59%）、キャベツ ₱150（−27%）、トマト ₱100（−23%）、青唐辛子 ₱200（−20%）\n⚠️ 高め：赤唐辛子 ₱300（+50%）、白玉ねぎ ₱250（+22%）、じゃがいも ₱175（+18%）\n"
+      },
+      "summary": {
+        "tl": "Sayote ₱30/kg (−68%) · Cartimar",
+        "en": "Chayote ₱30 (−68%)",
+        "ja": "サヨテ ₱30（−68%）"
+      },
+      "check": "pass"
+    },
+    {
+      "id": "qc",
+      "order": 3,
+      "title": {
+        "tl": "Quezon City",
+        "en": "Quezon City",
+        "ja": "ケソン市"
+      },
+      "has_data": true,
+      "image": "qc.png",
+      "image_bytes": 74914,
+      "alt": {
+        "tl": "Quezon City: mas mura ang Sayote −60%, Pechay Baguio −60%, Siling berde −47%",
+        "en": "Quezon City: cheaper than usual: Chayote −60%, Pechay Baguio −60%, Green chili −47%",
+        "ja": "ケソン市のお買い得：サヨテ −60%、ペチャイ・バギオ −60%、青唐辛子 −47%"
+      },
+      "text": {
+        "tl": "🛒 Sulit sa Quezon City — presyo noong Okt 19\n\n✅ Mas mura kaysa usual:\n• Sayote ₱40/kg (−60%) · Muñoz\n• Pechay Baguio ₱100/kg (−60%) · Farmers, Cubao\n• Siling berde ₱80/kg (−47%) · Balintawak\n• Ampalaya ₱105/kg (−39%) · Farmers, Cubao\n• Talong ₱100/kg (−33%) · Farmers, Cubao\n\n⚠️ Mas mahal ngayon:\n• Sibuyas puti ₱180/kg (+43%)\n• Siling pula ₱300/kg (+40%)\n• Manok ₱220/kg (+18%)\n",
+        "en": "🇬🇧 Deals in Quezon City — prices of Oct 19\n✅ Chayote ₱40 (−60%), Pechay Baguio ₱100 (−60%), Green chili ₱80 (−47%), Ampalaya ₱105 (−39%), Eggplant ₱100 (−33%)\n⚠️ Pricier: White onion ₱180 (+43%), Red chili ₱300 (+40%), Chicken ₱220 (+18%)\n",
+        "ja": "🇯🇵 ケソン市のお買い得 — 10/19の価格\n✅ サヨテ ₱40（−60%）、ペチャイ・バギオ ₱100（−60%）、青唐辛子 ₱80（−47%）、ゴーヤ ₱105（−39%）、ナス ₱100（−33%）\n⚠️ 高め：白玉ねぎ ₱180（+43%）、赤唐辛子 ₱300（+40%）、丸鶏 ₱220（+18%）\n"
+      },
+      "summary": {
+        "tl": "Sayote ₱40/kg (−60%) · Muñoz",
+        "en": "Chayote ₱40 (−60%)",
+        "ja": "サヨテ ₱40（−60%）"
+      },
+      "check": "pass"
+    },
+    {
+      "id": "north",
+      "order": 4,
+      "title": {
+        "tl": "CAMANAVA",
+        "en": "North (CAMANAVA)",
+        "ja": "北部（カマナバ）"
+      },
+      "has_data": true,
+      "image": "north.png",
+      "image_bytes": 72923,
+      "alt": {
+        "tl": "CAMANAVA: mas mura ang Repolyo −46%, Pechay Baguio −45%, Sayote −42%",
+        "en": "North (CAMANAVA): cheaper than usual: Cabbage −46%, Pechay Baguio −45%, Chayote −42%",
+        "ja": "北部（カマナバ）のお買い得：キャベツ −46%、ペチャイ・バギオ −45%、サヨテ −42%"
+      },
+      "text": {
+        "tl": "🛒 Sulit sa CAMANAVA — presyo noong Okt 19\n\n✅ Mas mura kaysa usual:\n• Repolyo ₱120/kg (−46%) · Karuhatan\n• Pechay Baguio ₱110/kg (−45%) · Navotas Agora\n• Sayote ₱70/kg (−42%) · Hulong Duhat\n• Talong ₱90/kg (−36%) · Hulong Duhat\n• Tilapia ₱120/kg (−25%) · Maypajo\n\n⚠️ Mas mahal ngayon:\n• Sibuyas puti ₱300/kg (+99%)\n• Siling pula ₱350/kg (+47%)\n• Patatas ₱155/kg (+13%)\n",
+        "en": "🇬🇧 Deals in North (CAMANAVA) — prices of Oct 19\n✅ Cabbage ₱120 (−46%), Pechay Baguio ₱110 (−45%), Chayote ₱70 (−42%), Eggplant ₱90 (−36%), Tilapia ₱120 (−25%)\n⚠️ Pricier: White onion ₱300 (+99%), Red chili ₱350 (+47%), Potato ₱155 (+13%)\n",
+        "ja": "🇯🇵 北部（カマナバ）のお買い得 — 10/19の価格\n✅ キャベツ ₱120（−46%）、ペチャイ・バギオ ₱110（−45%）、サヨテ ₱70（−42%）、ナス ₱90（−36%）、ティラピア ₱120（−25%）\n⚠️ 高め：白玉ねぎ ₱300（+99%）、赤唐辛子 ₱350（+47%）、じゃがいも ₱155（+13%）\n"
+      },
+      "summary": {
+        "tl": "Repolyo ₱120/kg (−46%) · Karuhatan",
+        "en": "Cabbage ₱120 (−46%)",
+        "ja": "キャベツ ₱120（−46%）"
+      },
+      "check": "pass"
+    },
+    {
+      "id": "east",
+      "order": 5,
+      "title": {
+        "tl": "Silangan",
+        "en": "East Metro",
+        "ja": "東部"
+      },
+      "has_data": true,
+      "image": "east.png",
+      "image_bytes": 70962,
+      "alt": {
+        "tl": "Silangan: mas mura ang Sayote −58%, Pechay Baguio −47%, Kamatis −30%",
+        "en": "East Metro: cheaper than usual: Chayote −58%, Pechay Baguio −47%, Tomato −30%",
+        "ja": "東部のお買い得：サヨテ −58%、ペチャイ・バギオ −47%、トマト −30%"
+      },
+      "text": {
+        "tl": "🛒 Sulit sa Silangan — presyo noong Okt 19\n\n✅ Mas mura kaysa usual:\n• Sayote ₱40/kg (−58%) · Parang\n• Pechay Baguio ₱80/kg (−47%) · Parang\n• Kamatis ₱75/kg (−30%) · Parang\n• Talong ₱55/kg (−27%) · Guadalupe\n• Repolyo ₱140/kg (−22%) · San Juan Agora\n\n⚠️ Mas mahal ngayon:\n• Siling pula ₱347.50/kg (+46%)\n• Sibuyas puti ₱180/kg (+25%)\n• Patatas ₱180/kg (+17%)\n",
+        "en": "🇬🇧 Deals in East Metro — prices of Oct 19\n✅ Chayote ₱40 (−58%), Pechay Baguio ₱80 (−47%), Tomato ₱75 (−30%), Eggplant ₱55 (−27%), Cabbage ₱140 (−22%)\n⚠️ Pricier: Red chili ₱347.50 (+46%), White onion ₱180 (+25%), Potato ₱180 (+17%)\n",
+        "ja": "🇯🇵 東部のお買い得 — 10/19の価格\n✅ サヨテ ₱40（−58%）、ペチャイ・バギオ ₱80（−47%）、トマト ₱75（−30%）、ナス ₱55（−27%）、キャベツ ₱140（−22%）\n⚠️ 高め：赤唐辛子 ₱347.50（+46%）、白玉ねぎ ₱180（+25%）、じゃがいも ₱180（+17%）\n"
+      },
+      "summary": {
+        "tl": "Sayote ₱40/kg (−58%) · Parang",
+        "en": "Chayote ₱40 (−58%)",
+        "ja": "サヨテ ₱40（−58%）"
+      },
+      "check": "pass"
+    }
+  ],
+  "footer": {
+    "tl": "% = kumpara sa usual na presyo (30 araw)\nSource: DA Price Monitoring · Hindi opisyal na DA page",
+    "en": "% = vs. 30-day usual price\nSource: DA Price Monitoring · Hindi opisyal na DA page",
+    "ja": "% = 30日間のいつもの価格比\nSource: DA Price Monitoring · Hindi opisyal na DA page"
+  }
+}

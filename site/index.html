@@ -8,21 +8,39 @@
       content="Presyo Bantay — araw-araw na presyo sa palengke mula sa DA Bantay Presyo. Daily market prices from DA Bantay Presyo."
     />
     <title>Presyo Bantay</title>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VL047YCMK8"></script>
+    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-VL047YCMK8');</script>
   </head>
   <body>
     <header class="site-header">
       <div class="wrap">
         <h1>Presyo Bantay</h1>
         <p id="tagline" class="tagline"></p>
-        <div class="lang-toggle" role="group" id="lang-group">
+        <div class="lang-toggle" role="group" id="lang-group" aria-label="Wika / Language / 言語">
           <span id="lang-label"></span>
           <button type="button" id="lang-tl">Taglish</button>
           <button type="button" id="lang-en">English</button>
+          <button type="button" id="lang-ja">日本語</button>
         </div>
       </div>
     </header>
 
     <main class="wrap">
+      <section class="card" id="deals-card" aria-labelledby="deals-h" hidden>
+        <h2 id="deals-h"></h2>
+        <p class="hint" id="deals-date"></p>
+        <div id="deals-body"></div>
+        <p class="hint deals-foot" id="deals-foot"></p>
+        <p class="hint"><a id="deals-day-link"></a></p>
+      </section>
+
+      <section class="card" id="days-card" aria-labelledby="days-h" hidden>
+        <h2 id="days-h"></h2>
+        <p><a id="days-latest"></a></p>
+        <ul id="days-list" class="days-list"></ul>
+        <p><a id="days-all"></a></p>
+      </section>
+
       <section class="card" aria-labelledby="controls-h">
         <h2 id="controls-h" class="visually-hidden">Controls</h2>
         <div class="control-row">
@@ -83,6 +101,7 @@
         </p>
         <p id="foot-stall"></p>
         <p id="foot-unofficial"></p>
+        <p id="foot-privacy"></p>
         <p><span id="foot-updated-label"></span> <time id="foot-updated"></time></p>
         <p id="foot-range-note"></p>
         <p><a href="https://github.com/tomohiro-owada/presyo-bantay" rel="noopener" id="foot-code"></a></p>

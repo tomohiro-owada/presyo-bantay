@@ -1,0 +1,906 @@
+{
+  "as_of": "2026-10-23",
+  "generated_by": "presyo signals",
+  "focus_market": "New Las Piñas City Public Market",
+  "nearby_markets": [
+    "Alabang",
+    "La Huerta",
+    "Bicutan",
+    "Pasay"
+  ],
+  "thresholds": {
+    "deal_pct": 8,
+    "min_days": 10,
+    "max_trend_7d_pct": 5
+  },
+  "deals": [
+    {
+      "rank": 1,
+      "name": "Pechay Baguio",
+      "basis_label": "Las Piñas",
+      "unit": "per kg",
+      "price": 130,
+      "median_30d": 220,
+      "pct_vs_median_30d": -40.9,
+      "diff_vs_median_30d": -90,
+      "trend_7d_pct": -40.9,
+      "cheapest_nearby": {
+        "market": "Pasay",
+        "price": 80,
+        "diff_vs_basis": -50
+      }
+    },
+    {
+      "rank": 2,
+      "name": "Chayote",
+      "basis_label": "Las Piñas",
+      "unit": "per kg",
+      "price": 60,
+      "median_30d": 90,
+      "pct_vs_median_30d": -33.3,
+      "diff_vs_median_30d": -30,
+      "trend_7d_pct": 0,
+      "cheapest_nearby": {
+        "market": "Pasay",
+        "price": 30,
+        "diff_vs_basis": -30
+      }
+    },
+    {
+      "rank": 3,
+      "name": "Tomato",
+      "basis_label": "Las Piñas",
+      "unit": "per kg",
+      "price": 90,
+      "median_30d": 105,
+      "pct_vs_median_30d": -14.3,
+      "diff_vs_median_30d": -15,
+      "trend_7d_pct": -5.3,
+      "cheapest_nearby": {
+        "market": "Alabang",
+        "price": 80,
+        "diff_vs_basis": -10
+      }
+    },
+    {
+      "rank": 4,
+      "name": "Eggplant",
+      "basis_label": "Las Piñas",
+      "unit": "per kg",
+      "price": 80,
+      "median_30d": 90,
+      "pct_vs_median_30d": -11.1,
+      "diff_vs_median_30d": -10,
+      "trend_7d_pct": -11.1,
+      "cheapest_nearby": {
+        "market": "La Huerta",
+        "price": 70,
+        "diff_vs_basis": -10
+      }
+    }
+  ],
+  "pricier": [
+    {
+      "rank": 1,
+      "name": "Red Chili (Local)",
+      "basis_label": "Las Piñas",
+      "unit": "per kg",
+      "price": 450,
+      "median_30d": 265,
+      "pct_vs_median_30d": 69.8,
+      "diff_vs_median_30d": 185,
+      "trend_7d_pct": 60.7,
+      "cheapest_nearby": {
+        "market": "Bicutan",
+        "price": 200,
+        "diff_vs_basis": -250
+      }
+    },
+    {
+      "rank": 2,
+      "name": "White Potato (Local)",
+      "basis_label": "Las Piñas",
+      "unit": "per kg",
+      "price": 200,
+      "median_30d": 160,
+      "pct_vs_median_30d": 25,
+      "diff_vs_median_30d": 40,
+      "trend_7d_pct": 17.6,
+      "cheapest_nearby": {
+        "market": "Bicutan",
+        "price": 145,
+        "diff_vs_basis": -55
+      }
+    },
+    {
+      "rank": 3,
+      "name": "Chili (Green)",
+      "basis_label": "Las Piñas",
+      "unit": "per kg",
+      "price": 240,
+      "median_30d": 200,
+      "pct_vs_median_30d": 20,
+      "diff_vs_median_30d": 40,
+      "trend_7d_pct": 26.3,
+      "cheapest_nearby": {
+        "market": "Pasay",
+        "price": 130,
+        "diff_vs_basis": -110
+      }
+    },
+    {
+      "rank": 4,
+      "name": "Carrots (Local)",
+      "basis_label": "nearby markets (Alabang, La Huerta, Bicutan, Pasay)",
+      "unit": "per kg",
+      "price": 120,
+      "median_30d": 105,
+      "pct_vs_median_30d": 14.3,
+      "diff_vs_median_30d": 15,
+      "trend_7d_pct": 20,
+      "cheapest_nearby": null
+    },
+    {
+      "rank": 5,
+      "name": "White Onion (Local)",
+      "basis_label": "nearby markets (Alabang, La Huerta, Bicutan, Pasay)",
+      "unit": "per kg",
+      "price": 160,
+      "median_30d": 140,
+      "pct_vs_median_30d": 14.3,
+      "diff_vs_median_30d": 20,
+      "trend_7d_pct": -13.5,
+      "cheapest_nearby": null
+    }
+  ],
+  "commodities": [
+    {
+      "name": "Egg (Medium)",
+      "category": "egg",
+      "spec": "Medium",
+      "unit": "per piece",
+      "basis": "las_pinas",
+      "basis_label": "Las Piñas",
+      "price": 8.5,
+      "median_30d": 8.5,
+      "n_days_30d": 27,
+      "pct_vs_median_30d": 0,
+      "diff_vs_median_30d": 0,
+      "trend_7d_pct": 0,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 8.5,
+      "market_prices": {
+        "Alabang": 8,
+        "Bicutan": 8.5,
+        "La Huerta": 8,
+        "Las Piñas": 8.5,
+        "Pasay": 8
+      },
+      "cheapest_nearby": {
+        "market": "Alabang",
+        "price": 8,
+        "diff_vs_basis": -0.5
+      }
+    },
+    {
+      "name": "Bangus",
+      "category": "fish",
+      "spec": null,
+      "unit": "per kg",
+      "basis": "las_pinas",
+      "basis_label": "Las Piñas",
+      "price": 270,
+      "median_30d": 270,
+      "n_days_30d": 27,
+      "pct_vs_median_30d": 0,
+      "diff_vs_median_30d": 0,
+      "trend_7d_pct": 0,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 270,
+      "market_prices": {
+        "Alabang": 240,
+        "Bicutan": 250,
+        "La Huerta": 260,
+        "Las Piñas": 270,
+        "Pasay": 170
+      },
+      "cheapest_nearby": {
+        "market": "Pasay",
+        "price": 170,
+        "diff_vs_basis": -100
+      }
+    },
+    {
+      "name": "Galunggong (Local)",
+      "category": "fish",
+      "spec": "Local",
+      "unit": "per kg",
+      "basis": "las_pinas",
+      "basis_label": "Las Piñas",
+      "price": 300,
+      "median_30d": 310,
+      "n_days_30d": 27,
+      "pct_vs_median_30d": -3.2,
+      "diff_vs_median_30d": -10,
+      "trend_7d_pct": 0,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 300,
+      "market_prices": {
+        "Alabang": 300,
+        "Bicutan": 200,
+        "Las Piñas": 300,
+        "Pasay": 270
+      },
+      "cheapest_nearby": {
+        "market": "Bicutan",
+        "price": 200,
+        "diff_vs_basis": -100
+      }
+    },
+    {
+      "name": "Tilapia",
+      "category": "fish",
+      "spec": null,
+      "unit": "per kg",
+      "basis": "las_pinas",
+      "basis_label": "Las Piñas",
+      "price": 180,
+      "median_30d": 180,
+      "n_days_30d": 27,
+      "pct_vs_median_30d": 0,
+      "diff_vs_median_30d": 0,
+      "trend_7d_pct": 0,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 180,
+      "market_prices": {
+        "Alabang": 160,
+        "Bicutan": 140,
+        "La Huerta": 160,
+        "Las Piñas": 180,
+        "Pasay": 140
+      },
+      "cheapest_nearby": {
+        "market": "Pasay",
+        "price": 140,
+        "diff_vs_basis": -40
+      }
+    },
+    {
+      "name": "Fresh Pork (Kasim) Imported",
+      "category": "pork",
+      "spec": "Kasim, Imported",
+      "unit": "per kg",
+      "basis": "nearby_median",
+      "basis_label": "nearby markets (Alabang, La Huerta, Bicutan, Pasay)",
+      "price": 225,
+      "median_30d": 225,
+      "n_days_30d": 17,
+      "pct_vs_median_30d": 0,
+      "diff_vs_median_30d": 0,
+      "trend_7d_pct": 0,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 225,
+      "market_prices": {
+        "Bicutan": 250,
+        "Pasay": 200
+      },
+      "cheapest_nearby": null
+    },
+    {
+      "name": "Fresh Pork (Kasim) Local",
+      "category": "pork",
+      "spec": "Kasim, Local",
+      "unit": "per kg",
+      "basis": "las_pinas",
+      "basis_label": "Las Piñas",
+      "price": 260,
+      "median_30d": 275,
+      "n_days_30d": 27,
+      "pct_vs_median_30d": -5.5,
+      "diff_vs_median_30d": -15,
+      "trend_7d_pct": -1.9,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 265,
+      "market_prices": {
+        "Alabang": 280,
+        "Bicutan": 350,
+        "La Huerta": 320,
+        "Las Piñas": 260,
+        "Pasay": 280
+      },
+      "cheapest_nearby": null
+    },
+    {
+      "name": "Fresh Pork Liempo (Imported)",
+      "category": "pork",
+      "spec": "Imported",
+      "unit": "per kg",
+      "basis": "nearby_median",
+      "basis_label": "nearby markets (Alabang, La Huerta, Bicutan, Pasay)",
+      "price": 290,
+      "median_30d": 290,
+      "n_days_30d": 17,
+      "pct_vs_median_30d": 0,
+      "diff_vs_median_30d": 0,
+      "trend_7d_pct": 0,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 290,
+      "market_prices": {
+        "Bicutan": 300,
+        "Pasay": 280
+      },
+      "cheapest_nearby": null
+    },
+    {
+      "name": "Fresh Pork Liempo (Local)",
+      "category": "pork",
+      "spec": "Local",
+      "unit": "per kg",
+      "basis": "las_pinas",
+      "basis_label": "Las Piñas",
+      "price": 305,
+      "median_30d": 320,
+      "n_days_30d": 27,
+      "pct_vs_median_30d": -4.7,
+      "diff_vs_median_30d": -15,
+      "trend_7d_pct": -1.6,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 310,
+      "market_prices": {
+        "Alabang": 365,
+        "Bicutan": 370,
+        "La Huerta": 370,
+        "Las Piñas": 305,
+        "Pasay": 350
+      },
+      "cheapest_nearby": null
+    },
+    {
+      "name": "Fresh Whole Chicken",
+      "category": "poultry",
+      "spec": null,
+      "unit": "per kg",
+      "basis": "las_pinas",
+      "basis_label": "Las Piñas",
+      "price": 210,
+      "median_30d": 190,
+      "n_days_30d": 27,
+      "pct_vs_median_30d": 10.5,
+      "diff_vs_median_30d": 20,
+      "trend_7d_pct": 2.4,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 205,
+      "market_prices": {
+        "Alabang": 200,
+        "Bicutan": 205,
+        "La Huerta": 220,
+        "Las Piñas": 210,
+        "Pasay": 210
+      },
+      "cheapest_nearby": {
+        "market": "Alabang",
+        "price": 200,
+        "diff_vs_basis": -10
+      }
+    },
+    {
+      "name": "Premium Rice (Imported)",
+      "category": "rice",
+      "spec": "Imported",
+      "unit": "per kg",
+      "basis": "las_pinas",
+      "basis_label": "Las Piñas",
+      "price": 59,
+      "median_30d": 59,
+      "n_days_30d": 27,
+      "pct_vs_median_30d": 0,
+      "diff_vs_median_30d": 0,
+      "trend_7d_pct": 0,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 59,
+      "market_prices": {
+        "Alabang": 57.5,
+        "Bicutan": 56.5,
+        "La Huerta": 56.5,
+        "Las Piñas": 59,
+        "Pasay": 55
+      },
+      "cheapest_nearby": {
+        "market": "Pasay",
+        "price": 55,
+        "diff_vs_basis": -4
+      }
+    },
+    {
+      "name": "Premium Rice (Local)",
+      "category": "rice",
+      "spec": "Local",
+      "unit": "per kg",
+      "basis": "las_pinas",
+      "basis_label": "Las Piñas",
+      "price": 51.5,
+      "median_30d": 52,
+      "n_days_30d": 27,
+      "pct_vs_median_30d": -1,
+      "diff_vs_median_30d": -0.5,
+      "trend_7d_pct": 0,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 51.5,
+      "market_prices": {
+        "Alabang": 54,
+        "Bicutan": 53,
+        "La Huerta": 56,
+        "Las Piñas": 51.5,
+        "Pasay": 58
+      },
+      "cheapest_nearby": null
+    },
+    {
+      "name": "Regular Milled (Local)",
+      "category": "rice",
+      "spec": "Local",
+      "unit": "per kg",
+      "basis": "nearby_median",
+      "basis_label": "nearby markets (Alabang, La Huerta, Bicutan, Pasay)",
+      "price": 45,
+      "median_30d": 44.5,
+      "n_days_30d": 20,
+      "pct_vs_median_30d": 1.1,
+      "diff_vs_median_30d": 0.5,
+      "trend_7d_pct": 0,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 45,
+      "market_prices": {
+        "Alabang": 45,
+        "Bicutan": 48,
+        "Pasay": 41
+      },
+      "cheapest_nearby": {
+        "market": "Pasay",
+        "price": 41,
+        "diff_vs_basis": -4
+      }
+    },
+    {
+      "name": "Well-milled Rice (Imported)",
+      "category": "rice",
+      "spec": "Imported",
+      "unit": "per kg",
+      "basis": "las_pinas",
+      "basis_label": "Las Piñas",
+      "price": 50,
+      "median_30d": 50,
+      "n_days_30d": 27,
+      "pct_vs_median_30d": 0,
+      "diff_vs_median_30d": 0,
+      "trend_7d_pct": 0,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 50,
+      "market_prices": {
+        "Alabang": 49,
+        "Bicutan": 48,
+        "Las Piñas": 50,
+        "Pasay": 48.5
+      },
+      "cheapest_nearby": {
+        "market": "Bicutan",
+        "price": 48,
+        "diff_vs_basis": -2
+      }
+    },
+    {
+      "name": "Well-milled Rice (Local)",
+      "category": "rice",
+      "spec": "Local",
+      "unit": "per kg",
+      "basis": "nearby_median",
+      "basis_label": "nearby markets (Alabang, La Huerta, Bicutan, Pasay)",
+      "price": 49,
+      "median_30d": 48.5,
+      "n_days_30d": 29,
+      "pct_vs_median_30d": 1,
+      "diff_vs_median_30d": 0.5,
+      "trend_7d_pct": 0,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 49,
+      "market_prices": {
+        "Alabang": 47.5,
+        "Bicutan": 49.5,
+        "Pasay": 49
+      },
+      "cheapest_nearby": {
+        "market": "Alabang",
+        "price": 47.5,
+        "diff_vs_basis": -1.5
+      }
+    },
+    {
+      "name": "Calamansi",
+      "category": "spices",
+      "spec": null,
+      "unit": "per kg",
+      "basis": "las_pinas",
+      "basis_label": "Las Piñas",
+      "price": 115,
+      "median_30d": 105,
+      "n_days_30d": 27,
+      "pct_vs_median_30d": 9.5,
+      "diff_vs_median_30d": 10,
+      "trend_7d_pct": 15,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 100,
+      "market_prices": {
+        "Alabang": 100,
+        "Bicutan": 90,
+        "La Huerta": 100,
+        "Las Piñas": 115,
+        "Pasay": 100
+      },
+      "cheapest_nearby": {
+        "market": "Bicutan",
+        "price": 90,
+        "diff_vs_basis": -25
+      }
+    },
+    {
+      "name": "Chili (Green)",
+      "category": "spices",
+      "spec": "Green",
+      "unit": "per kg",
+      "basis": "las_pinas",
+      "basis_label": "Las Piñas",
+      "price": 240,
+      "median_30d": 200,
+      "n_days_30d": 27,
+      "pct_vs_median_30d": 20,
+      "diff_vs_median_30d": 40,
+      "trend_7d_pct": 26.3,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 190,
+      "market_prices": {
+        "Alabang": 180,
+        "Bicutan": 180,
+        "La Huerta": 180,
+        "Las Piñas": 240,
+        "Pasay": 130
+      },
+      "cheapest_nearby": {
+        "market": "Pasay",
+        "price": 130,
+        "diff_vs_basis": -110
+      }
+    },
+    {
+      "name": "Red Chili (Local)",
+      "category": "spices",
+      "spec": "Local",
+      "unit": "per kg",
+      "basis": "las_pinas",
+      "basis_label": "Las Piñas",
+      "price": 450,
+      "median_30d": 265,
+      "n_days_30d": 27,
+      "pct_vs_median_30d": 69.8,
+      "diff_vs_median_30d": 185,
+      "trend_7d_pct": 60.7,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 280,
+      "market_prices": {
+        "Alabang": 400,
+        "Bicutan": 200,
+        "La Huerta": 300,
+        "Las Piñas": 450,
+        "Pasay": 310
+      },
+      "cheapest_nearby": {
+        "market": "Bicutan",
+        "price": 200,
+        "diff_vs_basis": -250
+      }
+    },
+    {
+      "name": "Red Onion (Local)",
+      "category": "spices",
+      "spec": "Local",
+      "unit": "per kg",
+      "basis": "las_pinas",
+      "basis_label": "Las Piñas",
+      "price": 105,
+      "median_30d": 100,
+      "n_days_30d": 27,
+      "pct_vs_median_30d": 5,
+      "diff_vs_median_30d": 5,
+      "trend_7d_pct": 5,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 100,
+      "market_prices": {
+        "Alabang": 100,
+        "Bicutan": 115,
+        "La Huerta": 120,
+        "Las Piñas": 105,
+        "Pasay": 90
+      },
+      "cheapest_nearby": {
+        "market": "Pasay",
+        "price": 90,
+        "diff_vs_basis": -15
+      }
+    },
+    {
+      "name": "White Onion (Local)",
+      "category": "spices",
+      "spec": "Local",
+      "unit": "per kg",
+      "basis": "nearby_median",
+      "basis_label": "nearby markets (Alabang, La Huerta, Bicutan, Pasay)",
+      "price": 160,
+      "median_30d": 140,
+      "n_days_30d": 26,
+      "pct_vs_median_30d": 14.3,
+      "diff_vs_median_30d": 20,
+      "trend_7d_pct": -13.5,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 185,
+      "market_prices": {
+        "Alabang": 120,
+        "Pasay": 200
+      },
+      "cheapest_nearby": null
+    },
+    {
+      "name": "Sugar (Refined)",
+      "category": "sugar",
+      "spec": "Refined",
+      "unit": "per kg",
+      "basis": "las_pinas",
+      "basis_label": "Las Piñas",
+      "price": 79,
+      "median_30d": 79,
+      "n_days_30d": 27,
+      "pct_vs_median_30d": 0,
+      "diff_vs_median_30d": 0,
+      "trend_7d_pct": 0,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 79,
+      "market_prices": {
+        "Alabang": 73.5,
+        "Bicutan": 78,
+        "La Huerta": 80,
+        "Las Piñas": 79,
+        "Pasay": 87.5
+      },
+      "cheapest_nearby": {
+        "market": "Alabang",
+        "price": 73.5,
+        "diff_vs_basis": -5.5
+      }
+    },
+    {
+      "name": "Ampalaya",
+      "category": "vegetables",
+      "spec": null,
+      "unit": "per kg",
+      "basis": "las_pinas",
+      "basis_label": "Las Piñas",
+      "price": 130,
+      "median_30d": 120,
+      "n_days_30d": 27,
+      "pct_vs_median_30d": 8.3,
+      "diff_vs_median_30d": 10,
+      "trend_7d_pct": 18.2,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 110,
+      "market_prices": {
+        "Alabang": 105,
+        "Bicutan": 100,
+        "La Huerta": 100,
+        "Las Piñas": 130,
+        "Pasay": 120
+      },
+      "cheapest_nearby": {
+        "market": "La Huerta",
+        "price": 100,
+        "diff_vs_basis": -30
+      }
+    },
+    {
+      "name": "Cabbage",
+      "category": "vegetables",
+      "spec": null,
+      "unit": "per kg",
+      "basis": "las_pinas",
+      "basis_label": "Las Piñas",
+      "price": 180,
+      "median_30d": 180,
+      "n_days_30d": 27,
+      "pct_vs_median_30d": 0,
+      "diff_vs_median_30d": 0,
+      "trend_7d_pct": 20,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 150,
+      "market_prices": {
+        "Alabang": 160,
+        "Bicutan": 145,
+        "La Huerta": 140,
+        "Las Piñas": 180,
+        "Pasay": 140
+      },
+      "cheapest_nearby": {
+        "market": "Pasay",
+        "price": 140,
+        "diff_vs_basis": -40
+      }
+    },
+    {
+      "name": "Carrots (Local)",
+      "category": "vegetables",
+      "spec": "Local",
+      "unit": "per kg",
+      "basis": "nearby_median",
+      "basis_label": "nearby markets (Alabang, La Huerta, Bicutan, Pasay)",
+      "price": 120,
+      "median_30d": 105,
+      "n_days_30d": 29,
+      "pct_vs_median_30d": 14.3,
+      "diff_vs_median_30d": 15,
+      "trend_7d_pct": 20,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 100,
+      "market_prices": {
+        "Alabang": 120,
+        "Bicutan": 120,
+        "La Huerta": 120,
+        "Pasay": 140
+      },
+      "cheapest_nearby": null
+    },
+    {
+      "name": "Chayote",
+      "category": "vegetables",
+      "spec": null,
+      "unit": "per kg",
+      "basis": "las_pinas",
+      "basis_label": "Las Piñas",
+      "price": 60,
+      "median_30d": 90,
+      "n_days_30d": 27,
+      "pct_vs_median_30d": -33.3,
+      "diff_vs_median_30d": -30,
+      "trend_7d_pct": 0,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 60,
+      "market_prices": {
+        "Alabang": 40,
+        "Bicutan": 70,
+        "La Huerta": 60,
+        "Las Piñas": 60,
+        "Pasay": 30
+      },
+      "cheapest_nearby": {
+        "market": "Pasay",
+        "price": 30,
+        "diff_vs_basis": -30
+      }
+    },
+    {
+      "name": "Eggplant",
+      "category": "vegetables",
+      "spec": null,
+      "unit": "per kg",
+      "basis": "las_pinas",
+      "basis_label": "Las Piñas",
+      "price": 80,
+      "median_30d": 90,
+      "n_days_30d": 27,
+      "pct_vs_median_30d": -11.1,
+      "diff_vs_median_30d": -10,
+      "trend_7d_pct": -11.1,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 90,
+      "market_prices": {
+        "Alabang": 85,
+        "Bicutan": 75,
+        "La Huerta": 70,
+        "Las Piñas": 80,
+        "Pasay": 70
+      },
+      "cheapest_nearby": {
+        "market": "La Huerta",
+        "price": 70,
+        "diff_vs_basis": -10
+      }
+    },
+    {
+      "name": "Pechay Baguio",
+      "category": "vegetables",
+      "spec": null,
+      "unit": "per kg",
+      "basis": "las_pinas",
+      "basis_label": "Las Piñas",
+      "price": 130,
+      "median_30d": 220,
+      "n_days_30d": 27,
+      "pct_vs_median_30d": -40.9,
+      "diff_vs_median_30d": -90,
+      "trend_7d_pct": -40.9,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 220,
+      "market_prices": {
+        "Alabang": 100,
+        "Bicutan": 130,
+        "La Huerta": 120,
+        "Las Piñas": 130,
+        "Pasay": 80
+      },
+      "cheapest_nearby": {
+        "market": "Pasay",
+        "price": 80,
+        "diff_vs_basis": -50
+      }
+    },
+    {
+      "name": "Tomato",
+      "category": "vegetables",
+      "spec": null,
+      "unit": "per kg",
+      "basis": "las_pinas",
+      "basis_label": "Las Piñas",
+      "price": 90,
+      "median_30d": 105,
+      "n_days_30d": 27,
+      "pct_vs_median_30d": -14.3,
+      "diff_vs_median_30d": -15,
+      "trend_7d_pct": -5.3,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 95,
+      "market_prices": {
+        "Alabang": 80,
+        "Bicutan": 95,
+        "La Huerta": 80,
+        "Las Piñas": 90,
+        "Pasay": 90
+      },
+      "cheapest_nearby": {
+        "market": "Alabang",
+        "price": 80,
+        "diff_vs_basis": -10
+      }
+    },
+    {
+      "name": "White Potato (Local)",
+      "category": "vegetables",
+      "spec": "Local",
+      "unit": "per kg",
+      "basis": "las_pinas",
+      "basis_label": "Las Piñas",
+      "price": 200,
+      "median_30d": 160,
+      "n_days_30d": 27,
+      "pct_vs_median_30d": 25,
+      "diff_vs_median_30d": 40,
+      "trend_7d_pct": 17.6,
+      "trend_7d_base_date": "2026-10-16",
+      "trend_7d_base_value": 170,
+      "market_prices": {
+        "Alabang": 175,
+        "Bicutan": 145,
+        "La Huerta": 190,
+        "Las Piñas": 200,
+        "Pasay": 180
+      },
+      "cheapest_nearby": {
+        "market": "Bicutan",
+        "price": 145,
+        "diff_vs_basis": -55
+      }
+    }
+  ],
+  "fx": {
+    "latest_date": "2026-10-23",
+    "latest_rate": 63.64,
+    "rate_30d_ago_date": "2026-09-23",
+    "rate_30d_ago": 62.55,
+    "fx_change_30d_pct": 1.7,
+    "note": "Correlation is not causation: an FX-price correlation only means the two series moved together, not that exchange-rate moves caused the price moves."
+  }
+}

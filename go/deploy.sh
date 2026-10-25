@@ -13,7 +13,8 @@
 #   3. aborts unless `ssh $VPS_HOST uname -m` reports x86_64,
 #   4. copies the binary to $REMOTE_DIR/bin/presyo.new, then atomically
 #      `mv`s it over $REMOTE_DIR/bin/presyo,
-#   5. copies scripts/daily.sh to $REMOTE_DIR/bin/daily.sh (chmod 755),
+#   5. copies scripts/daily.sh and scripts/watch.sh to $REMOTE_DIR/bin/
+#      (chmod 755),
 #   6. prints the remote `presyo version`, then the suggested crontab lines.
 #
 # This script NEVER touches crontab and NEVER runs as root.
@@ -63,13 +64,16 @@ run scp bin/presyo "${VPS_HOST}:${REMOTE_BIN}.new"
 run ssh "${VPS_HOST}" "mv ${REMOTE_BIN}.new ${REMOTE_BIN}"
 run scp scripts/daily.sh "${VPS_HOST}:${REMOTE_DIR}/bin/daily.sh"
 run ssh "${VPS_HOST}" "chmod 755 ${REMOTE_DIR}/bin/daily.sh"
+run scp scripts/watch.sh "${VPS_HOST}:${REMOTE_DIR}/bin/watch.sh"
+run ssh "${VPS_HOST}" "chmod 755 ${REMOTE_DIR}/bin/watch.sh"
 run ssh "${VPS_HOST}" "${REMOTE_BIN} version"
 
 cat <<'EOF'
-deploy done. This script never touches crontab; install the schedule with
-`crontab -e` on the VPS (TZ <SERVER_TZ> = UTC+9; 07:15 and 23:15 server-TZ =
-06:15 and 22:15 Manila time, catching the DA evening posts):
+deploy done. This script never touches crontab; the orchestrator installs
+the schedule COMMENTED OUT (enable with
+`crontab -l | sed 's/^#FBPOST //' | crontab`):
 
+<CRON_LINE_REMOVED>
 <CRON_LINE_REMOVED>
 <CRON_LINE_REMOVED>
 EOF

@@ -9,9 +9,9 @@
 #   RAW=$PRESYO_HOME/data/raw  BIN=$PRESYO_HOME/bin/presyo  LOG=$PRESYO_HOME/logs/daily.log
 #
 # Flow: rotate log, take flock, git pull --rebase, run ingest/fx/export
-# (recording each exit code without aborting), commit+push data/json and
-# site/public/data (skipping the commit when only meta.json generated_at
-# changed), exit non-zero if anything failed.
+# (recording each exit code without aborting), commit+push data/json,
+# site/public/data and site/public/d (skipping the commit when only
+# meta.json generated_at changed), exit non-zero if anything failed.
 #
 # Never uses sudo and never writes outside $PRESYO_HOME.
 set -euo pipefail
@@ -65,11 +65,12 @@ if ! git -C "$REPO" pull --rebase --quiet; then
   echo "warning: initial git pull --rebase failed, continuing"
 fi
 
-mkdir -p "$RAW" "$(dirname "$DB")" "$REPO/data/json" "$REPO/site/public/data"
+mkdir -p "$RAW" "$(dirname "$DB")" "$REPO/data/json" "$REPO/site/public/data" "$REPO/site/public/d"
 
 ingest_rc=0
 fx_rc=0
 export_rc=0
+daypages_rc=0
 
 if "$BIN" ingest -db "$DB" -raw "$RAW" -json-dir "$REPO/data/json"; then
   ingest_rc=0
@@ -92,19 +93,62 @@ else
   echo "error: presyo export failed (rc=$export_rc)"
 fi
 
+# Optional deals card step (v3, off by default). Builds signals + advise
+# (template fallback unless PRESYO_DEALS_LLM=1) and stages deals.json for
+# the commit below. Never fails the ingest/export result: log + record rc.
+deals_rc=0
+if [ "${PRESYO_DEALS:-0}" = "1" ]; then
+  deals_tmp="$(mktemp -d)"
+  deals_date="$(TZ=Asia/Manila date +%F)"
+  deals_out="$PRESYO_HOME/advice/$deals_date"
+  advise_extra=""
+  if [ "${PRESYO_DEALS_LLM:-0}" != "1" ]; then
+    advise_extra="-no-llm"
+  fi
+  if "$BIN" signals -db "$DB" -out "$deals_tmp/signals.json" && \
+     "$BIN" advise -signals "$deals_tmp/signals.json" -out-dir "$deals_out" $advise_extra; then
+    if [ -f "$deals_out/deals.json" ]; then
+      cp "$deals_out/deals.json" "$REPO/site/public/data/deals.json"
+    else
+      deals_rc=1
+      echo "error: presyo deals step produced no deals.json (rc=$deals_rc)"
+    fi
+  else
+    deals_rc=$?
+    echo "error: presyo deals step failed (rc=$deals_rc)"
+  fi
+  rm -rf "$deals_tmp"
+fi
+
 [ "$ingest_rc" -ne 0 ] && fail=1
 [ "$fx_rc" -ne 0 ] && fail=1
 [ "$export_rc" -ne 0 ] && fail=1
 
-# --- change detection + commit + push (only these two dirs, never the DB) ---
+# Static daily report pages (daypages, on by default unless
+# PRESYO_DAYPAGES=0). A failure is logged and fails the run but must not
+# block the commit/push of the other data below.
+if [ "${PRESYO_DAYPAGES:-1}" = "0" ]; then
+  echo "daypages skipped (PRESYO_DAYPAGES=0)"
+else
+  if "$BIN" daypages -db "$DB" -site-public "$REPO/site/public"; then
+    daypages_rc=0
+  else
+    daypages_rc=$?
+    echo "error: presyo daypages failed (rc=$daypages_rc)"
+    fail=1
+  fi
+fi
+
+# --- change detection + commit + push (only these dirs, never the DB) ---
 commit_rc=0
 push_rc=0
 
 json_status="$(git -C "$REPO" status --porcelain -- data/json || true)"
 site_status="$(git -C "$REPO" status --porcelain -- site/public/data || true)"
+days_status="$(git -C "$REPO" status --porcelain -- site/public/d || true)"
 
 only_generated_at=0
-if [ -z "$json_status" ] && [ -n "$site_status" ]; then
+if [ -z "$json_status" ] && [ -z "$days_status" ] && [ -n "$site_status" ]; then
   # Exactly one modified tracked meta.json and nothing else?
   if [ "$site_status" = " M site/public/data/meta.json" ]; then
     old_tmp="$(mktemp)"
@@ -119,13 +163,13 @@ if [ -z "$json_status" ] && [ -n "$site_status" ]; then
   fi
 fi
 
-if [ -z "$json_status$site_status" ]; then
+if [ -z "$json_status$site_status$days_status" ]; then
   echo "no data changes, nothing to commit"
 elif [ "$only_generated_at" = "1" ]; then
   git -C "$REPO" checkout -- site/public/data/meta.json
   echo "only generated_at changed, restored meta.json, nothing to commit"
 else
-  git -C "$REPO" add data/json site/public/data
+  git -C "$REPO" add data/json site/public/data site/public/d
   if git -C "$REPO" diff --cached --quiet; then
     echo "nothing staged after add, nothing to commit"
   else
@@ -155,5 +199,5 @@ else
   fi
 fi
 
-echo "=== daily.sh end $(ts) rc=$fail (ingest=$ingest_rc fx=$fx_rc export=$export_rc commit=$commit_rc push=$push_rc) ==="
+echo "=== daily.sh end $(ts) rc=$fail (ingest=$ingest_rc fx=$fx_rc export=$export_rc deals=$deals_rc daypages=$daypages_rc commit=$commit_rc push=$push_rc) ==="
 exit "$fail"

@@ -58,6 +58,7 @@ body {
 .lang-toggle {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   font-size: 0.9rem;
 }
@@ -71,6 +72,13 @@ body {
   padding: 4px 12px;
   font: inherit;
   cursor: pointer;
+  white-space: nowrap;
+}
+
+@media (max-width: 519px) {
+  #lang-label {
+    display: none;
+  }
 }
 
 .lang-toggle button[aria-pressed="true"] {
@@ -365,6 +373,38 @@ table.data tr.cheap td {
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
+}
+
+.deals-list {
+  margin: 8px 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 4px;
+  font-size: 0.95rem;
+}
+
+.deals-line,
+.deals-sub {
+  margin: 6px 0;
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+
+.deals-sub {
+  font-weight: 700;
+  margin-top: 10px;
+}
+
+.deals-foot {
+  margin-top: 8px;
+}
+
+.days-list {
+  margin: 8px 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 4px;
+  font-size: 0.95rem;
 }
 
 @media (min-width: 640px) {

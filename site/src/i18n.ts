@@ -1,6 +1,6 @@
-/** UI strings: Taglish (default) and English. No external locale files. */
+/** UI strings: Taglish (default), English and Japanese. No external locale files. */
 
-export type Lang = "tl" | "en";
+export type Lang = "tl" | "en" | "ja";
 
 export const LANG_KEY = "pb-lang";
 
@@ -28,17 +28,37 @@ const CATEGORY_EN: Record<string, string> = {
   other: "Other",
 };
 
+const CATEGORY_JA: Record<string, string> = {
+  rice: "米",
+  fish: "魚",
+  egg: "卵",
+  vegetables: "野菜",
+  spices: "香辛料",
+  sugar: "砂糖",
+  pork: "豚肉",
+  poultry: "鶏肉",
+  other: "その他",
+};
+
 export interface Strings {
   tagline: string;
   languageLabel: string;
   langTaglish: string;
   langEnglish: string;
+  langJapanese: string;
   commodityLabel: string;
   marketsLabel: string;
   rangeLabel: string;
   rangeDays: string;
   rangeAll: string;
   fxLabel: string;
+  dealsTitle: string;
+  dealsFooter: string;
+  dealsFooterAI: string;
+  dealsDayLink: string;
+  daysTitle: string;
+  daysLatest: (date: string) => string;
+  daysAll: string;
   chartTitle: string;
   chartHint: string;
   weekTitle: string;
@@ -77,6 +97,7 @@ export interface Strings {
   footerFx: string;
   footerStall: string;
   footerUnofficial: string;
+  footerPrivacy: string;
   footerUpdated: string;
   footerCode: string;
 }
@@ -86,12 +107,20 @@ const tl: Strings = {
   languageLabel: "Wika:",
   langTaglish: "Taglish",
   langEnglish: "English",
+  langJapanese: "日本語",
   commodityLabel: "Paninda:",
   marketsLabel: "Mga palengke:",
   rangeLabel: "Saklaw:",
   rangeDays: "araw",
   rangeAll: "Lahat",
   fxLabel: "Ipakita ang USD/PHP",
+  dealsTitle: "Sulit ngayon",
+  dealsFooter: "Awtomatikong buod mula sa DA price data",
+  dealsFooterAI: "(may tulong ng AI, sinuri ang mga numero)",
+  dealsDayLink: "Lahat ng 5 rehiyon →",
+  daysTitle: "Araw-araw na ulat",
+  daysLatest: (date) => `Tingnan ang ulat ngayong ${date} — 5 rehiyon →`,
+  daysAll: "Lahat ng ulat →",
   chartTitle: "Presyo sa paglipas ng panahon",
   chartHint: "I-hover o i-tap ang chart para makita ang presyo kada araw.",
   weekTitle: "Ngayong linggo",
@@ -135,6 +164,8 @@ const tl: Strings = {
     "Paalala: iba-iba ang presyo kada pwesto/stall; gabay lang ang mga presyong ito.",
   footerUnofficial:
     "Unofficial, non-profit community project; hindi affiliated sa DA.",
+  footerPrivacy:
+    "Gumagamit ang site na ito ng Google Analytics para sa bilang ng bisita.",
   footerUpdated: "Huling update ng data:",
   footerCode: "Source code (MIT)",
 };
@@ -144,12 +175,20 @@ const en: Strings = {
   languageLabel: "Language:",
   langTaglish: "Taglish",
   langEnglish: "English",
+  langJapanese: "日本語",
   commodityLabel: "Commodity:",
   marketsLabel: "Markets:",
   rangeLabel: "Range:",
   rangeDays: "days",
   rangeAll: "All",
   fxLabel: "Show USD/PHP",
+  dealsTitle: "Today's deals",
+  dealsFooter: "Automatic summary from DA price data",
+  dealsFooterAI: "(AI-assisted, numbers checked)",
+  dealsDayLink: "All 5 areas →",
+  daysTitle: "Daily reports",
+  daysLatest: (date) => `See the ${date} report — 5 areas →`,
+  daysAll: "All reports →",
   chartTitle: "Price over time",
   chartHint: "Hover or tap the chart to see daily prices.",
   weekTitle: "This week",
@@ -191,15 +230,82 @@ const en: Strings = {
   footerFx: "USD/PHP: European Central Bank reference rates via Frankfurter",
   footerStall: "Note: prices vary by stall/pwesto and are a guide only.",
   footerUnofficial: "Unofficial, non-profit community project; not affiliated with DA.",
+  footerPrivacy: "This site uses Google Analytics to count visits.",
   footerUpdated: "Data last updated:",
   footerCode: "Source code (MIT)",
 };
 
-export const STRINGS: Record<Lang, Strings> = { tl, en };
+const ja: Strings = {
+  tagline: "DA（農業省）Bantay Presyoの毎日の市場価格。",
+  languageLabel: "言語：",
+  langTaglish: "Taglish",
+  langEnglish: "English",
+  langJapanese: "日本語",
+  commodityLabel: "品目：",
+  marketsLabel: "市場：",
+  rangeLabel: "期間：",
+  rangeDays: "日間",
+  rangeAll: "全期間",
+  fxLabel: "USD/PHPを表示",
+  dealsTitle: "今日のお買い得",
+  dealsFooter: "DA価格データからの自動要約",
+  dealsFooterAI: "（AI補助・数値チェック済み）",
+  dealsDayLink: "全5地域を見る →",
+  daysTitle: "毎日のレポート",
+  daysLatest: (date) => `${date}のレポート（5地域）→`,
+  daysAll: "すべてのレポート →",
+  chartTitle: "価格の推移",
+  chartHint: "チャートにホバーまたはタップすると毎日の価格が表示されます。",
+  weekTitle: "今週",
+  weekUnitKg: "1キロあたりの価格（₱/kg）。",
+  weekUnitPc: "1個あたりの価格（₱/個）。",
+  thMarket: "市場",
+  thLatest: "最新価格",
+  thChange: "週間変動",
+  cheapestBadge: "最安",
+  noBaseline: "前週データなし",
+  noPrice: "なし",
+  noDataForMarket: (m) => `${m}のデータはこの期間にありません。`,
+  loading: "読み込み中…",
+  loadError: "データの読み込みに失敗しました。接続を確認して再試行してください。",
+  retry: "再試行",
+  corrTitle: "USD/PHPと価格",
+  corrMarketLabel: "市場：",
+  corrDesc:
+    "価格とUSD/PHPのピアソン相関係数。ラグ別（d日の価格とd−ラグ時点の為替）。",
+  corrLag: "ラグ（日）",
+  corrR: "r",
+  corrN: "n",
+  corrInterp: "解釈",
+  corrWeak: "弱い",
+  corrModerate: "中程度",
+  corrStrong: "強い",
+  corrPositive: "正の相関",
+  corrNegative: "負の相関",
+  corrSparse: "データ不足",
+  corrFlat: "この期間は価格変動なし",
+  corrCaution:
+    "注意：相関は因果関係ではありません。二つの系列が一緒に動いても、為替の動きが価格の動きの原因とは限りません。短い期間の数値はばらつきが大きいため、一つの数値を過信しないでください。",
+  corrNoFx: "この期間の為替データがないため、比較できません。",
+  chipsMore: (n) => `その他の市場（+${n}）`,
+  chipsLess: "閉じる",
+  rangeNote:
+    "注意：一部の古いデータ（2026-08-18以前）は価格帯で公表されていたため、チャートは中間値を表示しています。",
+  footerSource: "出典：農業省（DA）バンタイ・プレショ（da.gov.ph）",
+  footerFx: "USD/PHP：フランクフルター経由の欧州中央銀行参考レート",
+  footerStall: "注意：価格は売り場ごとに異なります。目安としてご利用ください。",
+  footerUnofficial: "非公式の非営利コミュニティプロジェクト。DAとは関係ありません。",
+  footerPrivacy: "アクセス解析にGoogleアナリティクスを使っています。",
+  footerUpdated: "データ最終更新：",
+  footerCode: "ソースコード（MIT）",
+};
+
+export const STRINGS: Record<Lang, Strings> = { tl, en, ja };
 
 export const CATEGORY_LABEL: Record<Lang, Record<string, string>> = {
   tl: CATEGORY_TL,
   en: CATEGORY_EN,
+  ja: CATEGORY_JA,
 };
 
 export function categoryLabel(lang: Lang, category: string | null): string {
@@ -210,7 +316,7 @@ export function categoryLabel(lang: Lang, category: string | null): string {
 export function loadLang(): Lang {
   try {
     const saved = localStorage.getItem(LANG_KEY);
-    if (saved === "en" || saved === "tl") {
+    if (saved === "en" || saved === "tl" || saved === "ja") {
       return saved;
     }
   } catch {

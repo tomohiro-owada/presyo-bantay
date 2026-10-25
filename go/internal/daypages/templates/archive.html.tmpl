@@ -1,0 +1,76 @@
+{{define "archive"}}<!doctype html>
+<html lang="fil">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Title}}</title>
+<meta name="description" content="{{.Description}}">
+<link rel="canonical" href="{{.Canonical}}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Presyo Bantay">
+<meta property="og:title" content="{{.Title}}">
+<meta property="og:description" content="{{.Description}}">
+<meta property="og:url" content="{{.Canonical}}">
+{{if .OGImage}}<meta property="og:image" content="{{.OGImage}}">
+<meta property="og:image:width" content="1080">
+<meta property="og:image:height" content="1350">
+{{end}}<meta property="og:locale" content="fil_PH">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:locale:alternate" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{.Title}}">
+<meta name="twitter:description" content="{{.Description}}">
+{{if .OGImage}}<meta name="twitter:image" content="{{.OGImage}}">
+{{end}}<script async src="https://www.googletagmanager.com/gtag/js?id=G-VL047YCMK8"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-VL047YCMK8');</script>
+<style>
+:root{--bg:#faf8f2;--card:#fff;--ink:#1c1a15;--muted:#5c5648;--line:#e2dccb;--accent:#0b5d3b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;line-height:1.5;font-size:16px}
+.wrap{max-width:880px;margin:0 auto;padding:0 12px}
+.site-header{background:var(--accent);color:#fff;padding:14px 0}
+.site-header a.home{color:#fff;text-decoration:none;font-size:1.4rem;font-weight:700}
+.lang-toggle{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:8px;font-size:.9rem}
+.lang-toggle button{border:1px solid currentColor;background:transparent;color:inherit;border-radius:999px;padding:4px 12px;font:inherit;cursor:pointer;white-space:nowrap}
+.lang-toggle button[aria-pressed="true"]{background:#fff;color:var(--accent);font-weight:700}
+@media(max-width:519px){.lang-toggle .lang-label{display:none}}
+main.wrap{padding-top:12px;padding-bottom:24px;display:grid;gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.hint{margin:0 0 8px;color:var(--muted);font-size:.88rem}
+.daylist{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}
+.daylist a{color:var(--accent);font-weight:700}
+.site-footer{border-top:1px solid var(--line);padding:16px 0 24px;color:var(--muted);font-size:.9rem}
+.site-footer a{color:var(--accent)}
+</style>
+</head>
+<body>
+<header class="site-header"><div class="wrap">
+<a class="home" href="../">Presyo Bantay</a>
+<div class="lang-toggle" role="group" aria-label="Wika / Language / 言語"><span class="lang-label">Taglish / English / 日本語:</span>
+<button type="button" data-setlang="tl">Taglish</button>
+<button type="button" data-setlang="en">English</button>
+<button type="button" data-setlang="ja">日本語</button>
+</div>
+</div></header>
+<main class="wrap">
+<div class="card">
+<h1><span data-lang="tl">Araw-araw na ulat</span><span data-lang="en">Daily reports</span><span data-lang="ja">毎日のレポート</span></h1>
+{{range .Months}}<h2><span data-lang="tl">{{.MonthTL}}</span><span data-lang="en">{{.MonthEN}}</span><span data-lang="ja">{{.MonthJA}}</span></h2>
+<ul class="daylist">
+{{range .Days}}<li><a href="{{.Path}}"><span data-lang="tl">{{.DateTL}}</span><span data-lang="en">{{.DateEN}}</span><span data-lang="ja">{{.DateJA}}</span></a><br><span class="hint"><span data-lang="tl">{{.DealTL}}</span><span data-lang="en">{{.DealEN}}</span><span data-lang="ja">{{.DealJA}}</span></span></li>
+{{end}}</ul>
+{{end}}
+<p><a href="../">Presyo Bantay</a></p>
+</div>
+</main>
+<footer class="site-footer"><div class="wrap">
+<p>Source: <a href="https://www.da.gov.ph/price-monitoring/">DA Price Monitoring (Bantay Presyo)</a></p>
+<p><span data-lang="tl">Hindi opisyal na DA page</span><span data-lang="en">Not an official DA page</span><span data-lang="ja">農業省の公式ページではありません</span></p>
+<p><span data-lang="tl">Gumagamit ang site na ito ng Google Analytics para sa bilang ng bisita.</span><span data-lang="en">This site uses Google Analytics to count visits.</span><span data-lang="ja">アクセス解析にGoogleアナリティクスを使っています。</span></p>
+</div></footer>
+<script>
+(function(){var KEY="pb-lang";function setLang(l){if(l!=="tl"&&l!=="en"&&l!=="ja")l="tl";try{localStorage.setItem(KEY,l);}catch(e){}document.documentElement.lang=l==="tl"?"fil":l;var els=document.querySelectorAll("[data-lang]");for(var i=0;i<els.length;i++){els[i].style.display=els[i].getAttribute("data-lang")===l?"":"none";}var btns=document.querySelectorAll("[data-setlang]");for(var k=0;k<btns.length;k++){btns[k].setAttribute("aria-pressed",btns[k].getAttribute("data-setlang")===l?"true":"false");}}var init="tl";try{init=localStorage.getItem(KEY)||"tl";}catch(e){}setLang(init);var btns=document.querySelectorAll("[data-setlang]");for(var k=0;k<btns.length;k++){(function(b){b.addEventListener("click",function(){setLang(b.getAttribute("data-setlang"));});})(btns[k]);}})();
+</script>
+</body>
+</html>
+{{end}}

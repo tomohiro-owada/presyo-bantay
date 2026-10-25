@@ -48,8 +48,28 @@ func run(argv []string) int {
 		return cmdIngestJSON(argv[1:])
 	case "fx":
 		return cmdFx(argv[1:])
+	case "newdata":
+		return cmdNewdata(argv[1:])
 	case "export":
 		return cmdExport(argv[1:])
+	case "signals":
+		return cmdSignals(argv[1:])
+	case "region-signals":
+		return cmdRegionSignals(argv[1:])
+	case "regions":
+		return cmdRegions(argv[1:])
+	case "chart":
+		return cmdChart(argv[1:])
+	case "fbpost":
+		return cmdFBPost(argv[1:])
+	case "advise":
+		return cmdAdvise(argv[1:])
+	case "advice-check":
+		return cmdAdviceCheck(argv[1:])
+	case "deals":
+		return cmdDeals(argv[1:])
+	case "daypages":
+		return cmdDaypages(argv[1:])
 	case "version":
 		fmt.Println("presyo " + version)
 		return 0
@@ -64,7 +84,7 @@ func run(argv []string) int {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: presyo <parse|ingest|ingest-json|fx|export|version> [flags]")
+	fmt.Fprintln(os.Stderr, "usage: presyo <parse|ingest|ingest-json|fx|newdata|export|signals|region-signals|regions|chart|fbpost|advise|advice-check|deals|daypages|version> [flags]")
 }
 
 // readMetaSourceURL mirrors cli._read_meta_source_url.

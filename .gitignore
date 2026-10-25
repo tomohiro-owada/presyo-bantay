@@ -19,3 +19,7 @@ summary.html
 .DS_Store
 .vscode/
 .idea/
+
+# local-only prototype samples and screenshots (never published)
+prototype/
+screenshots/

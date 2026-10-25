@@ -10,6 +10,20 @@ import {
   type Lang,
 } from "./i18n";
 import { asofLookup, laggedCorrelation, type NullReason } from "./stats";
+import {
+  dealsTextToLines,
+  isDealsSubheading,
+  splitPesoSegments,
+  type DealsFile,
+} from "./deals";
+import {
+  dayLabelForLang,
+  dayUrl,
+  latestDay,
+  recentDays,
+  type DaysFile,
+} from "./days";
+import { resolveDeals } from "./dealsSource";
 
 /* ---------- Data shapes (see presyo_bantay/export_site.py) ---------- */
 
@@ -110,6 +124,9 @@ let meta: Meta | null = null;
 let week: WeekFile | null = null;
 let fx: FxFile | null = null;
 let fxFailed = false;
+let deals: DealsFile | null = null;
+let dealsMissing = false;
+let days: DaysFile | null = null;
 const seriesCache = new Map<number, SeriesFile>();
 const state: State = {
   commodityId: null,
@@ -160,7 +177,8 @@ function fmtDate(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
   const dt = new Date(Date.UTC(y, m - 1, d));
   try {
-    return dt.toLocaleDateString(lang === "tl" ? "fil-PH" : "en-PH", {
+    const locale = lang === "tl" ? "fil-PH" : lang === "ja" ? "ja-JP" : "en-PH";
+    return dt.toLocaleDateString(locale, {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -236,16 +254,19 @@ function defaultCommodityId(): number | null {
 
 function applyStrings(): void {
   const s = STRINGS[lang];
-  document.documentElement.lang = lang === "tl" ? "fil" : "en";
+  document.documentElement.lang = lang === "tl" ? "fil" : lang;
   document.title = "Presyo Bantay";
   $("tagline").textContent = s.tagline;
   $("lang-label").textContent = s.languageLabel;
   const btl = $("lang-tl");
   const ben = $("lang-en");
+  const bja = $("lang-ja");
   btl.textContent = s.langTaglish;
   ben.textContent = s.langEnglish;
+  bja.textContent = s.langJapanese;
   btl.setAttribute("aria-pressed", String(lang === "tl"));
   ben.setAttribute("aria-pressed", String(lang === "en"));
+  bja.setAttribute("aria-pressed", String(lang === "ja"));
   $("commodity-label").textContent = s.commodityLabel;
   $("markets-legend").textContent = s.marketsLabel;
   $("range-label").textContent = s.rangeLabel;
@@ -271,13 +292,138 @@ function applyStrings(): void {
   $("foot-fx").textContent = s.footerFx;
   $("foot-stall").textContent = s.footerStall;
   $("foot-unofficial").textContent = s.footerUnofficial;
+  $("foot-privacy").textContent = s.footerPrivacy;
   $("foot-updated-label").textContent = s.footerUpdated;
   $("foot-range-note").textContent = s.rangeNote;
   $("foot-code").textContent = s.footerCode;
+  renderDeals();
+  renderDays();
   if (meta?.updated) {
     const t = $("foot-updated");
     t.textContent = meta.updated;
     t.setAttribute("datetime", meta.updated);
+  }
+}
+
+/* ---------- Deals card ---------- */
+
+function renderDeals(): void {
+  const card = document.getElementById("deals-card");
+  if (!card) return;
+  const s = STRINGS[lang];
+  // Primary source: days.json latest South text (same as the Facebook
+  // post). deals.json is only used when days.json is missing/empty.
+  const resolved = resolveDeals(deals, dealsMissing, days, lang);
+  const text = resolved.text;
+  const date = resolved.date;
+  const fromDays = resolved.fromDays;
+  const latest = latestDay(days);
+  if (text === null) {
+    card.hidden = true;
+    return;
+  }
+  const lines = dealsTextToLines(text);
+  if (lines.length === 0) {
+    card.hidden = true;
+    return;
+  }
+  card.hidden = false;
+  $("deals-h").textContent = s.dealsTitle;
+  try {
+    $("deals-date").textContent = fmtDate(date);
+  } catch {
+    $("deals-date").textContent = date;
+  }
+  const body = $("deals-body");
+  body.innerHTML = "";
+  // "• " lines become list items; everything else plain paragraphs.
+  // textContent only — never innerHTML of model text (XSS safety).
+  // Peso amounts (incl. sign/parens) are wrapped in nowrap spans so
+  // "(-₱90)" / "（-₱90）" / "₱130" never break across lines.
+  const appendPesoSafe = (el: HTMLElement, text: string): void => {
+    for (const seg of splitPesoSegments(text)) {
+      if (seg.nowrap) {
+        const sp = document.createElement("span");
+        sp.style.whiteSpace = "nowrap";
+        sp.textContent = seg.text;
+        el.append(sp);
+      } else {
+        el.append(document.createTextNode(seg.text));
+      }
+    }
+  };
+  let ul: HTMLUListElement | null = null;
+  const flushUl = () => {
+    ul = null;
+  };
+  for (const ln of lines.slice(1)) {
+    if (ln.startsWith("• ")) {
+      if (!ul) {
+        ul = document.createElement("ul");
+        ul.className = "deals-list";
+        body.append(ul);
+      }
+      const li = document.createElement("li");
+      appendPesoSafe(li, ln.slice(2).trim());
+      ul.append(li);
+    } else {
+      flushUl();
+      const p = document.createElement("p");
+      p.className = isDealsSubheading(ln) ? "deals-sub" : "deals-line";
+      appendPesoSafe(p, ln);
+      body.append(p);
+    }
+  }
+  const foot = $("deals-foot");
+  foot.textContent =
+    !fromDays && deals?.text_source === "llm"
+      ? `${s.dealsFooter} ${s.dealsFooterAI}`
+      : s.dealsFooter;
+  // Link to the latest day page at the bottom of the deals card.
+  const dayLink = document.getElementById("deals-day-link");
+  if (dayLink instanceof HTMLAnchorElement) {
+    if (latest) {
+      dayLink.hidden = false;
+      dayLink.href = dayUrl(import.meta.env.BASE_URL, latest.path);
+      dayLink.textContent = s.dealsDayLink;
+    } else {
+      dayLink.hidden = true;
+    }
+  }
+}
+
+/* ---------- Daily reports card ---------- */
+
+function renderDays(): void {
+  const card = document.getElementById("days-card");
+  if (!card) return;
+  const s = STRINGS[lang];
+  const latest = latestDay(days);
+  if (!latest) {
+    card.hidden = true;
+    return;
+  }
+  card.hidden = false;
+  $("days-h").textContent = s.daysTitle;
+  const latestA = $("days-latest");
+  if (latestA instanceof HTMLAnchorElement) {
+    latestA.href = dayUrl(import.meta.env.BASE_URL, latest.path);
+    latestA.textContent = s.daysLatest(dayLabelForLang(latest, lang));
+  }
+  const list = $("days-list");
+  list.innerHTML = "";
+  for (const e of recentDays(days, 7)) {
+    const li = document.createElement("li");
+    const a = document.createElement("a");
+    a.href = dayUrl(import.meta.env.BASE_URL, e.path);
+    a.textContent = dayLabelForLang(e, lang);
+    li.append(a);
+    list.append(li);
+  }
+  const all = $("days-all");
+  if (all instanceof HTMLAnchorElement) {
+    all.href = dayUrl(import.meta.env.BASE_URL, "d/");
+    all.textContent = s.daysAll;
   }
 }
 
@@ -984,6 +1130,7 @@ function bindEvents(): void {
   };
   $("lang-tl").addEventListener("click", () => setLang("tl"));
   $("lang-en").addEventListener("click", () => setLang("en"));
+  $("lang-ja").addEventListener("click", () => setLang("ja"));
 
   let timer = 0;
   window.addEventListener("resize", () => {
@@ -1010,6 +1157,27 @@ async function boot(): Promise<void> {
     week = await fetchJson<WeekFile>("week.json");
   } catch {
     week = null;
+  }
+  try {
+    const d = await fetchJson<DealsFile>("deals.json");
+    if (d && typeof d.texts?.tl === "string" && typeof d.texts?.en === "string" && typeof d.texts?.ja === "string") {
+      deals = d;
+    } else {
+      dealsMissing = true;
+    }
+  } catch {
+    dealsMissing = true;
+  }
+  // Daily report pages manifest (missing file => both cards cope).
+  try {
+    const d = await fetchJson<DaysFile>("days.json");
+    if (d && typeof d.latest === "string" && Array.isArray(d.days)) {
+      days = d;
+    } else {
+      days = null;
+    }
+  } catch {
+    days = null;
   }
 
   readURL();
