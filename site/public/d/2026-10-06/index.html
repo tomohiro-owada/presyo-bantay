@@ -6,6 +6,10 @@
 <title>Sulit sa palengke · Okt 6, 2026 — Presyo Bantay</title>
 <meta name="description" content="South Metro: mas mura ang Ampalaya −41%, Pechay Baguio −40%, Talong −39% · Prices from DA Bantay Presyo">
 <link rel="canonical" href="https://abalol.xyz/presyo-bantay/d/2026-10-06/">
+<link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../../favicon-16.png">
+<link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+<meta name="theme-color" content="#0b5d3b">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="Presyo Bantay">
 <meta property="og:title" content="Sulit sa palengke · Okt 6, 2026 — Presyo Bantay">
@@ -30,9 +34,16 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;line-height:1.5;font-size:16px}
 .wrap{max-width:880px;margin:0 auto;padding:0 12px}
-.site-header{background:var(--accent);color:#fff;padding:14px 0}
-.site-header a.home{color:#fff;text-decoration:none;font-size:1.4rem;font-weight:700}
-.lang-toggle{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:8px;font-size:.9rem}
+.site-header{background:var(--accent);color:#fff;padding:16px 0 14px}
+.brand{display:flex;align-items:center;gap:12px;margin:0 0 10px;color:#fff;text-decoration:none}
+a.brand:focus-visible{outline:3px solid #fff;outline-offset:3px;border-radius:10px}
+.brand-mark{display:block;width:48px;height:48px;flex:none;border-radius:50%;background:#fdf6e3;box-shadow:0 0 0 2px rgba(244,197,66,.85)}
+.brand-text{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+.brand-name{font-weight:800;letter-spacing:-0.02em;font-size:1.7rem;line-height:1.15;white-space:nowrap}
+.brand-name .gold{color:#f4c542}
+.tagline{margin:2px 0 0;font-size:.92rem;font-weight:400;letter-spacing:normal;color:rgba(255,255,255,.88)}
+@media(max-width:519px){.brand-name{font-size:1.4rem}.brand-mark{width:40px;height:40px}}
+.lang-toggle{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:0;font-size:.9rem}
 .lang-toggle button{border:1px solid currentColor;background:transparent;color:inherit;border-radius:999px;padding:4px 12px;font:inherit;cursor:pointer;white-space:nowrap}
 .lang-toggle button[aria-pressed="true"]{background:#fff;color:var(--accent);font-weight:700}
 @media(max-width:519px){.lang-toggle .lang-label{display:none}}
@@ -52,7 +63,7 @@ main.wrap{padding-top:12px;padding-bottom:24px;display:grid;gap:12px}
 </head>
 <body>
 <header class="site-header"><div class="wrap">
-<a class="home" href="../../">Presyo Bantay</a>
+<a class="brand home" href="../../"><picture><source type="image/webp" srcset="../../brand/logo-mark-96.webp 2x, ../../brand/logo-mark-144.webp 3x"><img class="brand-mark" src="../../brand/logo-mark-96.png" srcset="../../brand/logo-mark-96.png 2x, ../../brand/logo-mark-144.png 3x" width="48" height="48" alt="" aria-hidden="true" fetchpriority="high" decoding="async"></picture><span class="brand-text"><span class="brand-name">Presyo <span class="gold">Bantay</span></span><span class="tagline"><span data-lang="tl">Araw-araw na presyo sa palengke, mula sa DA</span><span data-lang="en">Daily market prices from DA Bantay Presyo</span><span data-lang="ja">DAの市場価格を毎日お届け</span></span></span></a>
 <div class="lang-toggle" role="group" aria-label="Wika / Language / 言語"><span class="lang-label">Taglish / English / 日本語:</span>
 <button type="button" data-setlang="tl">Taglish</button>
 <button type="button" data-setlang="en">English</button>

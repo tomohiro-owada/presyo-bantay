@@ -39,20 +39,75 @@ body {
 
 .site-header {
   background: var(--accent);
-  color: var(--accent-ink);
+  color: #fff;
   padding: 16px 0 14px;
 }
 
-.site-header h1 {
-  margin: 0;
-  font-size: 1.6rem;
-  letter-spacing: 0.01em;
+/* Brand lockup: circular basket mark + two-tone wordmark + tagline.
+ * Shared with the day/archive Go templates (inline <style>) so all
+ * three headers render identically. Gold #f4c542 on #0b5d3b is 4.9:1
+ * (passes WCAG AA for normal text); white is 7.9:1. */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 10px;
+  color: #fff;
+  text-decoration: none;
+}
+
+a.brand:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+  border-radius: 10px;
+}
+
+.brand-mark {
+  display: block;
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: 50%;
+  background: #fdf6e3;
+  box-shadow: 0 0 0 2px rgba(244, 197, 66, 0.85);
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  min-width: 0;
+}
+
+.brand-name {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-size: 1.7rem;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.brand-name .gold {
+  color: #f4c542;
 }
 
 .tagline {
-  margin: 4px 0 10px;
-  font-size: 0.95rem;
-  opacity: 0.95;
+  margin: 2px 0 0;
+  font-size: 0.92rem;
+  font-weight: 400;
+  letter-spacing: normal;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+@media (max-width: 519px) {
+  .brand-name {
+    font-size: 1.4rem;
+  }
+
+  .brand-mark {
+    width: 40px;
+    height: 40px;
+  }
 }
 
 .lang-toggle {

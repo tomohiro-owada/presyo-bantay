@@ -470,6 +470,66 @@ func TestPrivacyNotice(t *testing.T) {
 	}
 }
 
+// TestBrandHeader checks the logo lockup header: circular basket mark
+// (WebP srcset + PNG fallback), two-tone wordmark, trilingual tagline,
+// favicons and theme-color on day and archive pages.
+func TestBrandHeader(t *testing.T) {
+	dbPath := fixtureDB(t, "2026-10-23")
+	db := openRO(t, dbPath)
+	site := t.TempDir()
+	if err := Run(db, testConfig(site, "2026-10-23")); err != nil {
+		t.Fatal(err)
+	}
+	if err := Rebuild(site, "https://abalol.xyz/presyo-bantay/"); err != nil {
+		t.Fatal(err)
+	}
+	day, err := os.ReadFile(filepath.Join(site, "d", "2026-10-23", "index.html"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	arch, err := os.ReadFile(filepath.Join(site, "d", "index.html"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	taglines := []string{
+		`>Araw-araw na presyo sa palengke, mula sa DA<`,
+		`>Daily market prices from DA Bantay Presyo<`,
+		`>DAの市場価格を毎日お届け<`,
+	}
+	dayWants := []string{
+		`<a class="brand home" href="../../">`,
+		`srcset="../../brand/logo-mark-96.webp 2x, ../../brand/logo-mark-144.webp 3x"`,
+		`<img class="brand-mark" src="../../brand/logo-mark-96.png"`,
+		`alt="" aria-hidden="true"`,
+		`<span class="brand-name">Presyo <span class="gold">Bantay</span></span>`,
+		`a.brand:focus-visible`,
+		`rel="icon" type="image/png" sizes="32x32" href="../../favicon-32.png"`,
+		`rel="icon" type="image/png" sizes="16x16" href="../../favicon-16.png"`,
+		`rel="apple-touch-icon" href="../../apple-touch-icon.png"`,
+		`name="theme-color" content="#0b5d3b"`,
+	}
+	dayWants = append(dayWants, taglines...)
+	for _, want := range dayWants {
+		if !strings.Contains(string(day), want) {
+			t.Errorf("day html missing brand header %q", want)
+		}
+	}
+	archWants := []string{
+		`<a class="brand home" href="../">`,
+		`srcset="../brand/logo-mark-96.webp 2x, ../brand/logo-mark-144.webp 3x"`,
+		`<img class="brand-mark" src="../brand/logo-mark-96.png"`,
+		`rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png"`,
+		`rel="apple-touch-icon" href="../apple-touch-icon.png"`,
+		`name="theme-color" content="#0b5d3b"`,
+	}
+	archWants = append(archWants, taglines...)
+	for _, want := range archWants {
+		if !strings.Contains(string(arch), want) {
+			t.Errorf("archive html missing brand header %q", want)
+		}
+	}
+}
+
 // TestRerunDeterministic re-runs without -force and requires identical
 // bytes for every generated file.
 func TestRerunDeterministic(t *testing.T) {

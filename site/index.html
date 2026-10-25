@@ -7,6 +7,10 @@
       name="description"
       content="Presyo Bantay — araw-araw na presyo sa palengke mula sa DA Bantay Presyo. Daily market prices from DA Bantay Presyo."
     />
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16.png" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <meta name="theme-color" content="#0b5d3b" />
     <title>Presyo Bantay</title>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-VL047YCMK8"></script>
     <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-VL047YCMK8');</script>
@@ -14,8 +18,29 @@
   <body>
     <header class="site-header">
       <div class="wrap">
-        <h1>Presyo Bantay</h1>
-        <p id="tagline" class="tagline"></p>
+        <h1 class="brand">
+          <picture>
+            <source
+              type="image/webp"
+              srcset="./brand/logo-mark-96.webp 2x, ./brand/logo-mark-144.webp 3x"
+            />
+            <img
+              class="brand-mark"
+              src="./brand/logo-mark-96.png"
+              srcset="./brand/logo-mark-96.png 2x, ./brand/logo-mark-144.png 3x"
+              width="48"
+              height="48"
+              alt=""
+              aria-hidden="true"
+              fetchpriority="high"
+              decoding="async"
+            />
+          </picture>
+          <span class="brand-text">
+            <span class="brand-name">Presyo <span class="gold">Bantay</span></span>
+            <span id="tagline" class="tagline"></span>
+          </span>
+        </h1>
         <div class="lang-toggle" role="group" id="lang-group" aria-label="Wika / Language / 言語">
           <span id="lang-label"></span>
           <button type="button" id="lang-tl">Taglish</button>

@@ -103,7 +103,7 @@ export interface Strings {
 }
 
 const tl: Strings = {
-  tagline: "Araw-araw na presyo sa palengke, mula sa DA Bantay Presyo.",
+  tagline: "Araw-araw na presyo sa palengke, mula sa DA",
   languageLabel: "Wika:",
   langTaglish: "Taglish",
   langEnglish: "English",
@@ -171,7 +171,7 @@ const tl: Strings = {
 };
 
 const en: Strings = {
-  tagline: "Daily market prices, from DA Bantay Presyo.",
+  tagline: "Daily market prices from DA Bantay Presyo",
   languageLabel: "Language:",
   langTaglish: "Taglish",
   langEnglish: "English",
@@ -236,7 +236,7 @@ const en: Strings = {
 };
 
 const ja: Strings = {
-  tagline: "DA（農業省）Bantay Presyoの毎日の市場価格。",
+  tagline: "DAの市場価格を毎日お届け",
   languageLabel: "言語：",
   langTaglish: "Taglish",
   langEnglish: "English",
