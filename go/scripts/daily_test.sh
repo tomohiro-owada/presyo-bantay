@@ -136,6 +136,21 @@ after2="$(rev)"
 [ -z "$(git -C "$REPO" status --porcelain -- data/json site/public/data)" ] \
   && ok "worktree clean after no-change run" || bad "worktree dirty after no-change run: $(git -C "$REPO" status --porcelain -- data/json site/public/data)"
 
+# --- 2b. utilities pages ride along when present ---
+mkdir -p "$REPO/site/public/u"
+echo "<html>u index</html>" >"$REPO/site/public/u/index.html"
+printf '{"generated_at":"2026-10-26T00:00:00+08:00"}' >"$REPO/site/public/data/utilities.json"
+export FAKE_MODE=nochange
+beforeU="$(rev)"
+if ! "$DAILY"; then bad "daily.sh exited non-zero with utilities pages"; else ok "daily.sh exit 0 with utilities pages"; fi
+afterU="$(rev)"
+[ "$beforeU" != "$afterU" ] && ok "utilities pages committed" || bad "utilities pages not committed"
+git -C "$REPO" ls-files --error-unmatch "site/public/u/index.html" >/dev/null \
+  && ok "u/ files committed" || bad "u/ files not tracked in git"
+git -C "$REPO" ls-files --error-unmatch "site/public/data/utilities.json" >/dev/null \
+  && ok "utilities.json committed" || bad "utilities.json not tracked in git"
+[ "$(origin_rev)" = "$afterU" ] && ok "utilities commit pushed" || bad "utilities commit not pushed"
+
 # --- 3. lock prevents overlap ---
 # Hold the lock with a background sleeper; wait for it to exit naturally
 # afterwards so the lock is really released (killing flock would orphan

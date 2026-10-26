@@ -47,6 +47,14 @@ func utilSnapshot(t *testing.T) *utilities.Snapshot {
 	if err != nil {
 		t.Fatal(err)
 	}
+	lpg2Lines, err := utilities.PDFLines(utilFixture(t, "ncr_lpg_sep.pdf"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	lpg2, err := utilities.ParseNCRLPG(lpg2Lines)
+	if err != nil {
+		t.Fatal(err)
+	}
 	merHTML, err := os.ReadFile(utilFixture(t, "meralco_2026_10.html"))
 	if err != nil {
 		t.Fatal(err)
@@ -55,13 +63,22 @@ func utilSnapshot(t *testing.T) *utilities.Snapshot {
 	if err != nil {
 		t.Fatal(err)
 	}
+	fcda, err := os.ReadFile(utilFixture(t, "maynilad_fcda_posts.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	rates, err := utilities.ParseFCDAPosts(fcda)
+	if err != nil {
+		t.Fatal(err)
+	}
 	return &utilities.Snapshot{
 		Fuel: utilities.FuelStatus{
 			Adjustments: []utilities.OilAdjustment{adj},
 			NCRPump:     []utilities.PumpSummary{pump},
 		},
-		LPG:     []utilities.LPGMonth{lpg},
-		Meralco: []utilities.MeralcoRate{mer},
+		LPG:        []utilities.LPGMonth{lpg, lpg2},
+		Meralco:    []utilities.MeralcoRate{mer},
+		WaterRates: rates,
 		Water: &utilities.WaterStatus{
 			City:      "Las Piñas",
 			CheckedAt: "2026-10-26T20:00:00+08:00",
@@ -176,13 +193,19 @@ func TestFuelBarBounds(t *testing.T) {
 		unit := fscaleUnit(maxNeg, maxPos)
 		zx := fzeroX(maxNeg, maxPos, unit)
 		unit, zx = fitFuelUnit(maxNeg, maxPos, items, unit, zx)
+		lastWeek := map[int]string{}
+		if trial == 3 {
+			// Exercise the muted last-week row texts once.
+			lastWeek[0] = "nakaraan: +₱1.50–1.56"
+			lastWeek[1] = "nakaraan: −₱3.00–3.02"
+		}
 		for i, f := range fuels {
 			r := tr[i]
 			if r == nil {
 				continue
 			}
 			lbl := fuelBarLabel(r)
-			g, _, ok := placeFuelRow(400, 110, zx, unit, f.name, r)
+			g, _, ok := placeFuelRow(400, 110, zx, unit, f.name, lastWeek[i], r)
 			if !ok {
 				t.Fatal("no placement")
 			}
@@ -193,6 +216,13 @@ func TestFuelBarBounds(t *testing.T) {
 			nx0, nx1, ny0, ny1 := labelInkBox(t, f.name, g.nsize, g.nx, g.ny)
 			if nx0 < 0 || nx1 > barX0-4 || ny0 < 400 || ny1 > 400+110 {
 				t.Errorf("trial %d: name ink out of column: %q [%d,%d]x[%d,%d]", trial, f.name, nx0, nx1, ny0, ny1)
+			}
+			// Muted last-week text, when present, stays in the column.
+			if g.sub != "" {
+				sx0, sx1, sy0, sy1 := labelInkBox(t, g.sub, g.ssize, g.sx, g.sy)
+				if sx0 < 0 || sx1 > barX0-4 || sy0 < 400 || sy1 > 400+110 {
+					t.Errorf("trial %d: last-week ink out of column: %q", trial, g.sub)
+				}
 			}
 			ix0, ix1, iy0, iy1 := labelInkBox(t, lbl, g.size, g.lx, g.ly)
 			if ix0 < 0 || ix1 > W-16 || iy0 < 400 || iy1 > 400+110 {
@@ -224,13 +254,14 @@ func TestFuelBarBounds(t *testing.T) {
 	}
 }
 
-// TestMiniBarBounds checks history mini-bar labels across all fixture
-// weeks: labels are >= 18 px, fully inside the bar when they fit, else
-// outside the bar end within the row margins.
-func TestMiniBarBounds(t *testing.T) {
+// TestHistoryNoOverlaps replicates the renderer history layout for
+// the real 6-fixture set and requires every value label's ink (+1 px)
+// to be disjoint from every other label and every foreign bar, and
+// every bar inside the row margins.
+func TestHistoryNoOverlaps(t *testing.T) {
 	files := []string{"oilmon_20oct.pdf", "oilmon_13oct.pdf", "oilmon_06oct.pdf",
 		"oilmon_29sep.pdf", "oilmon_22sep.pdf", "oilmon_15sep.pdf"}
-	var weeks []utilities.OilAdjustment
+	var newest []utilities.OilAdjustment
 	for _, f := range files {
 		lines, err := utilities.PDFLines(utilFixture(t, f))
 		if err != nil {
@@ -240,7 +271,12 @@ func TestMiniBarBounds(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		weeks = append(weeks, adj)
+		newest = append(newest, adj)
+	}
+	// Display order: oldest last like the renderer.
+	weeks := append([]utilities.OilAdjustment(nil), newest...)
+	for i, j := 0, len(weeks)-1; i < j; i, j = i+1, j-1 {
+		weeks[i], weeks[j] = weeks[j], weeks[i]
 	}
 	hMax := 0.0
 	for _, w := range weeks {
@@ -250,38 +286,78 @@ func TestMiniBarBounds(t *testing.T) {
 			}
 		}
 	}
-	unit := fitMiniUnit(250, 990, 620, weeks, float64((990-250)/2-10)/hMax)
-	for _, w := range weeks {
+	miniX0, miniX1 := 250, 990
+	miniMid := (miniX0 + miniX1) / 2
+	unit := fitMiniUnit(miniX0, miniX1, miniMid, weeks, float64((miniX1-miniX0)/2-10)/hMax)
+	_, histRows := fuelRowHeights(len(weeks), 3)
+	if len(histRows) != len(weeks) {
+		t.Fatalf("hist rows = %d, want %d", len(histRows), len(weeks))
+	}
+	type box struct {
+		own    int // bar index this label belongs to, or own index
+		x0, x1 int
+		y0, y1 int
+	}
+	var labels []box
+	var bars []box
+	yy := 0
+	for i, w := range weeks {
+		rowH := histRows[i]
+		if rowH < fuelHistMin {
+			t.Fatalf("history row below minimum: %d", rowH)
+		}
+		if gsize := miniLabelSize; gsize < 18 {
+			t.Fatalf("mini label below 18px: %g", gsize)
+		}
+		cy := yy + rowH/2
+		mh := miniBarH(rowH)
+		off := mh/2 + 2
 		for di, r := range []*utilities.Range{w.Gasoline, w.Diesel} {
-			g, lbl, ok := placeMiniBar(r, 600, 30, 250, 990, 620, unit)
+			ccy := cy - off
+			if di == 1 {
+				ccy = cy + off
+			}
+			g, lbl, ok := placeMiniBar(r, ccy, mh, miniX0, miniX1, miniMid, unit)
 			if !ok {
 				t.Fatal("no placement")
 			}
-			_ = di
 			if g.size < 18 {
-				t.Errorf("mini label below 18px: %q size=%g", lbl, g.size)
+				t.Errorf("mini label below 18px: %q", lbl)
 			}
-			if g.bx0 < 250 || g.bx1 > 990 {
-				t.Errorf("mini bar escapes row margins: %+v", g)
-			}
+			bi := len(bars)
+			bars = append(bars, box{own: bi, x0: g.bx0, x1: g.bx1, y0: g.by0, y1: g.by1})
 			ix0, ix1, iy0, iy1 := labelInkBox(t, lbl, g.size, g.lx, g.ly)
-			if ix0 < 250 || ix1 > 990 {
-				t.Errorf("mini label escapes row margins: %q [%d,%d]", lbl, ix0, ix1)
+			labels = append(labels, box{own: bi, x0: ix0 - 1, x1: ix1 + 1, y0: iy0 - 1, y1: iy1 + 1})
+		}
+		yy += rowH
+	}
+	overlap := func(a, b box) bool {
+		return a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1
+	}
+	for i := range labels {
+		if labels[i].x0 < miniX0 || labels[i].x1 > miniX1 {
+			t.Errorf("label escapes row margins: %+v", labels[i])
+		}
+		for j := range labels {
+			if i == j {
+				continue
 			}
-			if iy0 < 600-40 || iy1 > 600+40 {
-				t.Errorf("mini label outside row band: %q [%d,%d]", lbl, iy0, iy1)
+			if overlap(labels[i], labels[j]) {
+				t.Errorf("label-label overlap: %+v vs %+v", labels[i], labels[j])
 			}
-			if g.inside {
-				if ix0 < g.bx0 || ix1 > g.bx1 || iy0 < g.by0 || iy1 > g.by1 {
-					t.Errorf("inside mini ink outside bar: %q", lbl)
-				}
-			} else if fuelNeg(r) {
-				if ix1 > g.bx0-4 {
-					t.Errorf("outside mini label touches bar: %q %+v", lbl, g)
-				}
-			} else if ix0 < g.bx1+4 {
-				t.Errorf("outside mini label touches bar: %q %+v", lbl, g)
+		}
+		for j := range bars {
+			if j == labels[i].own {
+				continue
 			}
+			if overlap(labels[i], bars[j]) {
+				t.Errorf("label-foreign-bar overlap: %+v vs %+v", labels[i], bars[j])
+			}
+		}
+	}
+	for _, b := range bars {
+		if b.x0 < miniX0 || b.x1 > miniX1 {
+			t.Errorf("bar escapes row margins: %+v", b)
 		}
 	}
 }
@@ -314,14 +390,74 @@ func TestDropMissing(t *testing.T) {
 	}
 }
 
-func TestPumpChips(t *testing.T) {
-	pump := utilSnapshot(t).Fuel.NCRPump[0]
-	chips := pumpChips(pump)
-	if len(chips) != 3 {
-		t.Fatalf("chips = %v", chips)
+func TestPumpTable(t *testing.T) {
+	snap := utilSnapshot(t)
+	pump2Lines, err := utilities.PDFLines(utilFixture(t, "ncr_pump_1006.pdf"))
+	if err != nil {
+		t.Fatal(err)
 	}
-	if chips[0] != "RON 91 ₱87.90" {
-		t.Errorf("chip0 = %q", chips[0])
+	pump2, err := utilities.ParseNCRPumpSummary(pump2Lines)
+	if err != nil {
+		t.Fatal(err)
+	}
+	now := snap.Fuel.NCRPump[0]
+	rows, vsize, csize := layoutPumpTable(&now, &pump2)
+	if len(rows) != 3 {
+		t.Fatalf("rows = %d, want 3 (NCR + 2 cities)", len(rows))
+	}
+	if rows[0].label != "NCR" || rows[1].label != "Parañaque" || rows[2].label != "Muntinlupa" {
+		t.Fatalf("labels = %q %q %q", rows[0].label, rows[1].label, rows[2].label)
+	}
+	// NCR RON91: ₱87.90, delta −0.40 (decrease → green).
+	ncr91 := rows[0].cells[0]
+	if ncr91.value != "₱87.90" || ncr91.delta != "−0.40" || !ncr91.dneg || ncr91.dzero {
+		t.Errorf("NCR RON91 cell = %+v", ncr91)
+	}
+	// NCR RON95: +0.50 (increase, red).
+	if ncr95 := rows[0].cells[1]; ncr95.delta != "+0.50" || ncr95.dneg || ncr95.dzero {
+		t.Errorf("NCR RON95 cell = %+v", ncr95)
+	}
+	// Parañaque Diesel: −3.00.
+	if pd := rows[1].cells[2]; pd.value != "₱91.80" || pd.delta != "−3.00" {
+		t.Errorf("Parañaque Diesel cell = %+v", pd)
+	}
+	// Muntinlupa RON91: +2.30.
+	if mr := rows[2].cells[0]; mr.value != "₱91.00" || mr.delta != "+2.30" {
+		t.Errorf("Muntinlupa RON91 cell = %+v", mr)
+	}
+	if vsize < 20 || csize < 16 {
+		t.Errorf("sizes too small: %g %g", vsize, csize)
+	}
+	// Geometry: every value + chip fits its column and the canvas.
+	for _, r := range rows {
+		for _, c := range r.cells {
+			if c.empty {
+				continue
+			}
+			if c.vx < 0 || c.cx+c.cw > W-16 {
+				t.Errorf("cell escapes canvas: %+v", c)
+			}
+			ix0, ix1, _, _ := labelInkBox(t, c.value, vsize, c.vx, 600)
+			if ix0 < c.vx || ix1 > c.vx+c.colW {
+				t.Errorf("value ink escapes column: %q [%d,%d]", c.value, ix0, ix1)
+			}
+			jx0, jx1, _, _ := labelInkBox(t, c.delta, csize, c.cx+14, 600)
+			if jx0 < c.cx || jx1 > c.cx+c.cw {
+				t.Errorf("chip ink escapes chip: %q [%d,%d]", c.delta, jx0, jx1)
+			}
+		}
+	}
+	// Caption carries both weeks.
+	if cap := pumpTableCaption(&now, &pump2); cap != "Pump price DOE Okt 13–19 vs Okt 6–12 · Parañaque at Muntinlupa: malapit sa Las Piñas" {
+		t.Errorf("caption = %q", cap)
+	}
+	if tableHeadSize < 20 {
+		t.Errorf("table header below 20px: %g", tableHeadSize)
+	}
+	// Without a previous week every delta is grey n/a.
+	rows1, _, _ := layoutPumpTable(&now, nil)
+	if d := rows1[0].cells[0]; d.delta != "n/a" || !d.dzero {
+		t.Errorf("no-prev delta = %+v", d)
 	}
 }
 
@@ -369,8 +505,8 @@ func mustRenderBills(t *testing.T, snap *utilities.Snapshot) *image.RGBA {
 }
 
 // TestMeralcoCardLines checks the signed card strings: the 200 kWh
-// line always carries its sign (+₱64, −₱8 with U+2212), and the second
-// line pairs the prev rate with the announced date.
+// line always carries its sign (+₱64, −₱8 with U+2212), and the chips
+// always include their comparison period or origin.
 func TestMeralcoCardLines(t *testing.T) {
 	if got := meralcoImpactLine(64); got != "200 kWh: mga +₱64" {
 		t.Errorf("impact line = %q", got)
@@ -378,8 +514,17 @@ func TestMeralcoCardLines(t *testing.T) {
 	if got := meralcoImpactLine(-8); got != "200 kWh: mga −₱8" {
 		t.Errorf("impact line = %q", got)
 	}
-	if got := meralcoPrevLine(14.7424, "2026-10-13"); got != "mula ₱14.7424 · Okt 13" {
-		t.Errorf("prev line = %q", got)
+	if got := meralcoChipText(0.3191, "2026-10"); got != "+₱0.3191 vs Set" {
+		t.Errorf("meralco chip = %q", got)
+	}
+	if got := lpgChipText(89, "Set 1–7"); got != "+₱89 vs Set 1–7" {
+		t.Errorf("lpg chip = %q", got)
+	}
+	if got := waterChipText(0.24, "Okt 1"); got != "+₱0.24 mula Okt 1" {
+		t.Errorf("water chip = %q", got)
+	}
+	if got := waterChipText(-0.01, "Okt 1"); got != "−₱0.01 mula Okt 1" {
+		t.Errorf("water chip = %q", got)
 	}
 }
 
@@ -439,15 +584,18 @@ func TestWrapLines(t *testing.T) {
 	}
 }
 
-// TestBillCardsReachFooter renders bills and requires content (card
-// white) just above the footer band: no blank gap left behind.
+// TestBillCardsReachFooter renders bills and requires card white
+// within a few px above the footer band: no blank gap left behind
+// (even distribution leaves at most a rounding remainder).
 func TestBillCardsReachFooter(t *testing.T) {
 	img := mustRenderBills(t, utilSnapshot(t))
 	white := color.RGBA{0xFF, 0xFF, 0xFF, 0xFF}
 	n := 0
-	for x := 0; x < W; x++ {
-		if img.RGBAAt(x, H-118-3) == white {
-			n++
+	for y := H - 118 - 10; y < H-118; y++ {
+		for x := 0; x < W; x++ {
+			if img.RGBAAt(x, y) == white {
+				n++
+			}
 		}
 	}
 	if n == 0 {
@@ -469,5 +617,62 @@ func TestFuelReachesFooter(t *testing.T) {
 	}
 	if n == 0 {
 		t.Error("no chart ink near the footer: blank gap remains")
+	}
+}
+
+// TestBillsCards checks the 4-card content: old→new big lines, chips
+// with comparison periods, family breakdown.
+func TestBillsCards(t *testing.T) {
+	snap := utilSnapshot(t)
+	cards := buildBillsCards(snap, 64)
+	if len(cards) != 4 {
+		t.Fatalf("got %d cards", len(cards))
+	}
+	if cards[0].title != "Meralco" || cards[1].title != "LPG 11 kg NCR" ||
+		cards[2].title != "Maynilad Las Piñas" || cards[3].title != "Pamilya kada buwan" {
+		t.Fatalf("titles = %q %q %q %q", cards[0].title, cards[1].title, cards[2].title, cards[3].title)
+	}
+	if cards[0].chip != "+₱0.3191 vs Set" {
+		t.Errorf("meralco chip = %q", cards[0].chip)
+	}
+	if cards[0].lines[0].text != "₱14.7424 → ₱15.0615/kWh" {
+		t.Errorf("meralco big = %q", cards[0].lines[0].text)
+	}
+	if cards[1].chip != "+₱89 vs Set 1–7" {
+		t.Errorf("lpg chip = %q", cards[1].chip)
+	}
+	if cards[1].lines[0].text != "₱1,341 → ₱1,430" {
+		t.Errorf("lpg big = %q", cards[1].lines[0].text)
+	}
+	if cards[1].lines[2].text != "Set: ₱1,185–₱1,393" {
+		t.Errorf("lpg prev range = %q", cards[1].lines[2].text)
+	}
+	if cards[2].chip != "+₱0.24 mula Okt 1" {
+		t.Errorf("water chip = %q", cards[2].chip)
+	}
+	if cards[2].lines[0].text != "₱52.61 → ₱52.85/cu.m" {
+		t.Errorf("water big = %q", cards[2].lines[0].text)
+	}
+	if cards[3].chip != "+₱157.62" {
+		t.Errorf("family chip = %q", cards[3].chip)
+	}
+	if cards[3].lines[0].text != "₱5,341.68 → ₱5,499.30" {
+		t.Errorf("family big = %q", cards[3].lines[0].text)
+	}
+	wantBreak := "kuryente +₱63.82 · LPG +₱89.00 · tubig +₱4.80"
+	if cards[3].lines[1].text != wantBreak {
+		t.Errorf("family breakdown = %q", cards[3].lines[1].text)
+	}
+	// Every line fits its card.
+	const cardW = W - marginL - marginR - 60
+	for _, cd := range cards {
+		for _, ln := range cd.lines {
+			if cmeasure(ln.text, ln.w, ln.size) > cardW {
+				t.Errorf("card %q line overflows: %q", cd.title, ln.text)
+			}
+		}
+		if cd.hasChip && cmeasure(cd.chip, Bold, 28)+36 > cardW {
+			t.Errorf("card %q chip overflows", cd.title)
+		}
 	}
 }

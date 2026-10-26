@@ -163,9 +163,18 @@ json_status="$(git -C "$REPO" status --porcelain -- data/json || true)"
 site_status="$(git -C "$REPO" status --porcelain -- site/public/data || true)"
 days_status="$(git -C "$REPO" status --porcelain -- site/public/d || true)"
 weeks_status="$(git -C "$REPO" status --porcelain -- site/public/w || true)"
+# Utilities pages ride along only when they exist (written by utilities.sh).
+util_status="$(git -C "$REPO" status --porcelain -- site/public/u site/public/data/utilities.json || true)"
+util_paths=""
+if [ -e "$REPO/site/public/u" ]; then
+  util_paths="$util_paths site/public/u"
+fi
+if [ -e "$REPO/site/public/data/utilities.json" ]; then
+  util_paths="$util_paths site/public/data/utilities.json"
+fi
 
 only_generated_at=0
-  if [ -z "$json_status" ] && [ -z "$days_status" ] && [ -z "$weeks_status" ] && [ -n "$site_status" ]; then
+  if [ -z "$json_status" ] && [ -z "$days_status" ] && [ -z "$weeks_status" ] && [ -z "$util_status" ] && [ -n "$site_status" ]; then
   # Exactly one modified tracked meta.json and nothing else?
   if [ "$site_status" = " M site/public/data/meta.json" ]; then
     old_tmp="$(mktemp)"
@@ -180,13 +189,14 @@ only_generated_at=0
   fi
 fi
 
-  if [ -z "$json_status$site_status$days_status$weeks_status" ]; then
+  if [ -z "$json_status$site_status$days_status$weeks_status$util_status" ]; then
     echo "no data changes, nothing to commit"
   elif [ "$only_generated_at" = "1" ]; then
   git -C "$REPO" checkout -- site/public/data/meta.json
   echo "only generated_at changed, restored meta.json, nothing to commit"
 else
-    git -C "$REPO" add data/json site/public/data site/public/d site/public/w
+    # shellcheck disable=SC2086
+    git -C "$REPO" add data/json site/public/data site/public/d site/public/w $util_paths
   if git -C "$REPO" diff --cached --quiet; then
     echo "nothing staged after add, nothing to commit"
   else

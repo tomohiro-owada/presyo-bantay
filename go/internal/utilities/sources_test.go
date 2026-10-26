@@ -156,3 +156,57 @@ func TestParseMaintenancePosts(t *testing.T) {
 		t.Fatalf("barangays = %q", cal[1].Barangays)
 	}
 }
+
+func approxEq(t *testing.T, what string, got, want float64) {
+	t.Helper()
+	diff := got - want
+	if diff < 0 {
+		diff = -diff
+	}
+	if diff > 1e-9 {
+		t.Fatalf("%s = %v, want %v", what, got, want)
+	}
+}
+
+func TestParseFCDAPosts(t *testing.T) {
+	rates, err := ParseFCDAPosts(readFixture(t, "maynilad_fcda_posts.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rates) != 3 {
+		t.Fatalf("got %d rates", len(rates))
+	}
+	// Newest first.
+	if rates[0].Effective != "2026-10-01" || rates[1].Effective != "2026-07-01" || rates[2].Effective != "2026-04-01" {
+		t.Fatalf("order = %v", rates)
+	}
+	oct := rates[0]
+	approxEq(t, "avg", oct.AvgBasic, 52.86)
+	approxEq(t, "pct", oct.FCDAPct, -0.02)
+	approxEq(t, "fcda", oct.FCDA, -0.01)
+	approxEq(t, "rate", oct.Rate, 52.85)
+	if !strings.Contains(oct.PostURL, "effective-october-1-2026") {
+		t.Fatalf("url = %q", oct.PostURL)
+	}
+	jul := rates[1]
+	approxEq(t, "pct", jul.FCDAPct, -0.47)
+	approxEq(t, "fcda", jul.FCDA, -0.25)
+	approxEq(t, "rate", jul.Rate, 52.61)
+	apr := rates[2]
+	approxEq(t, "pct", apr.FCDAPct, -0.24)
+	approxEq(t, "fcda", apr.FCDA, -0.13)
+	approxEq(t, "rate", apr.Rate, 52.73)
+
+	if got := WaterRateFor(rates, "2026-10"); got == nil || got.Effective != "2026-10-01" {
+		t.Fatalf("for 2026-10: %v", got)
+	}
+	if got := WaterRateFor(rates, "2026-09"); got == nil || got.Effective != "2026-07-01" {
+		t.Fatalf("for 2026-09: %v", got)
+	}
+	if got := WaterRateFor(rates, "2026-03"); got != nil {
+		t.Fatalf("for 2026-03: %v, want nil", got)
+	}
+	if PrevMonth("2026-10") != "2026-09" || PrevMonth("2026-01") != "2025-12" {
+		t.Fatal("bad PrevMonth")
+	}
+}

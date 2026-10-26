@@ -99,7 +99,11 @@ func (s *fixtureServer) handler() http.Handler {
 		case strings.HasPrefix(p, "/wp-json/interruptions/"):
 			serve("maynilad_scheduled_laspinas_empty.json", "application/json")
 		case strings.HasPrefix(p, "/wp-json/wp/v2/posts"):
-			serve("maynilad_maintenance_posts.json", "application/json")
+			if strings.Contains(r.URL.RawQuery, "search=FCDA") {
+				serve("maynilad_fcda_posts.json", "application/json")
+			} else {
+				serve("maynilad_maintenance_posts.json", "application/json")
+			}
 		default:
 			w.WriteHeader(404)
 		}
@@ -405,5 +409,118 @@ func TestFetchSourceTimesAreRequestTimes(t *testing.T) {
 	}
 	if snap.Sources[0].FetchedAt == snap.FetchedAt {
 		t.Fatalf("source time %q equals pinned snapshot time", snap.Sources[0].FetchedAt)
+	}
+}
+
+func TestFetchIncludesWaterRates(t *testing.T) {
+	srv, _ := newFixtureServer(t)
+	snap, err := Fetch(context.Background(), fetchOpts(srv, nil, t.TempDir()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(snap.WaterRates) != 3 || snap.WaterRates[0].Effective != "2026-10-01" {
+		t.Fatalf("water rates = %+v", snap.WaterRates)
+	}
+	if ts := snap.SectionFetchedAt["fcda"]; ts == "" {
+		t.Fatalf("no fcda section timestamp: %v", snap.SectionFetchedAt)
+	}
+	for _, s := range []string{"fuel", "pump", "lpg", "meralco", "water", "fcda"} {
+		if snap.SectionFetchedAt[s] == "" {
+			t.Errorf("no %s section timestamp", s)
+		}
+	}
+}
+
+func TestFetchSectionsLimit(t *testing.T) {
+	srv, fs := newFixtureServer(t)
+	opts := fetchOpts(srv, fs, t.TempDir())
+	opts.Sections = []string{"fcda"}
+	snap, err := Fetch(context.Background(), opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(snap.WaterRates) != 3 {
+		t.Fatalf("water rates = %+v", snap.WaterRates)
+	}
+	if len(snap.Fuel.Adjustments) != 0 || len(snap.LPG) != 0 || len(snap.Meralco) != 0 || snap.Water != nil {
+		t.Fatalf("other sections fetched: %+v", snap)
+	}
+	for _, r := range fs.requests {
+		if strings.HasPrefix(r, "/data-and-prices/") || strings.HasPrefix(r, "/news-and-advisories/") || strings.HasPrefix(r, "/api/media/") {
+			t.Fatalf("non-fcda request: %s", r)
+		}
+	}
+	if len(snap.SectionFetchedAt) != 1 || snap.SectionFetchedAt["fcda"] == "" {
+		t.Fatalf("section timestamps = %v", snap.SectionFetchedAt)
+	}
+}
+
+func TestMergeSnapshots(t *testing.T) {
+	base := &Snapshot{
+		FetchedAt: "2026-10-20T00:00:00+08:00",
+		Fuel: FuelStatus{
+			Adjustments: []OilAdjustment{{AsOf: "2026-10-13", EffectiveFrom: "2026-10-13"}},
+			NCRPump:     []PumpSummary{{WeekFrom: "2026-10-06"}},
+		},
+		LPG:              []LPGMonth{{PeriodFrom: "2026-09-01"}},
+		Meralco:          []MeralcoRate{{Month: "2026-09"}},
+		SectionFetchedAt: map[string]string{"fuel": "old", "pump": "old", "lpg": "old"},
+		Sources:          []Source{{Name: "doe-oil-monitor", URL: "u1"}, {Name: "doe-ncr-pump", URL: "u2"}, {Name: "meralco-news", URL: "u3"}},
+		Errors:           []string{"old boom"},
+	}
+	fresh := &Snapshot{
+		FetchedAt: "2026-10-26T00:00:00+08:00",
+		Fuel: FuelStatus{
+			Adjustments: []OilAdjustment{{AsOf: "2026-10-20", EffectiveFrom: "2026-10-20"}},
+		},
+		WaterRates:       []WaterRate{{Effective: "2026-10-01"}},
+		SectionFetchedAt: map[string]string{"fuel": "new", "fcda": "new"},
+		Sources:          []Source{{Name: "doe-oil-monitor", URL: "u1new"}, {Name: "maynilad-fcda", URL: "u4"}},
+		Errors:           []string{"new boom"},
+	}
+	merged := MergeSnapshots(base, fresh, []string{"fuel", "fcda"})
+	// Refreshed sections overwrite.
+	if len(merged.Fuel.Adjustments) != 1 || merged.Fuel.Adjustments[0].AsOf != "2026-10-20" {
+		t.Fatalf("fuel = %+v", merged.Fuel.Adjustments)
+	}
+	if len(merged.WaterRates) != 1 {
+		t.Fatalf("rates = %+v", merged.WaterRates)
+	}
+	// Untouched sections keep old data and timestamps.
+	if len(merged.Fuel.NCRPump) != 1 || merged.Fuel.NCRPump[0].WeekFrom != "2026-10-06" {
+		t.Fatalf("pump = %+v", merged.Fuel.NCRPump)
+	}
+	if len(merged.LPG) != 1 || len(merged.Meralco) != 1 {
+		t.Fatalf("lpg/meralco lost: %+v", merged)
+	}
+	if merged.SectionFetchedAt["fuel"] != "new" || merged.SectionFetchedAt["fcda"] != "new" ||
+		merged.SectionFetchedAt["pump"] != "old" || merged.SectionFetchedAt["lpg"] != "old" {
+		t.Fatalf("timestamps = %v", merged.SectionFetchedAt)
+	}
+	// Stale section sources replaced, others kept; errors accumulate.
+	names := map[string]int{}
+	for _, s := range merged.Sources {
+		names[s.Name]++
+	}
+	if names["doe-oil-monitor"] != 1 || names["doe-ncr-pump"] != 1 || names["meralco-news"] != 1 || names["maynilad-fcda"] != 1 {
+		t.Fatalf("sources = %+v", merged.Sources)
+	}
+	for _, s := range merged.Sources {
+		if s.Name == "doe-oil-monitor" && s.URL != "u1new" {
+			t.Fatalf("stale source kept: %+v", s)
+		}
+	}
+	if len(merged.Errors) != 2 || merged.FetchedAt != "2026-10-26T00:00:00+08:00" {
+		t.Fatalf("errors/fetched_at = %+v", merged)
+	}
+	// Failed sections do not overwrite.
+	freshEmpty := &Snapshot{FetchedAt: "x", Errors: []string{"e"}}
+	merged2 := MergeSnapshots(base, freshEmpty, []string{"fuel"})
+	if len(merged2.Fuel.Adjustments) != 1 || merged2.Fuel.Adjustments[0].AsOf != "2026-10-13" {
+		t.Fatalf("failed fetch overwrote fuel: %+v", merged2.Fuel.Adjustments)
+	}
+	// Base is never mutated.
+	if len(base.Sources) != 3 || len(base.Errors) != 1 || base.SectionFetchedAt["fuel"] != "old" {
+		t.Fatalf("base mutated: %+v", base)
 	}
 }

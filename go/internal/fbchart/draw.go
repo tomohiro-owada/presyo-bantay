@@ -25,6 +25,8 @@ var (
 	// green/red, readable on cream; inside labels use the dark hue).
 	greenLt = color.RGBA{0x5C, 0x90, 0x6E, 0xFF}
 	redLt   = color.RGBA{0xE8, 0x76, 0x58, 0xFF}
+	// Neutral grey for zero/n-a delta chips.
+	grey = color.RGBA{0x8A, 0x8F, 0x8C, 0xFF}
 )
 
 var (

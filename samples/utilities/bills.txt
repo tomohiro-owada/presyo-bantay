@@ -1,18 +1,34 @@
 🏠 Bayarin sa bahay — Oktubre 2026
-⚡ Meralco: +₱0.3191/kWh → ₱15.0615/kWh mula ₱14.7424
-   Sa 200 kWh: mga +₱64 sa bill
-🔥 LPG 11 kg, karaniwang presyo sa NCR (DOE, Okt 1–8): ₱1,430, +₱89 vs Set 1–7
-   Sa Las Piñas: ₱1,368–₱1,569
+⚡ Meralco: ₱14.7424 → ₱15.0615/kWh, +₱0.3191 vs Setyembre
+Sa 200 kWh: mga +₱64 sa bill
+🔥 LPG 11 kg NCR, karaniwang presyo (DOE): ₱1,341 → ₱1,430, +₱89 vs Set 1–7
+Sa Las Piñas: ₱1,368–₱1,569, Set: ₱1,185–₱1,393
+💧 Tubig Maynilad, average basic charge + FCDA: ₱52.61 → ₱52.85/cu.m, +₱0.24 mula Okt 1
 💧 Maynilad, Las Piñas: walang naka-schedule na water interruption — tiningnan Okt 26
+👪 Tantiyang buwanang gastos ng isang pamilya:
+₱5,341.68 → ₱5,499.30, +₱157.62 vs Setyembre · kuryente +₱63.82, LPG +₱89.00, tubig +₱4.80
+Palagay: 200 kWh kuryente sa typical-household rate ng Meralco · 1 tangke LPG 11 kg sa NCR common price ng DOE · 20 cu.m tubig sa average basic charge + FCDA ng Maynilad, hindi kasama ang ibang singil at VAT ng tubig · hindi kasama ang gasolina
 ━━━━━━━━━━
 🇬🇧 Household bills — October 2026
-⚡ Meralco: +₱0.3191/kWh → ₱15.0615/kWh, from ₱14.7424. At 200 kWh: about +₱64 on the bill
-🔥 LPG 11 kg, NCR common price (DOE, Oct 1–8): ₱1,430, +₱89 vs Sep 1–7. Las Piñas: ₱1,368–₱1,569
+⚡ Meralco: ₱14.7424 → ₱15.0615/kWh, +₱0.3191 vs September
+At 200 kWh: about +₱64 on the bill
+🔥 LPG 11 kg NCR, common price (DOE): ₱1,341 → ₱1,430, +₱89 vs Sep 1–7
+Las Piñas: ₱1,368–₱1,569, Sep: ₱1,185–₱1,393
+💧 Maynilad water, average basic charge + FCDA: ₱52.61 → ₱52.85/cu.m, +₱0.24 from Oct 1
 💧 Maynilad, Las Piñas: no scheduled water interruptions — checked Oct 26
+👪 Estimated monthly family spending:
+₱5,341.68 → ₱5,499.30, +₱157.62 vs September · power +₱63.82, LPG +₱89.00, water +₱4.80
+Assumptions: 200 kWh at Meralco's typical-household rate · one 11-kg LPG tank at DOE's NCR common price · 20 cu.m water at Maynilad's average basic charge + FCDA, excluding other water charges and VAT · fuel not included
 ━━━━━━━━━━
 🇯🇵 家計の光熱費 — 2026年10月
-⚡ Meralco：+₱0.3191/kWh → ₱15.0615/kWh（前月 ₱14.7424）。200kWhで約+₱64
-🔥 LPG 11kg・NCR一般価格（DOE、10/1〜10/8）：₱1,430、9/1〜9/7比 +₱89。ラスピニャス：₱1,368〜₱1,569
+⚡ Meralco：₱14.7424 → ₱15.0615/kWh、+₱0.3191（9月比）
+200kWhで約+₱64
+🔥 LPG 11kg・NCR一般価格（DOE）：₱1,341 → ₱1,430、+₱89（9/1〜9/7比）
+ラスピニャス：₱1,368〜₱1,569、9月：₱1,185〜₱1,393
+💧 Maynilad水道・基本料金＋FCDA：₱52.61 → ₱52.85/cu.m、+₱0.24（10/1から）
 💧 Maynilad・ラスピニャス：計画断水なし（10/26確認）
+👪 1か月の家計支出（目安）：
+₱5,341.68 → ₱5,499.30、+₱157.62（9月比）・電気 +₱63.82・LPG +₱89.00・水道 +₱4.80
+前提：200kWhをMeralco一般家庭料金で・11kg LPG 1本をDOE・NCR一般価格で・水20cu.mをMaynilad基本料金＋FCDAで（その他水道料金・VAT・燃料は含まず）
 ━━━━━━━━━━
 Source: Meralco, DOE LPG monitoring, Maynilad advisories · Hindi opisyal na page

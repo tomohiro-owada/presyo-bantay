@@ -65,14 +65,23 @@ func renderTestSnapshot(t *testing.T) string {
 	if err != nil {
 		t.Fatal(err)
 	}
+	fcdaB, err := os.ReadFile(utilTestdata(t, "maynilad_fcda_posts.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	rates, err := utilities.ParseFCDAPosts(fcdaB)
+	if err != nil {
+		t.Fatal(err)
+	}
 	snap := utilities.Snapshot{
 		FetchedAt: "2026-10-26T20:00:00+08:00",
 		Fuel: utilities.FuelStatus{
 			Adjustments: []utilities.OilAdjustment{adj},
 			NCRPump:     []utilities.PumpSummary{pump},
 		},
-		LPG:     []utilities.LPGMonth{lpg, lpg2},
-		Meralco: []utilities.MeralcoRate{mer},
+		LPG:        []utilities.LPGMonth{lpg, lpg2},
+		Meralco:    []utilities.MeralcoRate{mer},
+		WaterRates: rates,
 		Water: &utilities.WaterStatus{
 			City:      "Las Piñas",
 			CheckedAt: "2026-10-26T20:00:00+08:00",
@@ -200,6 +209,121 @@ func TestUtilitiesRenderUsage(t *testing.T) {
 		t.Fatalf("exit %d, want 1", code)
 	}
 	if code := run([]string{"utilities", "render", "-kind", "fuel"}); code != 1 {
+		t.Fatalf("exit %d, want 1", code)
+	}
+}
+
+func TestUtilitiesRenderWaterOffline(t *testing.T) {
+	maint := utilTestdata(t, "maynilad_maintenance_posts.json")
+	out := t.TempDir()
+	if code := run([]string{"utilities", "render", "-kind", "water",
+		"-maintenance-json", maint, "-city", "Las Pi", "-out-dir", out}); code != 0 {
+		t.Fatalf("exit %d", code)
+	}
+	entries, err := os.ReadDir(out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var prefix string
+	for _, e := range entries {
+		if strings.HasSuffix(e.Name(), ".txt") {
+			prefix = strings.TrimSuffix(e.Name(), ".txt")
+		}
+	}
+	if prefix == "" || !strings.HasPrefix(prefix, "water-") {
+		t.Fatalf("water files missing: %v", entries)
+	}
+	for _, ext := range []string{".txt", ".png", ".check.json"} {
+		if fi, err := os.Stat(filepath.Join(out, prefix+ext)); err != nil || fi.Size() == 0 {
+			t.Fatalf("%s%s missing: %v", prefix, ext, err)
+		}
+	}
+	checkData, err := os.ReadFile(filepath.Join(out, prefix+".check.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var doc utilitiesCheckDoc
+	if err := json.Unmarshal(checkData, &doc); err != nil {
+		t.Fatal(err)
+	}
+	if !doc.OK {
+		t.Fatalf("check failed: %v", doc.Problems)
+	}
+	txt, err := os.ReadFile(filepath.Join(out, prefix+".txt"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(txt), "Walang tubig sa ilang bahagi ng Las Pi") {
+		t.Fatalf("bad water.txt: %q", txt[:100])
+	}
+}
+
+func TestUtilitiesRenderWaterPastSample(t *testing.T) {
+	maint := utilTestdata(t, "maynilad_maintenance_posts.json")
+	out := t.TempDir()
+	if code := run([]string{"utilities", "render", "-kind", "water",
+		"-maintenance-json", maint, "-city", "Las Pi", "-past-sample", "-out-dir", out}); code != 0 {
+		t.Fatalf("exit %d", code)
+	}
+	// Prefix water-alert_PAST-SAMPLE_<start date> (2026-08-26 fixture).
+	want := "water-alert_PAST-SAMPLE_2026-08-26"
+	for _, ext := range []string{".txt", ".png", ".check.json"} {
+		if _, err := os.Stat(filepath.Join(out, want+ext)); err != nil {
+			t.Fatalf("%s%s missing: %v", want, ext, err)
+		}
+	}
+	txt, err := os.ReadFile(filepath.Join(out, want+".txt"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasPrefix(string(txt), "⚠️ SAMPLE — lumang datos") {
+		t.Fatalf("no sample banner: %q", txt[:80])
+	}
+}
+
+func TestUtilitiesRenderWaterAlertID(t *testing.T) {
+	maint := utilTestdata(t, "maynilad_maintenance_posts.json")
+	// Unknown alert id fails without network.
+	out := t.TempDir()
+	if code := run([]string{"utilities", "render", "-kind", "water",
+		"-maintenance-json", maint, "-city", "Las Pi", "-alert-id", "bogus",
+		"-out-dir", out}); code != 1 {
+		t.Fatalf("exit %d, want 1", code)
+	}
+	// City with no rows fails offline.
+	if code := run([]string{"utilities", "render", "-kind", "water",
+		"-maintenance-json", maint, "-city", "Nowhere",
+		"-out-dir", t.TempDir()}); code != 1 {
+		t.Fatalf("exit %d, want 1", code)
+	}
+}
+
+func TestUtilitiesFetchSectionsValidation(t *testing.T) {
+	// No network touched: validation fails first.
+	if code := run([]string{"utilities", "fetch", "-cache", t.TempDir(), "-out", filepath.Join(t.TempDir(), "s.json"), "-sections", "bogus"}); code != 1 {
+		t.Fatalf("exit %d, want 1", code)
+	}
+}
+
+func TestUtilpagesCommand(t *testing.T) {
+	snap := renderTestSnapshot(t)
+	site := t.TempDir()
+	if code := run([]string{"utilpages", "-snapshot", snap, "-site-public", site, "-now", "2026-10-26T12:00:00Z"}); code != 0 {
+		t.Fatalf("exit %d", code)
+	}
+	for _, name := range []string{
+		"u/index.html", "data/utilities.json",
+		"u/fuel/2026-10-20/index.html", "u/fuel/2026-10-20/post.json", "u/fuel/2026-10-20/fuel.png",
+		"u/bills/2026-10/index.html", "u/bills/2026-10/post.json", "u/bills/2026-10/bills.png",
+	} {
+		if fi, err := os.Stat(filepath.Join(site, name)); err != nil || fi.Size() == 0 {
+			t.Fatalf("%s missing: %v", name, err)
+		}
+	}
+	if code := run([]string{"utilpages", "-snapshot", "/nonexistent.json", "-site-public", site}); code != 1 {
+		t.Fatalf("exit %d, want 1", code)
+	}
+	if code := run([]string{"utilpages"}); code != 1 {
 		t.Fatalf("exit %d, want 1", code)
 	}
 }

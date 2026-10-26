@@ -162,12 +162,15 @@ func wrapLines(s string, w Weight, size, minSize float64, maxW, maxLines int) ([
 		}
 		lines = append(lines, cur)
 		if len(lines) <= maxLines || sz <= minSize {
+			truncated := false
 			if len(lines) > maxLines {
 				lines = lines[:maxLines]
-				lines[maxLines-1] = ellipsize(lines[maxLines-1], w, sz, maxW)
+				truncated = true
 			}
 			for i, ln := range lines {
-				if measure(ln, w, sz) > maxW {
+				// A truncated tail must always show its ellipsis;
+				// fitting lines pass through unchanged.
+				if (truncated && i == len(lines)-1) || measure(ln, w, sz) > maxW {
 					lines[i] = ellipsize(ln, w, sz, maxW)
 				}
 			}
@@ -280,8 +283,8 @@ const (
 	fuelGap     = 6
 )
 
-// fuelRowPlace is one main-section row: bar, value label, and the
-// vertically centered product name.
+// fuelRowPlace is one main-section row: bar, value label, the
+// vertically centered product name, and the muted last-week line.
 type fuelRowPlace struct {
 	bx0, bx1, by0, by1 int
 	lx, ly, lw         int
@@ -289,10 +292,15 @@ type fuelRowPlace struct {
 	inside             bool
 	nx, ny, nw         int // name baseline origin + width
 	nsize              float64
+	sub                string // last-week text ("" when omitted)
+	sx, sy, sw         int
+	ssize              float64
 }
 
-// placeFuelRow computes one main-section row at row middle cy.
-func placeFuelRow(y, rowH, zx int, unit float64, name string, r *utilities.Range) (fuelRowPlace, string, bool) {
+// placeFuelRow computes one main-section row at row middle cy. The
+// product name shares the row middle; lastWeek (already formatted,
+// "" to omit) sits below it as small muted text.
+func placeFuelRow(y, rowH, zx int, unit float64, name, lastWeek string, r *utilities.Range) (fuelRowPlace, string, bool) {
 	var g fuelRowPlace
 	if r == nil {
 		return g, "", false
@@ -333,13 +341,24 @@ func placeFuelRow(y, rowH, zx int, unit float64, name string, r *utilities.Range
 			g.lx = bx1 + 10
 		}
 	}
-	// Product name, vertically centered on the same row.
+	// Product name shares the row middle; the muted last-week line
+	// sits below it when present (two-line group stays centered).
 	nsize := 32.0
 	maxW := barX0 - marginL - 12
 	for nsize > 24 && cmeasure(name, Bold, nsize) > maxW {
 		nsize -= 2
 	}
-	g.nx, g.ny, g.nw, g.nsize = marginL, cy+11, cmeasure(name, Bold, nsize), nsize
+	ssize := 20.0
+	sub := dropMissing(lastWeek, Medium)
+	for ssize > 14 && cmeasure(sub, Medium, ssize) > maxW {
+		ssize -= 2
+	}
+	if sub == "" {
+		g.nx, g.ny, g.nw, g.nsize = marginL, cy+11, cmeasure(name, Bold, nsize), nsize
+	} else {
+		g.nx, g.ny, g.nw, g.nsize = marginL, cy-6, cmeasure(name, Bold, nsize), nsize
+		g.sx, g.sy, g.sw, g.ssize, g.sub = marginL, cy+26, cmeasure(sub, Medium, ssize), ssize, sub
+	}
 	return g, lbl, true
 }
 
@@ -395,10 +414,72 @@ func fitFuelUnit(maxNeg, maxPos float64, items []fuelItem, unit float64, zx int)
 	return unit, zx
 }
 
+// Fuel chart vertical budget constants: pills, gaps, legend, table
+// chrome, natural row heights, and guaranteed minimums. Minimums
+// (big 70, history 56, table 44) always fit by construction, so
+// history labels keep their clearance (see TestHistoryNoOverlaps).
+const (
+	fuelPillBlock  = 52 + 14
+	fuelGapBlock   = 6
+	fuelLegendH    = 28
+	fuelTableCapH  = 28
+	fuelTableHeadH = 28
+	fuelTableRowH  = 44
+	fuelBigNat     = 110
+	fuelHistNat    = 70
+	fuelBigMin     = 70
+	fuelHistMin    = 56
+)
+
+// fuelRowHeights distributes main + history row heights for nWeeks
+// history rows and tableRows table rows: naturals scaled to the
+// budget, clamped to minimums, leftover shared round-robin.
+func fuelRowHeights(nWeeks, tableRows int) (bigRows, histRows []int) {
+	tableH := 0
+	if tableRows > 0 {
+		tableH = fuelGapBlock + fuelPillBlock + fuelTableCapH + fuelTableHeadH + tableRows*fuelTableRowH
+	}
+	fixed := fuelPillBlock + fuelGapBlock + fuelPillBlock + fuelLegendH + tableH
+	avail := (H - 118) - 256 - fixed
+	need := 3*fuelBigNat + nWeeks*fuelHistNat
+	bigH, histH := fuelBigNat, fuelHistNat
+	if need > 0 {
+		f := float64(avail) / float64(need)
+		bigH = int(float64(fuelBigNat) * f)
+		histH = int(float64(fuelHistNat) * f)
+		if bigH > 170 {
+			bigH = 170
+		}
+		if histH > 120 {
+			histH = 120
+		}
+		if bigH < fuelBigMin {
+			bigH = fuelBigMin
+		}
+		if histH < fuelHistMin {
+			histH = fuelHistMin
+		}
+	}
+	for bigH > fuelBigMin && 3*bigH+nWeeks*histH > avail {
+		bigH--
+	}
+	for histH > fuelHistMin && 3*bigH+nWeeks*histH > avail {
+		histH--
+	}
+	rows := []int{bigH, bigH, bigH}
+	for i := 0; i < nWeeks; i++ {
+		rows = append(rows, histH)
+	}
+	for leftover := avail - (3*bigH + nWeeks*histH); leftover > 0; leftover-- {
+		rows[leftover%len(rows)]++
+	}
+	return rows[:3], rows[3:]
+}
+
 // RenderFuelWeekly builds the 1080x1350 fuel chart: this week's three
 // fuel bars, up to 6 weeks of gasoline/diesel history (newest last),
-// and the NCR common-price chips. Row heights grow to fill the space
-// above the footer instead of leaving a blank gap.
+// and the now-vs-previous pump price table. Row heights grow to fill
+// the space above the footer instead of leaving a blank gap.
 func RenderFuelWeekly(s *utilities.Snapshot) (*image.RGBA, error) {
 	if len(s.Fuel.Adjustments) == 0 {
 		return nil, fmt.Errorf("fbchart: no oil adjustments")
@@ -450,57 +531,48 @@ func RenderFuelWeekly(s *utilities.Snapshot) (*image.RGBA, error) {
 		weeks[i], weeks[j] = weeks[j], weeks[i]
 	}
 	pump := basePumpWeek(s)
+	var prevPump *utilities.PumpSummary
+	if pump != nil {
+		for i := range s.Fuel.NCRPump {
+			p := &s.Fuel.NCRPump[i]
+			if p.WeekFrom < pump.WeekFrom && (prevPump == nil || p.WeekFrom > prevPump.WeekFrom) {
+				prevPump = p
+			}
+		}
+	}
+	// Last week's values for the muted row texts.
+	lastWeek := map[string]string{}
+	if len(s.Fuel.Adjustments) > 1 {
+		for _, e := range []struct {
+			name string
+			r    *utilities.Range
+		}{
+			{"Gasolina", s.Fuel.Adjustments[1].Gasoline},
+			{"Diesel", s.Fuel.Adjustments[1].Diesel},
+			{"Kerosene", s.Fuel.Adjustments[1].Kerosene},
+		} {
+			if e.r != nil {
+				lastWeek[e.name] = "nakaraan: " + fuelValLabel(e.r)
+			}
+		}
+	}
 
 	y := 256
-	footerTop := H - 118
 
-	// Vertical budget: pills, gaps, legend, and chips are fixed; row
-	// heights grow (round-robin) to fill the leftover space.
-	const pillBlock = 52 + 14
-	const gapBlock = 8
-	const legendH = 34
-	const chipsH = 8 + 52 + 14 + 64
-	const bigNat, histNat = 110, 70
-	fixed := pillBlock + gapBlock + pillBlock + legendH
+	var tableRows []pumpRowSpec
+	var tableV, tableC float64
 	if pump != nil {
-		fixed += chipsH // gap + pill + chips row
+		tableRows, tableV, tableC = layoutPumpTable(pump, prevPump)
 	}
-	avail := footerTop - y - fixed
-	need := 3*bigNat + len(weeks)*histNat
-	bigH, histH := bigNat, histNat
-	if need > 0 {
-		f := float64(avail) / float64(need)
-		bigH = int(float64(bigNat) * f)
-		histH = int(float64(histNat) * f)
-		if bigH > 170 {
-			bigH = 170
-		}
-		if histH > 120 {
-			histH = 120
-		}
-	}
-	for bigH > 84 && 3*bigH+len(weeks)*histH > avail {
-		bigH--
-	}
-	for histH > 56 && 3*bigH+len(weeks)*histH > avail {
-		histH--
-	}
-	rows := []int{bigH, bigH, bigH}
-	for range weeks {
-		rows = append(rows, histH)
-	}
-	for leftover := avail - (3*bigH + len(weeks)*histH); leftover > 0; leftover-- {
-		rows[leftover%len(rows)]++
-	}
-	bigRows, histRows := rows[:3], rows[3:]
+	bigRows, histRows := fuelRowHeights(len(weeks), len(tableRows))
 
 	// Section 1: this week's movement.
 	pill(dst, "Galaw ngayong linggo", marginL, y, green)
-	y += pillBlock
+	y += fuelPillBlock
 	rowsTop := y
 	for i, f := range fuels {
 		rowH := bigRows[i]
-		g, lbl, ok := placeFuelRow(y, rowH, zx, unit, f.name, f.r)
+		g, lbl, ok := placeFuelRow(y, rowH, zx, unit, f.name, lastWeek[f.name], f.r)
 		col := green
 		barCol := green
 		if f.r != nil && !fuelNeg(f.r) {
@@ -510,6 +582,9 @@ func RenderFuelWeekly(s *utilities.Snapshot) (*image.RGBA, error) {
 			cdraw(dst, "—", SemiBold, 27, mutCol, marginL, y+rowH/2+9)
 		} else {
 			cdraw(dst, cellipsize(f.name, Bold, g.nsize, barX0-marginL-12), Bold, g.nsize, col, g.nx, g.ny)
+			if g.sub != "" {
+				cdraw(dst, cellipsize(g.sub, Medium, g.ssize, barX0-marginL-12), Medium, g.ssize, mutCol, g.sx, g.sy)
+			}
 			fillRounded(dst, g.bx0, g.by0, g.bx1, g.by1, 8, barCol)
 			if g.inside {
 				drawString(dst, lbl, Bold, g.size, white, g.lx, g.ly)
@@ -525,11 +600,11 @@ func RenderFuelWeekly(s *utilities.Snapshot) (*image.RGBA, error) {
 	vline(dst, zx, rowsTop, rowsBottom, 3, zeroCol)
 
 	// Section 2: history (gasoline solid above, diesel light below).
-	y += gapBlock
+	y += fuelGapBlock
 	pill(dst, "Nakaraang mga linggo", marginL, y, greenDk)
-	y += pillBlock
-	cdraw(dst, historyLegend(), Medium, 22, mutCol, marginL, y+24)
-	y += legendH
+	y += fuelPillBlock
+	cdraw(dst, historyLegend(), Medium, 22, mutCol, marginL, y+20)
+	y += fuelLegendH
 	histTop := y
 	// Common mini scale over the shown weeks, fitted so outside
 	// labels clear the row margins.
@@ -560,14 +635,16 @@ func RenderFuelWeekly(s *utilities.Snapshot) (*image.RGBA, error) {
 	}
 	vline(dst, miniMid, histTop, y, 2, zeroCol)
 
-	// Section 3: NCR common-price chips.
-	if pump != nil {
-		y += gapBlock
-		pill(dst, fmt.Sprintf("Karaniwang presyo sa NCR (DOE, %s)",
-			utilities.ShortRangeTL(pump.WeekFrom, pump.WeekTo)), marginL, y, green)
-		y += pillBlock
-		chips := pumpChips(*pump)
-		drawChips(dst, chips, y)
+	// Section 3: pump price table (now vs previous week).
+	if len(tableRows) > 0 {
+		y += fuelGapBlock
+		pill(dst, "Presyo sa bomba", marginL, y, green)
+		y += fuelPillBlock
+		cap := pumpTableCaption(pump, prevPump)
+		cs := cfitSize(cap, Medium, 24, 14, W-marginL-marginR)
+		cdraw(dst, cellipsize(cap, Medium, cs, W-marginL-marginR), Medium, cs, mutCol, marginL, y+22)
+		y += fuelTableCapH
+		y = drawPumpTable(dst, tableRows, tableV, tableC, y, fuelTableRowH)
 	}
 
 	utilFooter(dst, "Source: DOE (doe.gov.ph)", "Hindi opisyal na DOE page")
@@ -634,9 +711,11 @@ func placeMiniBar(r *utilities.Range, cy, h, x0, x1, mid int, unit float64) (min
 			g.lx = bx1 - lw - 10
 		}
 	} else if neg {
-		g.lx, g.ly = bx0-8-lw, cy+7
+		// Outside on the far side; the cy+6 baseline keeps ink clear
+		// of the adjacent rows (see TestHistoryNoOverlaps).
+		g.lx, g.ly = bx0-8-lw, cy+6
 	} else {
-		g.lx, g.ly = bx1+8, cy+7
+		g.lx, g.ly = bx1+8, cy+6
 	}
 	return g, lbl, true
 }
@@ -746,60 +825,220 @@ func basePumpWeek(s *utilities.Snapshot) *utilities.PumpSummary {
 	return best
 }
 
-// pumpChips builds the RON 91 / RON 95 / Diesel value chips.
-func pumpChips(sum utilities.PumpSummary) []string {
-	got := map[string]float64{}
-	for _, p := range sum.Prices {
-		got[p.Product] = p.Common
+// pumpDeltaText formats a compact delta chip ("−0.40", no ₱).
+func pumpDeltaText(d float64) string {
+	if d < 0 {
+		return fmt.Sprintf("−%.2f", -d)
 	}
-	out := []string{}
-	for _, key := range []string{"RON91", "RON95", "Diesel"} {
-		v, ok := got[key]
-		if !ok {
-			continue
-		}
-		// Price levels print unsigned.
-		out = append(out, fmt.Sprintf("%s ₱%s", chipName(key), stripPeso(f2(v))))
+	if d > 0 {
+		return fmt.Sprintf("+%.2f", d)
 	}
-	return out
+	return "0.00"
 }
 
-// chipName renders product keys for chips.
-func chipName(key string) string {
-	switch key {
-	case "RON91":
-		return "RON 91"
-	case "RON95":
-		return "RON 95"
-	}
-	return key
+// pumpCellSpec is one laid-out table cell.
+type pumpCellSpec struct {
+	value string // "₱87.90" or "—"
+	delta string // "−0.40" or "n/a"
+	dneg  bool   // delta is a decrease (green)
+	dzero bool   // delta is zero/n/a (grey)
+	vx    int    // value baseline origin x
+	cx    int    // chip rect x
+	cw    int    // chip width
+	colW  int    // column width
+	empty bool   // no data at all (skip cell)
 }
 
-// drawChips draws value chips in one row (green fill, white text).
-func drawChips(dst *image.RGBA, chips []string, y int) {
-	if len(chips) == 0 {
-		return
-	}
-	const gap = 16
-	size := 30.0
-	for size > 20 {
-		total := 0
-		for _, c := range chips {
-			total += cmeasure(c, Bold, size) + 44
+// pumpRowSpec is one laid-out table row.
+type pumpRowSpec struct {
+	label string
+	cells [3]pumpCellSpec
+}
+
+// layoutPumpTable lays out the NCR/Parañaque/Muntinlupa × RON91/95/
+// Diesel table: equal value columns sharing the content width. Rows
+// without any data this week are skipped. It returns the rows plus the
+// fitted value/chip sizes.
+func layoutPumpTable(now, prev *utilities.PumpSummary) (rows []pumpRowSpec, vsize, csize float64) {
+	ncrOf := func(sum *utilities.PumpSummary, product string) (float64, bool) {
+		if sum == nil {
+			return 0, false
 		}
-		total += gap * (len(chips) - 1)
-		if total <= W-marginL-marginR {
+		for _, p := range sum.Prices {
+			if p.Product == product {
+				return p.Common, true
+			}
+		}
+		return 0, false
+	}
+	cityOf := func(sum *utilities.PumpSummary, city, product string) (*float64, bool) {
+		if sum == nil {
+			return nil, false
+		}
+		for i := range sum.Cities {
+			if sum.Cities[i].City != city {
+				continue
+			}
+			for j := range sum.Cities[i].Prices {
+				if sum.Cities[i].Prices[j].Product == product {
+					return sum.Cities[i].Prices[j].Common, true
+				}
+			}
+		}
+		return nil, false
+	}
+	keys := []string{"RON91", "RON95", "Diesel"}
+	for _, e := range []struct {
+		label, city string
+	}{
+		{"NCR", ""}, {"Parañaque", "Parañaque"}, {"Muntinlupa", "Muntinlupa"},
+	} {
+		var row pumpRowSpec
+		row.label = e.label
+		any := false
+		for i, k := range keys {
+			cell := pumpCellSpec{empty: true}
+			var nv *float64
+			var present bool
+			if e.city == "" {
+				if v, ok := ncrOf(now, k); ok {
+					nv, present = &v, true
+				}
+			} else {
+				nv, present = cityOf(now, e.city, k)
+			}
+			if !present {
+				row.cells[i] = cell
+				continue
+			}
+			any = true
+			cell.empty = false
+			var pv *float64
+			if e.city == "" {
+				if v, ok := ncrOf(prev, k); ok {
+					pv = &v
+				}
+			} else if v, ok := cityOf(prev, e.city, k); ok {
+				pv = v
+			}
+			if nv == nil {
+				cell.value, cell.delta, cell.dzero = "—", "n/a", true
+			} else {
+				cell.value = "₱" + stripPeso(f2(*nv))
+				if pv == nil {
+					cell.delta, cell.dzero = "n/a", true
+				} else {
+					d := *nv - *pv
+					cell.delta = pumpDeltaText(d)
+					cell.dneg = d < 0
+					cell.dzero = d == 0
+				}
+			}
+			row.cells[i] = cell
+		}
+		if any {
+			rows = append(rows, row)
+		}
+	}
+	// Column geometry: label column + 3 equal value columns.
+	// The label column fits "Muntinlupa" at 24 px with room to spare.
+	const labelW = 210
+	const colGap = 16
+	colsX := marginL + labelW + 12
+	colW := (W - marginR - colsX - 2*colGap) / 3
+	vsize, csize = 26.0, 20.0
+	for {
+		ok := true
+		for _, r := range rows {
+			for _, c := range r.cells {
+				if c.empty {
+					continue
+				}
+				if cmeasure(c.value, Bold, vsize)+8+cmeasure(c.delta, Bold, csize)+28 > colW {
+					ok = false
+				}
+			}
+		}
+		if ok || (vsize <= 20 && csize <= 16) {
 			break
 		}
-		size -= 2
+		if vsize > 20 {
+			vsize -= 2
+		} else {
+			csize -= 2
+		}
 	}
-	x := marginL
-	for _, c := range chips {
-		cw := cmeasure(c, Bold, size) + 44
-		fillRounded(dst, x, y, x+cw, y+64, 12, green)
-		cdraw(dst, c, Bold, size, white, x+22, y+41)
-		x += cw + gap
+	for ri := range rows {
+		x := colsX
+		for i := range rows[ri].cells {
+			c := &rows[ri].cells[i]
+			c.colW = colW
+			c.vx = x
+			c.cw = cmeasure(c.delta, Bold, csize) + 28
+			c.cx = x + cmeasure(c.value, Bold, vsize) + 8
+			if c.cx+c.cw > x+colW {
+				c.cx = x + colW - c.cw
+			}
+			x += colW + colGap
+		}
 	}
+	return rows, vsize, csize
+}
+
+// tableHeader are the pump table column headers (at least 20 px).
+var tableHeader = [3]string{"RON 91", "RON 95", "Diesel"}
+
+// tableHeadSize is the pump table header text size.
+const tableHeadSize = 20.0
+
+// drawPumpTable draws the table header, rows (rowH each), and delta
+// chips (green down / red up / grey zero or n/a). Empty cells stay
+// blank. It returns the next y.
+func drawPumpTable(dst *image.RGBA, rows []pumpRowSpec, vsize, csize float64, y, rowH int) int {
+	if len(rows) == 0 {
+		return y
+	}
+	const labelW = 210
+	colsX := marginL + labelW + 12
+	colW := rows[0].cells[0].colW
+	for i, h := range tableHeader {
+		cdraw(dst, h, Medium, tableHeadSize, mutCol, colsX+i*(colW+16), y+20)
+	}
+	y += 28
+	for _, r := range rows {
+		cdraw(dst, cellipsize(r.label, Bold, 24, labelW), Bold, 24, green, marginL, y+rowH/2+8)
+		for _, c := range r.cells {
+			if c.empty {
+				continue
+			}
+			cdraw(dst, c.value, Bold, vsize, green, c.vx, y+rowH/2+9)
+			var fill color.RGBA
+			tcol := white
+			switch {
+			case c.dzero:
+				fill, tcol = grey, white
+			case c.dneg:
+				fill = green
+			default:
+				fill = red
+			}
+			cy := y + rowH/2
+			fillRounded(dst, c.cx, cy-17, c.cx+c.cw, cy+17, 9, fill)
+			cdraw(dst, c.delta, Bold, csize, tcol, c.cx+14, cy+7)
+		}
+		y += rowH
+	}
+	return y
+}
+
+// pumpTableCaption is the caption above the table.
+func pumpTableCaption(now, prev *utilities.PumpSummary) string {
+	nr := utilities.ShortRangeTL(now.WeekFrom, now.WeekTo)
+	vs := ""
+	if prev != nil {
+		vs = " vs " + utilities.ShortRangeTL(prev.WeekFrom, prev.WeekTo)
+	}
+	return fmt.Sprintf("Pump price DOE %s%s · Parañaque at Muntinlupa: malapit sa Las Piñas", nr, vs)
 }
 
 // Bills chart.
@@ -832,17 +1071,66 @@ func wholePeso(v float64) string {
 	return "₱" + s
 }
 
-// billChip draws a small signed-amount chip, red for increases and
-// green for decreases, returning its width.
-func billChip(dst *image.RGBA, text string, negative bool, x, y int) int {
-	col := red
-	if negative {
-		col = green
-	}
+// billChip draws a small chip with the given fill, returning its width.
+func billChip(dst *image.RGBA, text string, fill color.RGBA, x, y int) int {
 	cw := cmeasure(text, Bold, 28) + 36
-	fillRounded(dst, x, y, x+cw, y+52, 12, col)
+	fillRounded(dst, x, y, x+cw, y+52, 12, fill)
 	cdraw(dst, text, Bold, 28, white, x+18, y+36)
 	return cw
+}
+
+// chipFill picks red for increases, green for decreases, grey for zero.
+func chipFill(neg, zero bool) color.RGBA {
+	if zero {
+		return grey
+	}
+	if neg {
+		return green
+	}
+	return red
+}
+
+// meralcoChipText is the Meralco card chip ("+₱0.3191 vs Set").
+func meralcoChipText(adj float64, month string) string {
+	vs := ""
+	if prev, ok := utilities.PrevMonthShortTL(month); ok {
+		vs = " vs " + prev
+	}
+	return f4(adj) + vs
+}
+
+// lpgChipText is the LPG card chip ("+₱89 vs Set 1–7" — the comparison
+// period is always included when known).
+func lpgChipText(diff float64, prevRange string) string {
+	chip := signedWholePeso(diff)
+	if prevRange != "" {
+		chip += " vs " + prevRange
+	}
+	return chip
+}
+
+// waterChipText is the water card chip ("+₱0.24 mula Okt 1").
+func waterChipText(diff float64, day string) string {
+	chip := fmt.Sprintf("+₱%.2f", diff)
+	if diff < 0 {
+		chip = fmt.Sprintf("−₱%.2f", -diff)
+	}
+	if day != "" {
+		chip += " mula " + day
+	}
+	return chip
+}
+
+// wholeU formats unsigned whole pesos with thousands separators.
+func wholeU(v float64) string {
+	if v < 0 {
+		v = -v
+	}
+	s := fmt.Sprintf("%.0f", v)
+	for i := len(s) - 3; i > 0; i -= 3 {
+		s = s[:i] + "," + s[i:]
+	}
+	return "₱" + s
 }
 
 // billCard frames a card body (white rounded rect).
@@ -862,16 +1150,6 @@ func signedWholePeso(v float64) string {
 // meralcoImpactLine is the Meralco card's 200 kWh line, always signed.
 func meralcoImpactLine(impact int) string {
 	return fmt.Sprintf("200 kWh: mga %s", signedWholePeso(float64(impact)))
-}
-
-// meralcoPrevLine is the Meralco card's second line: prev rate plus
-// the announced date ("mula ₱14.7424 · Okt 13").
-func meralcoPrevLine(prevRate float64, announced string) string {
-	prev := "₱" + stripPeso(f4(prevRate))
-	if day := utilities.DayLabelTL(announced); day != "" {
-		return fmt.Sprintf("mula %s · %s", prev, day)
-	}
-	return fmt.Sprintf("mula %s", prev)
 }
 
 // billLine is one card content line.
@@ -910,7 +1188,7 @@ func billCardGeom(title string, lines []billLine) (headerBase int, bases []int, 
 // drawBillCard frames one card and draws its header, optional chip,
 // and content lines. extra is the even share of leftover space added
 // at the bottom. It returns the next card top (gap excluded).
-func drawBillCard(dst *image.RGBA, y int, title, chip string, chipNeg, hasChip bool, lines []billLine, extra int) int {
+func drawBillCard(dst *image.RGBA, y int, title, chip string, fill color.RGBA, hasChip bool, lines []billLine, extra int) int {
 	const padX = 30
 	cardW := W - marginL - marginR - 2*padX
 	headerBase, bases, contentH := billCardGeom(title, lines)
@@ -922,7 +1200,7 @@ func drawBillCard(dst *image.RGBA, y int, title, chip string, chipNeg, hasChip b
 	if hasChip {
 		chipW = cmeasure(chip, Bold, 28) + 36
 		maxTitle = cardW - chipW - 16
-		billChip(dst, chip, chipNeg, W-marginR-padX-chipW, y+20)
+		billChip(dst, chip, fill, W-marginR-padX-chipW, y+20)
 	}
 	cdraw(dst, cellipsize(title, Bold, 32, maxTitle), Bold, 32, green, hx, y+headerBase)
 	for i, ln := range lines {
@@ -931,9 +1209,196 @@ func drawBillCard(dst *image.RGBA, y int, title, chip string, chipNeg, hasChip b
 	return y + cardH
 }
 
-// RenderBills builds the 1080x1350 household-bills chart: Meralco,
-// LPG and Maynilad cards sized to their content with leftover space
-// distributed evenly.
+// billCardSpec is one card's content.
+type billCardSpec struct {
+	title   string
+	chip    string
+	fill    color.RGBA
+	hasChip bool
+	lines   []billLine
+	big     int // index of the big old→new line in lines, or -1
+}
+
+// buildBillsCards assembles the 4 bills cards (Meralco, LPG, Water,
+// Family). bigCap caps the big old→new line sizes (overflow guard).
+// bigFit fits a big old→new line, reserving the chip width when the
+// card has a chip so the two never overlap.
+func bigFit(text, chip string, hasChip bool, nat, min, bigCap float64, cardW int) float64 {
+	maxW := cardW
+	if hasChip {
+		maxW = cardW - (cmeasure(chip, Bold, 28) + 36) - 16
+	}
+	sz := cfitSize(text, ExtraBold, nat, min, maxW)
+	if sz > bigCap {
+		sz = bigCap
+	}
+	return sz
+}
+
+// prevCityLine is the LPG card's previous-period Las Piñas range
+// ("Set: ₱1,185–₱1,393").
+func prevCityLine(prev utilities.LPGMonth) string {
+	mon, ok := utilities.MonthShortTL(prev.PeriodFrom)
+	if !ok {
+		mon = "nakaraan"
+	}
+	return fmt.Sprintf("%s: %s–%s", mon, wholeU(prev.CityLow), wholeU(prev.CityHigh))
+}
+
+func buildBillsCards(s *utilities.Snapshot, bigCap float64) []billCardSpec {
+	const padX = 30
+	cardW := W - marginL - marginR - 2*padX
+	mer := s.Meralco[0]
+	lpg := s.LPG[0]
+	var cards []billCardSpec
+
+	// Card 1: Meralco old → new.
+	merChip := meralcoChipText(mer.Adjustment, mer.Month)
+	big := wholeRate(mer.PrevRate) + " → " + wholeRate(mer.Rate) + "/kWh"
+	bs := bigFit(big, merChip, true, 48, 28, bigCap, cardW)
+	cards = append(cards, billCardSpec{
+		title: "Meralco", chip: merChip,
+		fill: chipFill(mer.Adjustment < 0, mer.Adjustment == 0), hasChip: true,
+		lines: []billLine{
+			{big, ExtraBold, bs, green},
+			{meralcoImpactLine(mer.Impact200), Medium, 28, mutCol},
+		},
+		big: 0,
+	})
+
+	// Card 2: LPG old → new.
+	var chip string
+	var hasChip bool
+	var fill color.RGBA
+	var lpgLines []billLine
+	if len(s.LPG) > 1 {
+		prev2 := s.LPG[1]
+		d := lpg.Common - prev2.Common
+		chip = lpgChipText(d, utilities.ShortRangeTL(prev2.PeriodFrom, prev2.PeriodTo))
+		fill = chipFill(d < 0, d == 0)
+		hasChip = true
+		bigLPG := wholeU(prev2.Common) + " → " + wholeU(lpg.Common)
+		bl := bigFit(bigLPG, chip, true, 52, 28, bigCap, cardW)
+		lpgLines = []billLine{
+			{bigLPG, ExtraBold, bl, green},
+			{fmt.Sprintf("Las Piñas %s–%s · DOE %s", wholeU(lpg.CityLow), wholeU(lpg.CityHigh),
+				utilities.ShortRangeTL(lpg.PeriodFrom, lpg.PeriodTo)), Medium, 28, mutCol},
+			{prevCityLine(prev2), Medium, 28, mutCol},
+		}
+	} else {
+		bigLPG := wholeU(lpg.Common)
+		bl := bigFit(bigLPG, "", false, 52, 28, bigCap, cardW)
+		lpgLines = []billLine{
+			{bigLPG, ExtraBold, bl, green},
+			{fmt.Sprintf("Las Piñas %s–%s · DOE %s", wholeU(lpg.CityLow), wholeU(lpg.CityHigh),
+				utilities.ShortRangeTL(lpg.PeriodFrom, lpg.PeriodTo)), Medium, 28, mutCol},
+		}
+	}
+	cards = append(cards, billCardSpec{title: "LPG 11 kg NCR", chip: chip, fill: fill, hasChip: hasChip, lines: lpgLines, big: 0})
+
+	// Card 3: Water old → new + interruption status.
+	rateM := utilities.WaterRateFor(s.WaterRates, mer.Month)
+	var mayLines []billLine
+	wchip, whasChip, wfill := "", false, grey
+	if rateM != nil {
+		rateP := utilities.WaterRateFor(s.WaterRates, utilities.PrevMonth(mer.Month))
+		if rateP != nil {
+			d := rateM.Rate - rateP.Rate
+			wchip = waterChipText(d, utilities.DayLabelTL(rateM.Effective))
+			wfill = chipFill(d < 0, d == 0)
+			whasChip = true
+			bigW := fmtCents2(rateP.Rate) + " → " + fmtCents2(rateM.Rate) + "/cu.m"
+			bw := bigFit(bigW, wchip, true, 44, 28, bigCap, cardW)
+			mayLines = append(mayLines, billLine{bigW, ExtraBold, bw, green})
+		} else {
+			bigW := fmtCents2(rateM.Rate) + "/cu.m"
+			bw := bigFit(bigW, "", false, 44, 28, bigCap, cardW)
+			mayLines = append(mayLines, billLine{bigW, ExtraBold, bw, green})
+		}
+	}
+	if s.Water == nil {
+		ls, sz := wrapLines("walang datos — hindi natiningnan", Medium, 28, 22, cardW, 2)
+		for _, ln := range ls {
+			mayLines = append(mayLines, billLine{ln, Medium, sz, mutCol})
+		}
+	} else if rows := utilWaterRowPairs(s.Water); len(rows) > 0 {
+		for _, r := range rows {
+			als, asz := wrapLines(r.areas, Medium, 28, 22, cardW, 2)
+			for _, ln := range als {
+				mayLines = append(mayLines, billLine{ln, Medium, asz, green})
+			}
+			wls, wsz := wrapLines("— "+r.when, Medium, 24, 20, cardW, 2)
+			for _, ln := range wls {
+				mayLines = append(mayLines, billLine{ln, Medium, wsz, mutCol})
+			}
+		}
+	} else {
+		ctl, _, _ := utilities.ShortDay(s.Water.CheckedAt)
+		ls, sz := wrapLines(fmt.Sprintf("walang naka-schedule na interruption — tiningnan %s", ctl), Medium, 28, 22, cardW, 2)
+		for _, ln := range ls {
+			mayLines = append(mayLines, billLine{ln, Medium, sz, mutCol})
+		}
+	}
+	cards = append(cards, billCardSpec{title: "Maynilad Las Piñas", chip: wchip, fill: wfill, hasChip: whasChip, lines: mayLines, big: 0})
+
+	// Card 4: family total.
+	if fig, ok := utilities.FamilyFigures(s, rateM, utilities.WaterRateFor(s.WaterRates, utilities.PrevMonth(mer.Month))); ok {
+		var flines []billLine
+		bigF := fmtCents2(fig.Prev) + " → " + fmtCents2(fig.Cur)
+		if !fig.HasPrev {
+			bigF = fmtCents2(fig.Cur)
+		}
+		fchip, fhasChip, ffill := "", false, grey
+		if fig.HasPrev {
+			fchip = fmtCentsSigned2(fig.Change)
+			ffill = chipFill(fig.Change < 0, fig.Change == 0)
+			fhasChip = true
+		}
+		bf := bigFit(bigF, fchip, fhasChip, 40, 28, bigCap, cardW)
+		flines = append(flines, billLine{bigF, ExtraBold, bf, green})
+		if fig.HasPrev {
+			br := fmt.Sprintf("kuryente %s · LPG %s · tubig %s",
+				fmtCentsSigned2(fig.Power), fmtCentsSigned2(fig.LpgC), fmtCentsSigned2(fig.WaterC))
+			flines = append(flines, billLine{br, Medium, cfitSize(br, Medium, 26, 20, cardW), mutCol})
+		} else {
+			flines = append(flines, billLine{"Walang datos ng nakaraang kabuuan", Medium, 26, mutCol})
+		}
+		flines = append(flines, billLine{"Palagay: 200 kWh · 1 LPG 11 kg · 20 cu.m tubig", Medium, cfitSize("Palagay: 200 kWh · 1 LPG 11 kg · 20 cu.m tubig", Medium, 24, 18, cardW), mutCol})
+		cards = append(cards, billCardSpec{title: "Pamilya kada buwan", chip: fchip, fill: ffill, hasChip: fhasChip, lines: flines, big: 0})
+	}
+	return cards
+}
+
+// fmtCents2 formats unsigned with 2 decimals + thousands separators
+// (chart twin of the caption helper).
+func fmtCents2(v float64) string {
+	if v < 0 {
+		v = -v
+	}
+	ip := int(v)
+	fp := int(v*100+0.5) - ip*100
+	if fp >= 100 {
+		ip++
+		fp -= 100
+	}
+	s := fmt.Sprintf("%d", ip)
+	for i := len(s) - 3; i > 0; i -= 3 {
+		s = s[:i] + "," + s[i:]
+	}
+	return "₱" + s + fmt.Sprintf(".%02d", fp)
+}
+
+// fmtCentsSigned2 formats signed with 2 decimals.
+func fmtCentsSigned2(v float64) string {
+	if v < 0 {
+		return "−" + fmtCents2(v)
+	}
+	return "+" + fmtCents2(v)
+}
+
+// RenderBills builds the 1080x1350 household-bills chart: Meralco, LPG,
+// Water and Family cards sized to content with leftover space shared
+// evenly (big lines shrink first when over budget).
 func RenderBills(s *utilities.Snapshot) (*image.RGBA, error) {
 	if len(s.Meralco) == 0 {
 		return nil, fmt.Errorf("fbchart: no meralco rates")
@@ -946,73 +1411,46 @@ func RenderBills(s *utilities.Snapshot) (*image.RGBA, error) {
 	utilHeader(dst)
 
 	mer := s.Meralco[0]
-	lpg := s.LPG[0]
 	month, ok := utilities.MonthTitleTL(mer.Month)
 	if !ok {
 		return nil, fmt.Errorf("fbchart: bad meralco month %q", mer.Month)
 	}
 	utilTitle(dst, "Bayarin sa bahay", month)
 
-	const padX = 30
-	cardW := W - marginL - marginR - 2*padX
-
-	// Card 1: Meralco.
-	big := wholeRate(mer.Rate) + "/kWh"
-	bs := cfitSize(big, ExtraBold, 64, 28, cardW)
-	merLines := []billLine{
-		{big, ExtraBold, bs, green},
-		{meralcoPrevLine(mer.PrevRate, mer.Announced), Medium, 28, mutCol},
-		{meralcoImpactLine(mer.Impact200), Medium, 30, mutCol},
-	}
-	// Card 2: LPG 11 kg NCR.
-	diff := 0.0
-	if len(s.LPG) > 1 {
-		diff = lpg.Common - s.LPG[1].Common
-	}
-	chipTxt := signedWholePeso(diff)
-	bigLPG := wholePeso(lpg.Common)
-	bl := cfitSize(bigLPG, ExtraBold, 64, 28, cardW)
-	lpgLine := fmt.Sprintf("Las Piñas %s–%s · DOE %s",
-		wholePeso(lpg.CityLow), stripPeso(wholePeso(lpg.CityHigh)),
-		utilities.ShortRangeTL(lpg.PeriodFrom, lpg.PeriodTo))
-	lpgLines := []billLine{
-		{bigLPG, ExtraBold, bl, green},
-		{lpgLine, Medium, cfitSize(lpgLine, Medium, 30, 20, cardW), mutCol},
-	}
-	// Card 3: Maynilad Las Piñas at the LPG detail size, wrapped.
-	var mayLines []billLine
-	if s.Water == nil {
-		ls, sz := wrapLines("walang datos — hindi natiningnan", Medium, 30, 22, cardW, 2)
-		for _, ln := range ls {
-			mayLines = append(mayLines, billLine{ln, Medium, sz, mutCol})
-		}
-	} else if rows := utilWaterRows(s.Water); len(rows) > 0 {
-		for _, r := range rows {
-			mayLines = append(mayLines, billLine{r, Medium, 30, mutCol})
-		}
-	} else {
-		ctl, _, _ := utilities.ShortDay(s.Water.CheckedAt)
-		ls, sz := wrapLines(fmt.Sprintf("walang naka-schedule na interruption — tiningnan %s", ctl), Medium, 30, 22, cardW, 2)
-		for _, ln := range ls {
-			mayLines = append(mayLines, billLine{ln, Medium, sz, mutCol})
-		}
-	}
-
-	// Content-sized cards; leftover space shared evenly.
-	_, _, h1 := billCardGeom("Meralco", merLines)
-	_, _, h2 := billCardGeom("LPG 11 kg NCR", lpgLines)
-	_, _, h3 := billCardGeom("Maynilad Las Piñas", mayLines)
-	const cardGap = 24
+	const cardGap = 20
 	y := 256
 	footerTop := H - 118
-	leftover := footerTop - y - (h1 + h2 + h3) - 2*cardGap
+	avail := footerTop - y
+	cards := buildBillsCards(s, 64)
+	for step := 0; step < 5; step++ {
+		total := 0
+		for _, cd := range cards {
+			_, _, h := billCardGeom(cd.title, cd.lines)
+			total += h
+		}
+		total += (len(cards) - 1) * cardGap
+		if total <= avail || step == 4 {
+			break
+		}
+		// Over budget: shrink the big lines and rebuild.
+		cards = buildBillsCards(s, 64-float64((step+1)*8))
+	}
+	leftover := avail
+	for _, cd := range cards {
+		_, _, h := billCardGeom(cd.title, cd.lines)
+		leftover -= h
+	}
+	leftover -= (len(cards) - 1) * cardGap
 	extra := 0
 	if leftover > 0 {
-		extra = leftover / 3
+		extra = leftover / len(cards)
 	}
-	y = drawBillCard(dst, y, "Meralco", f4(mer.Adjustment), mer.Adjustment < 0, true, merLines, extra) + cardGap
-	y = drawBillCard(dst, y, "LPG 11 kg NCR", chipTxt, diff < 0, true, lpgLines, extra) + cardGap
-	drawBillCard(dst, y, "Maynilad Las Piñas", "", false, false, mayLines, extra)
+	for i, cd := range cards {
+		y = drawBillCard(dst, y, cd.title, cd.chip, cd.fill, cd.hasChip, cd.lines, extra)
+		if i+1 < len(cards) {
+			y += cardGap
+		}
+	}
 
 	utilFooter(dst, "Source: DOE · Meralco · Maynilad", "Hindi opisyal na page")
 	return dst, nil
@@ -1026,14 +1464,17 @@ func wholeRate(v float64) string {
 	return fmt.Sprintf("₱%.4f", v)
 }
 
-// utilWaterRows summarizes up to 2 Maynilad city rows for the card.
-func utilWaterRows(w *utilities.WaterStatus) []string {
-	var out []string
+// waterRowPair is one Maynilad city row for the card.
+type waterRowPair struct{ areas, when string }
+
+// utilWaterRowPairs collects up to 2 Maynilad city rows.
+func utilWaterRowPairs(w *utilities.WaterStatus) []waterRowPair {
+	var out []waterRowPair
 	push := func(barangays, when string) {
 		if len(out) >= 2 {
 			return
 		}
-		out = append(out, fmt.Sprintf("%s — %s", barangays, when))
+		out = append(out, waterRowPair{barangays, when})
 	}
 	for _, list := range [][]utilities.Interruption{w.Scheduled, w.Emergency, w.Rotational} {
 		for _, in := range list {

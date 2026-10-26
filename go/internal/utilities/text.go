@@ -2,6 +2,7 @@ package utilities
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"time"
 )
@@ -78,6 +79,30 @@ func dayRange(from, to string) (tl, en, ja string) {
 	return tl, en, ja
 }
 
+// ShortRange3 formats a week/period without the year in all languages
+// ("Okt 13–19" / "Oct 13–19" / "10/13〜10/19"), for site rendering.
+func ShortRange3(from, to string) (tl, en, ja string) { return shortRange(from, to) }
+
+// DayRange3 formats an effective range with the year in all languages,
+// for site rendering.
+func DayRange3(from, to string) (tl, en, ja string) { return dayRange(from, to) }
+
+// MonthTitles formats a Meralco month in all languages, for site rendering.
+func MonthTitles(month string) (tl, en, ja string, ok bool) { return monthTitle(month) }
+
+// NCRCommon looks up one NCR summary product common price, for site rendering.
+func NCRCommon(sum PumpSummary, product string) (float64, bool) { return ncrCommon(sum, product) }
+
+// CityCommon looks up one city product common price (nil for #N/A),
+// reporting row presence, for site rendering.
+func CityCommon(sum *PumpSummary, city, product string) (*float64, bool) {
+	return cityProduct(sum, city, product)
+}
+
+// TrendTable returns the pump now/previous summaries for site
+// rendering (nil previous when only one week is known).
+func TrendTable(s *Snapshot) (now, prev *PumpSummary) { return pumpPair(s) }
+
 // shortRange formats a week/period without the year
 // ("Okt 13–19" / "Oct 13–19" / "10/13〜10/19").
 func shortRange(from, to string) (tl, en, ja string) {
@@ -132,6 +157,16 @@ func DayLabelTL(date string) string {
 		return date
 	}
 	return fmt.Sprintf("%s %d", tlShort[t.Month()], t.Day())
+}
+
+// MonthShortTL returns the short TL month name for a YYYY-MM-DD date
+// ("Set" for September), for chart detail lines.
+func MonthShortTL(date string) (string, bool) {
+	t, ok := mustDate(date)
+	if !ok {
+		return "", false
+	}
+	return tlShort[t.Month()], true
 }
 
 // MonthTitleTL formats a Meralco month ("2026-10" → "Oktubre 2026").
@@ -208,31 +243,20 @@ func abs64(n int64) int64 {
 	return n
 }
 
+// fmtWholeU prints unsigned whole pesos with thousands separators.
+func fmtWholeU(v float64) string {
+	if v < 0 {
+		v = -v
+	}
+	return "₱" + commas(int64(v+0.5))
+}
+
 // fmtWholeInt prints a signed integer peso amount.
 func fmtWholeInt(n int) string {
 	if n < 0 {
 		return "−₱" + commas(abs64(int64(n)))
 	}
 	return "+₱" + commas(int64(n))
-}
-
-// pumpCommons looks up RON91/RON95/Diesel commons in a pump summary.
-func pumpCommons(sum PumpSummary) (ron91, ron95, diesel float64, ok bool) {
-	found := map[string]float64{}
-	for _, p := range sum.Prices {
-		found[p.Product] = p.Common
-	}
-	var has bool
-	if ron91, has = found["RON91"]; !has {
-		return 0, 0, 0, false
-	}
-	if ron95, has = found["RON95"]; !has {
-		return 0, 0, 0, false
-	}
-	if diesel, has = found["Diesel"]; !has {
-		return 0, 0, 0, false
-	}
-	return ron91, ron95, diesel, true
 }
 
 // basePump returns the newest NCR pump summary whose WeekTo predates
@@ -250,6 +274,269 @@ func basePump(s *Snapshot) *PumpSummary {
 		}
 	}
 	return best
+}
+
+// pumpPair returns the newest pump week ending before the adjustment
+// plus the pump week before it (for now-vs-previous comparisons).
+func pumpPair(s *Snapshot) (now, prev *PumpSummary) {
+	now = basePump(s)
+	if now == nil {
+		return nil, nil
+	}
+	for i := range s.Fuel.NCRPump {
+		p := &s.Fuel.NCRPump[i]
+		if p.WeekFrom < now.WeekFrom && (prev == nil || p.WeekFrom > prev.WeekFrom) {
+			prev = p
+		}
+	}
+	return now, prev
+}
+
+// ncrCommon looks up one NCR summary product common price.
+func ncrCommon(sum PumpSummary, product string) (float64, bool) {
+	for _, p := range sum.Prices {
+		if p.Product == product {
+			return p.Common, true
+		}
+	}
+	return 0, false
+}
+
+// cityProduct looks up one city product row: its common price (nil for
+// #N/A) and whether the row exists at all.
+func cityProduct(sum *PumpSummary, city, product string) (common *float64, present bool) {
+	if sum == nil {
+		return nil, false
+	}
+	for i := range sum.Cities {
+		if sum.Cities[i].City != city {
+			continue
+		}
+		for j := range sum.Cities[i].Prices {
+			if sum.Cities[i].Prices[j].Product == product {
+				return sum.Cities[i].Prices[j].Common, true
+			}
+		}
+	}
+	return nil, false
+}
+
+// trendProducts are the pump products shown now vs previous week.
+var trendProducts = []struct {
+	key, tl, ja string
+}{
+	{"RON91", "RON 91", "RON91"},
+	{"RON95", "RON 95", "RON95"},
+	{"Diesel", "Diesel", "軽油"},
+}
+
+// trendCities are the nearby cities shown (Las Piñas is not in DOE's
+// monitoring).
+var trendCities = []struct {
+	name, ja string
+}{
+	{"Parañaque", "パラニャケ"},
+	{"Muntinlupa", "ムンティンルパ"},
+}
+
+// fmtPrice2 prints an unsigned price level with 2 decimals.
+func fmtPrice2(v float64) string {
+	if v < 0 {
+		v = -v
+	}
+	return fmt.Sprintf("₱%.2f", v)
+}
+
+// fuelCumulative sums signed per-week minima and maxima over the first
+// n adjustments (gasoline and diesel; kerosene is omitted from the
+// line). It returns the weeks counted, the oldest-from..newest-to
+// range, and the cumulative ranges (nil when the fuel never appears).
+func fuelCumulative(adjs []OilAdjustment, n int) (weeks int, from, to string, gas, die *Range) {
+	if n > len(adjs) {
+		n = len(adjs)
+	}
+	if n == 0 {
+		return 0, "", "", nil, nil
+	}
+	shown := adjs[:n]
+	sum := func(get func(OilAdjustment) *Range) *Range {
+		var out Range
+		first := true
+		for _, a := range shown {
+			r := get(a)
+			if r == nil {
+				continue
+			}
+			lo, hi := r.Lo, r.Hi
+			if hi < lo {
+				lo, hi = hi, lo
+			}
+			if first {
+				out = Range{Lo: lo, Hi: hi}
+				first = false
+			} else {
+				out.Lo += lo
+				out.Hi += hi
+			}
+		}
+		if first {
+			return nil
+		}
+		return &out
+	}
+	gas = sum(func(a OilAdjustment) *Range { return a.Gasoline })
+	die = sum(func(a OilAdjustment) *Range { return a.Diesel })
+	return n, shown[len(shown)-1].EffectiveFrom, shown[0].EffectiveTo, gas, die
+}
+
+// lastWeekLine renders the previous adjustment line per language
+// (empty when Adjustments[1] is missing).
+func lastWeekLine(s *Snapshot) (tl, en, ja string, ok bool) {
+	if len(s.Fuel.Adjustments) < 2 {
+		return "", "", "", false
+	}
+	prev := s.Fuel.Adjustments[1]
+	var fuels []struct {
+		tl, en, ja string
+		r          *Range
+	}
+	for _, f := range fuelEntries(prev) {
+		if f.r != nil {
+			fuels = append(fuels, f)
+		}
+	}
+	if len(fuels) == 0 {
+		return "", "", "", false
+	}
+	ptl, pen, pja := shortRange(prev.EffectiveFrom, prev.EffectiveTo)
+	var tsegs, esegs, jsegs []string
+	for _, f := range fuels {
+		tsegs = append(tsegs, fmt.Sprintf("%s %s", strings.ToLower(f.tl), fmtFuelRange(f.r, "tl")))
+		esegs = append(esegs, fmt.Sprintf("%s %s", strings.ToLower(f.en), fmtFuelRange(f.r, "en")))
+		jsegs = append(jsegs, fmt.Sprintf("%s %s", f.ja, fmtFuelRange(f.r, "ja")))
+	}
+	tl = fmt.Sprintf("Noong nakaraang linggo (%s): %s", ptl, strings.Join(tsegs, " · "))
+	en = fmt.Sprintf("Last week (%s): %s", pen, strings.Join(esegs, " · "))
+	ja = fmt.Sprintf("先週（%s）：%s", pja, strings.Join(jsegs, "・"))
+	return tl, en, ja, true
+}
+
+// cumulativeLine renders the multi-week total line per language.
+func cumulativeLine(s *Snapshot) (tl, en, ja string, ok bool) {
+	n, from, to, gas, die := fuelCumulative(s.Fuel.Adjustments, 6)
+	if n == 0 || (gas == nil && die == nil) {
+		return "", "", "", false
+	}
+	ctl, cen, cja := shortRange(from, to)
+	var tsegs, esegs, jsegs []string
+	if gas != nil {
+		tsegs = append(tsegs, fmt.Sprintf("gasolina %s", fmtFuelRange(gas, "tl")))
+		esegs = append(esegs, fmt.Sprintf("gasoline %s", fmtFuelRange(gas, "en")))
+		jsegs = append(jsegs, fmt.Sprintf("ガソリン %s", fmtFuelRange(gas, "ja")))
+	}
+	if die != nil {
+		tsegs = append(tsegs, fmt.Sprintf("diesel %s", fmtFuelRange(die, "tl")))
+		esegs = append(esegs, fmt.Sprintf("diesel %s", fmtFuelRange(die, "en")))
+		jsegs = append(jsegs, fmt.Sprintf("軽油 %s", fmtFuelRange(die, "ja")))
+	}
+	tl = fmt.Sprintf("Kabuuan sa huling %d na linggo (%s): %s", n, ctl, strings.Join(tsegs, " · "))
+	weeksWord := fmt.Sprintf("last %d weeks", n)
+	if n == 1 {
+		weeksWord = "last 1 week"
+	}
+	en = fmt.Sprintf("Total over the %s (%s): %s", weeksWord, cen, strings.Join(esegs, " · "))
+	ja = fmt.Sprintf("直近%d週間の合計（%s）：%s", n, cja, strings.Join(jsegs, "・"))
+	return tl, en, ja, true
+}
+
+// pumpTrendLines renders the compact pump block per language: ONE
+// header with both periods, compact value cells without repeated
+// "vs …", one row per area, and the nearby-cities note. Never two
+// parenthesised groups back to back, never nested parens.
+func pumpTrendLines(s *Snapshot) (tl, en, ja string, ok bool) {
+	now, prev := pumpPair(s)
+	if now == nil {
+		return "", "", "", false
+	}
+	ntl, nen, nja := shortRange(now.WeekFrom, now.WeekTo)
+	tlH := "📍 Presyo sa bomba, DOE " + ntl
+	enH := "📍 Pump prices, DOE " + nen
+	jaH := "📍 店頭価格（DOE、" + nja
+	if prev != nil {
+		prtl, pren, prja := shortRange(prev.WeekFrom, prev.WeekTo)
+		tlH += " vs " + prtl
+		enH += " vs " + pren
+		jaH += "、前週" + prja + "比"
+	}
+	tlH += ", bago ang galaw ngayong linggo:"
+	enH += ", before this week's change:"
+	jaH += "、今回の改定前）："
+
+	// One row per area; cells joined " · " / "・". A #N/A row yields
+	// the no-common-price wording instead of a range substitution.
+	rowCells := func(get func(key string) (now, prev *float64, present bool)) (tl, en, ja []string, any bool) {
+		for _, p := range trendProducts {
+			nowV, prevV, present := get(p.key)
+			if !present {
+				continue
+			}
+			any = true
+			mk := func(label, nilWord string) string {
+				if nowV == nil {
+					return label + " " + nilWord
+				}
+				c := label + " " + fmtPrice2(*nowV)
+				if prevV != nil {
+					c += " " + fmtFuel(*nowV-*prevV)
+				}
+				return c
+			}
+			tl = append(tl, mk(p.tl, "walang common price"))
+			en = append(en, mk(p.tl, "no common price"))
+			ja = append(ja, mk(p.ja, "一般価格なし"))
+		}
+		return tl, en, ja, any
+	}
+	var tlRows, enRows, jaRows []string
+	if t, e, j, ok := rowCells(func(key string) (*float64, *float64, bool) {
+		nv, nok := ncrCommon(*now, key)
+		if !nok {
+			return nil, nil, false
+		}
+		var pv *float64
+		if prev != nil {
+			if v, ok := ncrCommon(*prev, key); ok {
+				vv := v
+				pv = &vv
+			}
+		}
+		return &nv, pv, true
+	}); ok {
+		tlRows = append(tlRows, "NCR common: "+strings.Join(t, " · "))
+		enRows = append(enRows, "NCR common: "+strings.Join(e, " · "))
+		jaRows = append(jaRows, "NCR一般："+strings.Join(j, "・"))
+	}
+	for _, c := range trendCities {
+		if t, e, j, ok := rowCells(func(key string) (*float64, *float64, bool) {
+			nv, present := cityProduct(now, c.name, key)
+			if !present {
+				return nil, nil, false
+			}
+			pv, _ := cityProduct(prev, c.name, key)
+			return nv, pv, true
+		}); ok {
+			tlRows = append(tlRows, c.name+": "+strings.Join(t, " · "))
+			enRows = append(enRows, c.name+": "+strings.Join(e, " · "))
+			jaRows = append(jaRows, c.ja+"："+strings.Join(j, "・"))
+		}
+	}
+	if len(tlRows) == 0 {
+		return "", "", "", false
+	}
+	tl = tlH + "\n" + strings.Join(tlRows, "\n") + "\nParañaque at Muntinlupa: malapit sa Las Piñas; wala sa monitoring ng DOE ang Las Piñas"
+	en = enH + "\n" + strings.Join(enRows, "\n") + "\nParañaque and Muntinlupa are nearby; Las Piñas is not in DOE's monitoring"
+	ja = jaH + "\n" + strings.Join(jaRows, "\n") + "\nパラニャケ・ムンティンルパは近隣市。ラスピニャスはDOE調査対象外"
+	return tl, en, ja, true
 }
 
 // fuelEntries returns the mentioned fuels in fixed order.
@@ -310,20 +597,29 @@ func RenderFuelPost(s *Snapshot) (string, error) {
 		fmt.Fprintf(&ja, "10Lあたり：ガソリン %s、軽油 %s\n", fmtFuelRange(g10, "ja"), fmtFuelRange(d10, "ja"))
 	}
 
-	// NCR common pump prices before this change.
-	if pump := basePump(s); pump != nil {
-		if r91, r95, rdie, ok := pumpCommons(*pump); ok {
-			ptl, pen, pja := shortRange(pump.WeekFrom, pump.WeekTo)
-			f91, f95, fdie := fmtFuel(r91), fmtFuel(r95), fmtFuel(rdie)
-			// Pump commons print unsigned (they are price levels).
-			c91, c95, cdie := strings.TrimPrefix(f91, "+"), strings.TrimPrefix(f95, "+"), strings.TrimPrefix(fdie, "+")
-			fmt.Fprintf(&tl, "📍 Karaniwang presyo sa NCR bago ang galaw na ito (DOE, %s): RON 91 %s · RON 95 %s · Diesel %s\n",
-				ptl, c91, c95, cdie)
-			fmt.Fprintf(&en, "NCR common pump prices before this change (DOE, %s): RON 91 %s · RON 95 %s · Diesel %s\n",
-				pen, c91, c95, cdie)
-			fmt.Fprintf(&ja, "今回の改定前のNCR一般価格（DOE、%s）：RON91 %s・RON95 %s・軽油 %s\n",
-				pja, c91, c95, cdie)
-		}
+	// Last week's adjustment (trend).
+	if ltl, lel, lja, ok := lastWeekLine(s); ok {
+		fmt.Fprintf(&tl, "%s\n", ltl)
+		fmt.Fprintf(&en, "%s\n", lel)
+		fmt.Fprintf(&ja, "%s\n", lja)
+	} else {
+		fmt.Fprintf(&tl, "Walang datos ng nakaraang linggo.\n")
+		fmt.Fprintf(&en, "Previous week not available.\n")
+		fmt.Fprintf(&ja, "前回データなし。\n")
+	}
+
+	// Multi-week cumulative over the charted adjustments.
+	if ctl, cen, cja, ok := cumulativeLine(s); ok {
+		fmt.Fprintf(&tl, "%s\n", ctl)
+		fmt.Fprintf(&en, "%s\n", cen)
+		fmt.Fprintf(&ja, "%s\n", cja)
+	}
+
+	// Pump prices now vs previous week (NCR + nearby cities).
+	if ptl, pen, pja, ok := pumpTrendLines(s); ok {
+		fmt.Fprintf(&tl, "%s\n", ptl)
+		fmt.Fprintf(&en, "%s\n", pen)
+		fmt.Fprintf(&ja, "%s\n", pja)
 	}
 
 	footer := "Source: DOE Oil Monitor & NCR pump price monitoring (doe.gov.ph) · Hindi opisyal na DOE page"
@@ -408,6 +704,146 @@ func jaCity(city string) string {
 	return city
 }
 
+// r2 rounds to cents.
+func r2(v float64) float64 { return math.Round(v*100) / 100 }
+
+// fmtCents prints unsigned with 2 decimals and thousands separators
+// ("₱5,499.30").
+func fmtCents(v float64) string {
+	v = r2(v)
+	if v < 0 {
+		v = -v
+	}
+	ip := int64(v)
+	fp := int64(math.Round((v - float64(ip)) * 100))
+	if fp == 100 {
+		ip++
+		fp = 0
+	}
+	return "₱" + commas(ip) + fmt.Sprintf(".%02d", fp)
+}
+
+// fmtCentsSigned prints signed with 2 decimals ("+₱157.62", "−₱8.00"
+// with U+2212).
+func fmtCentsSigned(v float64) string {
+	if r2(v) < 0 {
+		return "−" + fmtCents(v)
+	}
+	return "+" + fmtCents(v)
+}
+
+// splitMonth parses "2006-01".
+func splitMonth(month string) (y, m int, ok bool) {
+	if _, err := fmt.Sscanf(month, "%d-%d", &y, &m); err != nil || m < 1 || m > 12 {
+		return 0, 0, false
+	}
+	return y, m, true
+}
+
+// prevMonthFull returns the full TL/EN names of the month before M
+// ("Setyembre", "September").
+func prevMonthFull(month string) (tl, en string, ok bool) {
+	y, m, ok := splitMonth(PrevMonth(month))
+	if !ok {
+		return "", "", false
+	}
+	_ = y
+	return tlFull[time.Month(m)], enFull[time.Month(m)], true
+}
+
+// prevMonthShort returns the short TL/EN names of the month before M.
+func prevMonthShort(month string) (tl, en string, ok bool) {
+	y, m, ok := splitMonth(PrevMonth(month))
+	if !ok {
+		return "", "", false
+	}
+	_ = y
+	return tlShort[time.Month(m)], enShort[time.Month(m)], true
+}
+
+// PrevMonthShortTL returns the short TL name of the month before M
+// ("Set" for "2026-10"), for chart chips.
+func PrevMonthShortTL(month string) (string, bool) {
+	tl, _, ok := prevMonthShort(month)
+	return tl, ok
+}
+
+// prevMonthNum returns the calendar month number before M (for JA "9月").
+func prevMonthNum(month string) (int, bool) {
+	_, m, ok := splitMonth(PrevMonth(month))
+	if !ok {
+		return 0, false
+	}
+	return m, true
+}
+
+// familyFig is the family-total math: exact rounded components.
+type familyFig struct {
+	Cur, Prev, Change   float64
+	Power, LpgC, WaterC float64 // change components
+	HasPrev             bool
+}
+
+// FamilyFigures computes current = 200×Rate + 1×LPG common + 20×water
+// rate(M) and previous from PrevRate + LPG[1] + water rate(M−1).
+// ok=false when the current total cannot be built.
+func FamilyFigures(s *Snapshot, rateM, rateP *WaterRate) (familyFig, bool) {
+	if len(s.Meralco) == 0 || len(s.LPG) == 0 || rateM == nil {
+		return familyFig{}, false
+	}
+	mer, lpg := s.Meralco[0], s.LPG[0]
+	var f familyFig
+	pc := r2(200 * mer.Rate)
+	lc := r2(lpg.Common)
+	wc := r2(20 * rateM.Rate)
+	f.Cur = pc + lc + wc
+	if len(s.LPG) > 1 && rateP != nil {
+		pp := r2(200 * mer.PrevRate)
+		pl := r2(s.LPG[1].Common)
+		pw := r2(20 * rateP.Rate)
+		f.Prev = pp + pl + pw
+		f.Power = pc - pp
+		f.LpgC = lc - pl
+		f.WaterC = wc - pw
+		f.Change = f.Cur - f.Prev
+		f.HasPrev = true
+	}
+	return f, true
+}
+
+// waterRateLines renders the Maynilad average-basic-charge + FCDA
+// old→new line per language (rateM required; rateP optional).
+func waterRateLines(s *Snapshot, month string) (tl, en, ja string, ok bool) {
+	rateM := WaterRateFor(s.WaterRates, month)
+	if rateM == nil {
+		return "", "", "", false
+	}
+	rateP := WaterRateFor(s.WaterRates, PrevMonth(month))
+	cur := fmtCents(rateM.Rate)
+	day := DayLabelTL(rateM.Effective)
+	_, dayEN, dayJA := ShortDay(rateM.Effective)
+	if rateP == nil {
+		tl = fmt.Sprintf("💧 Tubig Maynilad, average basic charge + FCDA: %s/cu.m", cur)
+		en = fmt.Sprintf("💧 Maynilad water, average basic charge + FCDA: %s/cu.m", cur)
+		ja = fmt.Sprintf("💧 Maynilad水道・基本料金＋FCDA：%s/cu.m", cur)
+		return tl, en, ja, true
+	}
+	if rateM.Rate == rateP.Rate {
+		tl = fmt.Sprintf("💧 Tubig Maynilad, average basic charge + FCDA: %s/cu.m — walang pagbabago ngayong buwan", cur)
+		en = fmt.Sprintf("💧 Maynilad water, average basic charge + FCDA: %s/cu.m — no change this month", cur)
+		ja = fmt.Sprintf("💧 Maynilad水道・基本料金＋FCDA：%s/cu.m — 今月変更なし", cur)
+		return tl, en, ja, true
+	}
+	d := fmtCentsSigned(r2(rateM.Rate - rateP.Rate))
+	tl = fmt.Sprintf("💧 Tubig Maynilad, average basic charge + FCDA: %s → %s/cu.m, %s mula %s",
+		fmtCents(rateP.Rate), cur, d, day)
+	en = fmt.Sprintf("💧 Maynilad water, average basic charge + FCDA: %s → %s/cu.m, %s from %s",
+		fmtCents(rateP.Rate), cur, d, dayEN)
+	ja = fmt.Sprintf("💧 Maynilad水道・基本料金＋FCDA：%s → %s/cu.m、%s（%sから）",
+		fmtCents(rateP.Rate), cur, d, dayJA)
+	return tl, en, ja, true
+}
+
 // RenderBillsPost renders the household-bills post for a snapshot.
 func RenderBillsPost(s *Snapshot) (string, error) {
 	if len(s.Meralco) == 0 {
@@ -428,61 +864,74 @@ func RenderBillsPost(s *Snapshot) (string, error) {
 	fmt.Fprintf(&en, "🇬🇧 Household bills — %s\n", enTitle)
 	fmt.Fprintf(&ja, "🇯🇵 家計の光熱費 — %s\n", jaTitle)
 
-	adj, rate, prev := fmtRate4(mer.Adjustment), fmtRate4(mer.Rate), fmtRate4(mer.PrevRate)
-	rateU := strings.TrimPrefix(rate, "+")
-	prevU := strings.TrimPrefix(prev, "+")
-	fmt.Fprintf(&tl, "⚡ Meralco: %s/kWh → %s/kWh mula %s\n", adj, rateU, prevU)
-	fmt.Fprintf(&en, "⚡ Meralco: %s/kWh → %s/kWh, from %s. At 200 kWh: about %s on the bill\n",
-		adj, rateU, prevU, fmtWholeInt(mer.Impact200))
-	fmt.Fprintf(&ja, "⚡ Meralco：%s/kWh → %s/kWh（前月 %s）。200kWhで約%s\n",
-		adj, rateU, prevU, fmtWholeInt(mer.Impact200))
-	fmt.Fprintf(&tl, "   Sa 200 kWh: mga %s sa bill\n", fmtWholeInt(mer.Impact200))
+	prevTL, prevEN, _ := prevMonthFull(mer.Month)
+	prevNum, _ := prevMonthNum(mer.Month)
 
-	lpgTL, lpgEN, lpgJA := shortRange(lpg.PeriodFrom, lpg.PeriodTo)
-	common := "₱" + commas(int64(lpg.Common+0.5))
-	diff := ""
+	// Meralco old → new.
+	rateU := strings.TrimPrefix(fmtRate4(mer.Rate), "+")
+	prevU := strings.TrimPrefix(fmtRate4(mer.PrevRate), "+")
+	fmt.Fprintf(&tl, "⚡ Meralco: %s → %s/kWh, %s vs %s\n", prevU, rateU, fmtRate4(mer.Adjustment), prevTL)
+	fmt.Fprintf(&en, "⚡ Meralco: %s → %s/kWh, %s vs %s\n", prevU, rateU, fmtRate4(mer.Adjustment), prevEN)
+	fmt.Fprintf(&ja, "⚡ Meralco：%s → %s/kWh、%s（%d月比）\n", prevU, rateU, fmtRate4(mer.Adjustment), prevNum)
+	fmt.Fprintf(&tl, "Sa 200 kWh: mga %s sa bill\n", fmtWholeInt(mer.Impact200))
+	fmt.Fprintf(&en, "At 200 kWh: about %s on the bill\n", fmtWholeInt(mer.Impact200))
+	fmt.Fprintf(&ja, "200kWhで約%s\n", fmtWholeInt(mer.Impact200))
+
+	// LPG old → new.
+	common := fmtWholeU(lpg.Common)
 	if len(s.LPG) > 1 {
 		prev2 := s.LPG[1]
 		d := lpg.Common - prev2.Common
 		p2tl, p2en, p2ja := shortRange(prev2.PeriodFrom, prev2.PeriodTo)
-		diff = fmt.Sprintf(", %s vs %s", fmtWhole(d), p2tl)
-		fmt.Fprintf(&tl, "🔥 LPG 11 kg, karaniwang presyo sa NCR (DOE, %s): %s%s\n", lpgTL, common, diff)
-		diff = fmt.Sprintf(", %s vs %s", fmtWhole(d), p2en)
-		fmt.Fprintf(&en, "🔥 LPG 11 kg, NCR common price (DOE, %s): %s%s. ", lpgEN, common, diff)
-		fmt.Fprintf(&ja, "🔥 LPG 11kg・NCR一般価格（DOE、%s）：%s、%s比 %s。", lpgJA, common, p2ja, fmtWhole(d))
-	} else {
-		fmt.Fprintf(&tl, "🔥 LPG 11 kg, karaniwang presyo sa NCR (DOE, %s): %s\n", lpgTL, common)
-		fmt.Fprintf(&en, "🔥 LPG 11 kg, NCR common price (DOE, %s): %s. ", lpgEN, common)
-		fmt.Fprintf(&ja, "🔥 LPG 11kg・NCR一般価格（DOE、%s）：%s。", lpgJA, common)
-	}
-	cityLine := func(lang string) string {
+		p2m := ""
+		if _, m, ok := splitMonth(prev2.PeriodFrom[:7]); ok {
+			p2m = tlShort[time.Month(m)]
+		}
+		p2me := ""
+		if _, m, ok := splitMonth(prev2.PeriodFrom[:7]); ok {
+			p2me = enShort[time.Month(m)]
+		}
+		p2mj := 0
+		if _, m, ok := splitMonth(prev2.PeriodFrom[:7]); ok {
+			p2mj = m
+		}
+		fmt.Fprintf(&tl, "🔥 LPG 11 kg NCR, karaniwang presyo (DOE): %s → %s, %s vs %s\n",
+			fmtWholeU(prev2.Common), common, fmtWhole(d), p2tl)
+		fmt.Fprintf(&en, "🔥 LPG 11 kg NCR, common price (DOE): %s → %s, %s vs %s\n",
+			fmtWholeU(prev2.Common), common, fmtWhole(d), p2en)
+		fmt.Fprintf(&ja, "🔥 LPG 11kg・NCR一般価格（DOE）：%s → %s、%s（%s比）\n",
+			fmtWholeU(prev2.Common), common, fmtWhole(d), p2ja)
 		lo := "₱" + commas(int64(lpg.CityLow+0.5))
 		hi := "₱" + commas(int64(lpg.CityHigh+0.5))
-		rng := lo + "–" + hi
-		if lang == "ja" {
-			rng = lo + "〜" + hi
-		}
+		plo := "₱" + commas(int64(prev2.CityLow+0.5))
+		phi := "₱" + commas(int64(prev2.CityHigh+0.5))
 		extra := ""
 		if lpg.CityCommon != nil {
-			cc := "₱" + commas(int64(*lpg.CityCommon+0.5))
-			switch lang {
-			case "ja":
-				extra = "、一般 " + cc
-			case "en":
-				extra = ", common " + cc
-			default:
-				extra = ", karaniwan " + cc
-			}
+			extra = fmt.Sprintf(", karaniwan ₱%s", commas(int64(*lpg.CityCommon+0.5)))
 		}
-		return rng + extra
-	}
-	if lpg.City != "" {
-		fmt.Fprintf(&tl, "   Sa Las Piñas: %s\n", cityLine("tl"))
-		// EN continues the LPG sentence; JA likewise.
-		fmt.Fprintf(&en, "Las Piñas: %s\n", cityLine("en"))
-		fmt.Fprintf(&ja, "ラスピニャス：%s\n", cityLine("ja"))
+		fmt.Fprintf(&tl, "Sa Las Piñas: %s–%s, %s: %s–%s%s\n", lo, hi, p2m, plo, phi, extra)
+		fmt.Fprintf(&en, "Las Piñas: %s–%s, %s: %s–%s\n", lo, hi, p2me, plo, phi)
+		fmt.Fprintf(&ja, "ラスピニャス：%s〜%s、%d月：%s〜%s\n", lo, hi, p2mj, plo, phi)
+	} else {
+		fmt.Fprintf(&tl, "🔥 LPG 11 kg NCR, karaniwang presyo (DOE): %s\n", common)
+		fmt.Fprintf(&en, "🔥 LPG 11 kg NCR, common price (DOE): %s\n", common)
+		fmt.Fprintf(&ja, "🔥 LPG 11kg・NCR一般価格（DOE）：%s\n", common)
+		if lpg.City != "" {
+			lo := "₱" + commas(int64(lpg.CityLow+0.5))
+			hi := "₱" + commas(int64(lpg.CityHigh+0.5))
+			fmt.Fprintf(&tl, "Sa Las Piñas: %s–%s\n", lo, hi)
+			fmt.Fprintf(&en, "Las Piñas: %s–%s\n", lo, hi)
+			fmt.Fprintf(&ja, "ラスピニャス：%s〜%s\n", lo, hi)
+		}
 	}
 
+	// Water rate old → new plus the Las Piñas interruption status.
+	rateM := WaterRateFor(s.WaterRates, mer.Month)
+	if wtl, wen, wja, ok := waterRateLines(s, mer.Month); ok {
+		fmt.Fprintf(&tl, "%s\n", wtl)
+		fmt.Fprintf(&en, "%s\n", wen)
+		fmt.Fprintf(&ja, "%s\n", wja)
+	}
 	if s.Water != nil {
 		w := s.Water
 		rows := cityRows(w)
@@ -498,6 +947,33 @@ func RenderBillsPost(s *Snapshot) (string, error) {
 				fmt.Fprintf(&ja, "💧 断水・%s：%s、%s、%s\n", jaCity(w.City), r.barangays, r.when, r.why)
 			}
 		}
+	}
+
+	// Family total (exact cents so the sums add up).
+	if fig, ok := FamilyFigures(s, rateM, WaterRateFor(s.WaterRates, PrevMonth(mer.Month))); ok {
+		prevNameTL, prevNameEN, _ := prevMonthFull(mer.Month)
+		prevN, _ := prevMonthNum(mer.Month)
+		fmt.Fprintf(&tl, "👪 Tantiyang buwanang gastos ng isang pamilya:\n")
+		fmt.Fprintf(&en, "👪 Estimated monthly family spending:\n")
+		fmt.Fprintf(&ja, "👪 1か月の家計支出（目安）：\n")
+		if fig.HasPrev {
+			fmt.Fprintf(&tl, "%s → %s, %s vs %s · kuryente %s, LPG %s, tubig %s\n",
+				fmtCents(fig.Prev), fmtCents(fig.Cur), fmtCentsSigned(fig.Change), prevNameTL,
+				fmtCentsSigned(fig.Power), fmtCentsSigned(fig.LpgC), fmtCentsSigned(fig.WaterC))
+			fmt.Fprintf(&en, "%s → %s, %s vs %s · power %s, LPG %s, water %s\n",
+				fmtCents(fig.Prev), fmtCents(fig.Cur), fmtCentsSigned(fig.Change), prevNameEN,
+				fmtCentsSigned(fig.Power), fmtCentsSigned(fig.LpgC), fmtCentsSigned(fig.WaterC))
+			fmt.Fprintf(&ja, "%s → %s、%s（%d月比）・電気 %s・LPG %s・水道 %s\n",
+				fmtCents(fig.Prev), fmtCents(fig.Cur), fmtCentsSigned(fig.Change), prevN,
+				fmtCentsSigned(fig.Power), fmtCentsSigned(fig.LpgC), fmtCentsSigned(fig.WaterC))
+		} else {
+			fmt.Fprintf(&tl, "%s\nWalang datos ng nakaraang kabuuan.\n", fmtCents(fig.Cur))
+			fmt.Fprintf(&en, "%s\nPrevious total not available.\n", fmtCents(fig.Cur))
+			fmt.Fprintf(&ja, "%s\n前回合計データなし。\n", fmtCents(fig.Cur))
+		}
+		fmt.Fprintf(&tl, "Palagay: 200 kWh kuryente sa typical-household rate ng Meralco · 1 tangke LPG 11 kg sa NCR common price ng DOE · 20 cu.m tubig sa average basic charge + FCDA ng Maynilad, hindi kasama ang ibang singil at VAT ng tubig · hindi kasama ang gasolina\n")
+		fmt.Fprintf(&en, "Assumptions: 200 kWh at Meralco's typical-household rate · one 11-kg LPG tank at DOE's NCR common price · 20 cu.m water at Maynilad's average basic charge + FCDA, excluding other water charges and VAT · fuel not included\n")
+		fmt.Fprintf(&ja, "前提：200kWhをMeralco一般家庭料金で・11kg LPG 1本をDOE・NCR一般価格で・水20cu.mをMaynilad基本料金＋FCDAで（その他水道料金・VAT・燃料は含まず）\n")
 	}
 
 	footer := "Source: Meralco, DOE LPG monitoring, Maynilad advisories · Hindi opisyal na page"

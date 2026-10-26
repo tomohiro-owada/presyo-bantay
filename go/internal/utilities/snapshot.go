@@ -117,7 +117,7 @@ func (f *fetcher) checkListing(name, pageURL string, page []byte, nLinks int) bo
 	return true
 }
 
-// fetchFuel runs Fetch step 1 (oil monitors) and step 2 (NCR pump).
+// fetchFuel runs Fetch step 1: oil monitors (section "fuel").
 func (f *fetcher) fetchFuel(ctx context.Context) {
 	// 1. DOE oil-monitor page → newest MaxOilMonitors PDFs.
 	if page, ok := f.getPage(ctx, "doe-oil-monitor", f.doeBase+DOEOilMonitorPath); ok {
@@ -152,8 +152,14 @@ func (f *fetcher) fetchFuel(ctx context.Context) {
 		})
 		if len(f.snap.Fuel.Adjustments) == 0 {
 			f.fail("doe-oil-monitor: no adjustments parsed")
+		} else {
+			f.stampSection("fuel")
 		}
 	}
+}
+
+// fetchPump runs Fetch step 2: NCR pump (section "pump").
+func (f *fetcher) fetchPump(ctx context.Context) {
 	// 2. DOE NCR pump page → up to the 4 first-listed PDFs, newest 2.
 	if page, ok := f.getPage(ctx, "doe-ncr-pump", f.doeBase+DOENCRPumpPath); ok {
 		atts := ParseAttachments(page, f.doeBase)
@@ -190,6 +196,8 @@ func (f *fetcher) fetchFuel(ctx context.Context) {
 		f.snap.Fuel.NCRPump = sums
 		if len(sums) == 0 {
 			f.fail("doe-ncr-pump: no pump summaries parsed")
+		} else {
+			f.stampSection("pump")
 		}
 	}
 }
@@ -235,6 +243,8 @@ func (f *fetcher) fetchLPG(ctx context.Context) {
 	f.snap.LPG = months
 	if len(months) == 0 {
 		f.fail("doe-ncr-lpg: no LPG months parsed")
+	} else {
+		f.stampSection("lpg")
 	}
 }
 
@@ -272,6 +282,8 @@ func (f *fetcher) fetchMeralco(ctx context.Context) {
 	}
 	if len(f.snap.Meralco) == 0 {
 		f.fail("meralco: no releases parsed")
+	} else {
+		f.stampSection("meralco")
 	}
 }
 
@@ -330,10 +342,134 @@ func (f *fetcher) fetchWater(ctx context.Context) {
 		water.Maintenance = []Maintenance{}
 	}
 	f.snap.Water = water
+	f.stampSection("water")
+}
+
+// fetchFCDA runs the Maynilad FCDA notices fetch (section "fcda").
+func (f *fetcher) fetchFCDA(ctx context.Context) {
+	u := f.maynilad + "/wp-json/wp/v2/posts?search=FCDA&per_page=6&_fields=id,date,link,title,content"
+	body, ok := f.getPage(ctx, "maynilad-fcda", u)
+	if !ok {
+		return
+	}
+	rates, err := ParseFCDAPosts(body)
+	if err != nil {
+		f.fail("maynilad-fcda %s: %v", u, err)
+		return
+	}
+	f.snap.WaterRates = rates
+	if len(rates) == 0 {
+		f.fail("maynilad-fcda: no water rates parsed")
+	} else {
+		f.stampSection("fcda")
+	}
 }
 
 // Empty reports whether nothing was parsed at all.
 func (s *Snapshot) Empty() bool {
 	return len(s.Fuel.Adjustments) == 0 && len(s.Fuel.NCRPump) == 0 &&
 		len(s.LPG) == 0 && len(s.Meralco) == 0 && s.Water == nil
+}
+
+// sectionSourcePrefixes maps sections to their Source.Name prefixes,
+// so a merge can drop stale entries of re-fetched sections.
+var sectionSourcePrefixes = map[string][]string{
+	"fuel":    {"doe-oil-monitor"},
+	"pump":    {"doe-ncr-pump"},
+	"lpg":     {"doe-ncr-lpg"},
+	"meralco": {"meralco-"},
+	"water":   {"maynilad-scheduled", "maynilad-emergency", "maynilad-rotational", "maynilad-maintenance"},
+	"fcda":    {"maynilad-fcda"},
+}
+
+// freshSection reports whether fresh carries records for section.
+func freshSection(fresh *Snapshot, section string) bool {
+	switch section {
+	case "fuel":
+		return len(fresh.Fuel.Adjustments) > 0
+	case "pump":
+		return len(fresh.Fuel.NCRPump) > 0
+	case "lpg":
+		return len(fresh.LPG) > 0
+	case "meralco":
+		return len(fresh.Meralco) > 0
+	case "water":
+		return fresh.Water != nil
+	case "fcda":
+		return len(fresh.WaterRates) > 0
+	}
+	return false
+}
+
+// MergeSnapshots merges a fresh section-limited fetch into an existing
+// snapshot: requested sections with fresh records overwrite (keeping
+// their new per-section fetched_at); untouched sections keep their old
+// data and timestamps. Sources of re-fetched sections are replaced;
+// errors accumulate.
+func MergeSnapshots(base, fresh *Snapshot, sections []string) *Snapshot {
+	out := &Snapshot{}
+	if base != nil {
+		*out = *base
+	}
+	// Deep-copy shared containers so the base is never mutated.
+	out.Sources = append([]Source(nil), out.Sources...)
+	out.Errors = append(out.Errors[:0:0], out.Errors...)
+	freshStamps := map[string]string{}
+	for k, v := range fresh.SectionFetchedAt {
+		freshStamps[k] = v
+	}
+	out.SectionFetchedAt = map[string]string{}
+	if base != nil {
+		for k, v := range base.SectionFetchedAt {
+			out.SectionFetchedAt[k] = v
+		}
+	}
+	refreshed := map[string]bool{}
+	for _, s := range sections {
+		if !freshSection(fresh, s) {
+			continue
+		}
+		refreshed[s] = true
+		switch s {
+		case "fuel":
+			out.Fuel.Adjustments = fresh.Fuel.Adjustments
+		case "pump":
+			out.Fuel.NCRPump = fresh.Fuel.NCRPump
+		case "lpg":
+			out.LPG = fresh.LPG
+		case "meralco":
+			out.Meralco = fresh.Meralco
+		case "water":
+			out.Water = fresh.Water
+		case "fcda":
+			out.WaterRates = fresh.WaterRates
+		}
+		if ts, ok := freshStamps[s]; ok {
+			out.SectionFetchedAt[s] = ts
+		}
+	}
+	if len(refreshed) > 0 {
+		var kept []Source
+		for _, src := range out.Sources {
+			drop := false
+			for s := range refreshed {
+				for _, pre := range sectionSourcePrefixes[s] {
+					if strings.HasPrefix(src.Name, pre) {
+						drop = true
+						break
+					}
+				}
+				if drop {
+					break
+				}
+			}
+			if !drop {
+				kept = append(kept, src)
+			}
+		}
+		out.Sources = append(kept, fresh.Sources...)
+	}
+	out.Errors = append(out.Errors, fresh.Errors...)
+	out.FetchedAt = fresh.FetchedAt
+	return out
 }

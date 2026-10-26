@@ -199,6 +199,89 @@ func TestParseNCRPumpSummary(t *testing.T) {
 	}
 }
 
+// cityCommons indexes one CityPump by product.
+func cityCommons(c CityPump) map[string]*CityPrice {
+	out := map[string]*CityPrice{}
+	for i := range c.Prices {
+		out[c.Prices[i].Product] = &c.Prices[i]
+	}
+	return out
+}
+
+func checkCityPrice(t *testing.T, pdf, city string, got *CityPrice, lo, hi float64, common *float64) {
+	t.Helper()
+	if got == nil {
+		t.Fatalf("%s %s: product missing", pdf, city)
+	}
+	if got.Low != lo || got.High != hi {
+		t.Fatalf("%s %s %s: range %.2f-%.2f, want %.2f-%.2f", pdf, city, got.Product, got.Low, got.High, lo, hi)
+	}
+	if common == nil {
+		if got.Common != nil {
+			t.Fatalf("%s %s %s: common %.2f, want nil", pdf, city, got.Product, *got.Common)
+		}
+		return
+	}
+	if got.Common == nil || *got.Common != *common {
+		t.Fatalf("%s %s %s: common %v, want %.2f", pdf, city, got.Product, got.Common, *common)
+	}
+}
+
+func fptr(v float64) *float64 { return &v }
+
+// TestParseNCRPumpCities checks the per-city table (Las Piñas is not
+// monitored; Parañaque and Muntinlupa are the nearby cities).
+func TestParseNCRPumpCities(t *testing.T) {
+	sum, err := ParseNCRPumpSummary(mustLines(t, "ncr_pump_1013.pdf"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	byCity := map[string]CityPump{}
+	for _, c := range sum.Cities {
+		byCity[c.City] = c
+	}
+	if len(byCity) != 12 {
+		t.Fatalf("got %d cities", len(byCity))
+	}
+	para, ok := byCity["Parañaque"]
+	if !ok {
+		t.Fatal("Parañaque missing")
+	}
+	pm := cityCommons(para)
+	checkCityPrice(t, "1013", "Parañaque", pm["RON95"], 82.10, 99.36, fptr(90.50))
+	checkCityPrice(t, "1013", "Parañaque", pm["RON91"], 81.10, 96.36, fptr(89.50))
+	checkCityPrice(t, "1013", "Parañaque", pm["Diesel"], 89.50, 96.20, fptr(91.80))
+	checkCityPrice(t, "1013", "Parañaque", pm["Diesel Plus"], 93.70, 99.90, fptr(94.80))
+	checkCityPrice(t, "1013", "Parañaque", pm["Kerosene"], 138.50, 138.50, nil)
+	munt, ok := byCity["Muntinlupa"]
+	if !ok {
+		t.Fatal("Muntinlupa missing (stray Caloocan label must not win)")
+	}
+	mm := cityCommons(munt)
+	checkCityPrice(t, "1013", "Muntinlupa", mm["RON95"], 86.70, 102.40, fptr(91.20))
+	checkCityPrice(t, "1013", "Muntinlupa", mm["RON91"], 85.75, 98.07, fptr(91.00))
+	checkCityPrice(t, "1013", "Muntinlupa", mm["Diesel"], 89.90, 94.20, fptr(90.90))
+	checkCityPrice(t, "1013", "Muntinlupa", mm["Diesel Plus"], 93.90, 95.60, fptr(95.60))
+	checkCityPrice(t, "1013", "Muntinlupa", mm["Kerosene"], 130.00, 131.24, nil)
+
+	sum2, err := ParseNCRPumpSummary(mustLines(t, "ncr_pump_1006.pdf"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	byCity2 := map[string]CityPump{}
+	for _, c := range sum2.Cities {
+		byCity2[c.City] = c
+	}
+	pm2 := cityCommons(byCity2["Parañaque"])
+	checkCityPrice(t, "1006", "Parañaque", pm2["RON95"], 82.90, 97.80, fptr(91.30))
+	checkCityPrice(t, "1006", "Parañaque", pm2["RON91"], 81.80, 94.80, fptr(90.30))
+	checkCityPrice(t, "1006", "Parañaque", pm2["Diesel"], 92.50, 98.32, fptr(94.80))
+	mm2 := cityCommons(byCity2["Muntinlupa"])
+	checkCityPrice(t, "1006", "Muntinlupa", mm2["RON95"], 85.20, 101.80, fptr(89.70))
+	checkCityPrice(t, "1006", "Muntinlupa", mm2["RON91"], 84.25, 96.50, fptr(88.70))
+	checkCityPrice(t, "1006", "Muntinlupa", mm2["Diesel"], 91.93, 97.20, fptr(93.90))
+}
+
 func TestParseNCRLPG(t *testing.T) {
 	oct, err := ParseNCRLPG(mustLines(t, "ncr_lpg_oct.pdf"))
 	if err != nil {

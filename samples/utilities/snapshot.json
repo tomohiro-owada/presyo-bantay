@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-26T07:26:40+08:00",
+  "fetched_at": "2026-10-26T08:55:58+08:00",
   "fuel": {
     "adjustments": [
       {
@@ -159,6 +159,473 @@
             "common": 124.4
           }
         ],
+        "cities": [
+          {
+            "city": "Caloocan",
+            "prices": [
+              {
+                "product": "RON97",
+                "low": 84.83,
+                "high": 103
+              },
+              {
+                "product": "RON95",
+                "low": 80,
+                "high": 99.9,
+                "common": 98.9
+              },
+              {
+                "product": "RON91",
+                "low": 79.5,
+                "high": 95.3,
+                "common": 93
+              },
+              {
+                "product": "Diesel",
+                "low": 86.62,
+                "high": 93.9,
+                "common": 92.1
+              },
+              {
+                "product": "Diesel Plus",
+                "low": 95.1,
+                "high": 96.9
+              },
+              {
+                "product": "Kerosene",
+                "low": 122.7,
+                "high": 124.4
+              }
+            ]
+          },
+          {
+            "city": "Quezon",
+            "prices": [
+              {
+                "product": "RON100",
+                "low": 98.7,
+                "high": 101.6,
+                "common": 98.7
+              },
+              {
+                "product": "RON97",
+                "low": 85.78,
+                "high": 101.1
+              },
+              {
+                "product": "RON95",
+                "low": 80,
+                "high": 102.5,
+                "common": 87
+              },
+              {
+                "product": "RON91",
+                "low": 79.2,
+                "high": 94.4,
+                "common": 86
+              },
+              {
+                "product": "Diesel",
+                "low": 87,
+                "high": 93.6,
+                "common": 90.7
+              },
+              {
+                "product": "Diesel Plus",
+                "low": 92.8,
+                "high": 97.6,
+                "common": 93.7
+              }
+            ]
+          },
+          {
+            "city": "Manila",
+            "prices": [
+              {
+                "product": "RON100",
+                "low": 98.4,
+                "high": 98.9
+              },
+              {
+                "product": "RON97",
+                "low": 89.15,
+                "high": 105.4
+              },
+              {
+                "product": "RON95",
+                "low": 86.19,
+                "high": 99.8,
+                "common": 98
+              },
+              {
+                "product": "RON91",
+                "low": 84.7,
+                "high": 92.86,
+                "common": 92.6
+              },
+              {
+                "product": "Diesel",
+                "low": 87.39,
+                "high": 93.8,
+                "common": 90.5
+              },
+              {
+                "product": "Diesel Plus",
+                "low": 90.95,
+                "high": 99.1,
+                "common": 93.5
+              },
+              {
+                "product": "Kerosene",
+                "low": 115,
+                "high": 123.7
+              }
+            ]
+          },
+          {
+            "city": "Pasig",
+            "prices": [
+              {
+                "product": "RON100",
+                "low": 98.8,
+                "high": 99.6
+              },
+              {
+                "product": "RON97",
+                "low": 88.75,
+                "high": 100.4,
+                "common": 100.4
+              },
+              {
+                "product": "RON95",
+                "low": 84.6,
+                "high": 99.46,
+                "common": 88.7
+              },
+              {
+                "product": "RON91",
+                "low": 83.6,
+                "high": 93.76,
+                "common": 87.7
+              },
+              {
+                "product": "Diesel",
+                "low": 86.85,
+                "high": 94.2,
+                "common": 89.4
+              },
+              {
+                "product": "Diesel Plus",
+                "low": 92.4,
+                "high": 97.2,
+                "common": 93.4
+              }
+            ]
+          },
+          {
+            "city": "Taguig",
+            "prices": [
+              {
+                "product": "RON100",
+                "low": 99.4,
+                "high": 100.4
+              },
+              {
+                "product": "RON97",
+                "low": 99.4,
+                "high": 101.5
+              },
+              {
+                "product": "RON95",
+                "low": 85.4,
+                "high": 101.54,
+                "common": 96.8
+              },
+              {
+                "product": "RON91",
+                "low": 84.4,
+                "high": 93.54,
+                "common": 91.1
+              },
+              {
+                "product": "Diesel",
+                "low": 88.73,
+                "high": 95.89,
+                "common": 89.2
+              },
+              {
+                "product": "Diesel Plus",
+                "low": 93.2,
+                "high": 100.17
+              },
+              {
+                "product": "Kerosene",
+                "low": 130.7,
+                "high": 146.34
+              }
+            ]
+          },
+          {
+            "city": "Makati",
+            "prices": [
+              {
+                "product": "RON100",
+                "low": 98.9,
+                "high": 99.4
+              },
+              {
+                "product": "RON97",
+                "low": 93,
+                "high": 103.4
+              },
+              {
+                "product": "RON95",
+                "low": 87.8,
+                "high": 97.5,
+                "common": 88.9
+              },
+              {
+                "product": "RON91",
+                "low": 86.8,
+                "high": 92.14,
+                "common": 90.8
+              },
+              {
+                "product": "Diesel",
+                "low": 86,
+                "high": 92.6,
+                "common": 90.7
+              },
+              {
+                "product": "Diesel Plus",
+                "low": 93,
+                "high": 97.4,
+                "common": 95.6
+              }
+            ]
+          },
+          {
+            "city": "Parañaque",
+            "prices": [
+              {
+                "product": "RON100",
+                "low": 99.9,
+                "high": 100.5
+              },
+              {
+                "product": "RON97",
+                "low": 90.95,
+                "high": 102.4
+              },
+              {
+                "product": "RON95",
+                "low": 82.1,
+                "high": 99.36,
+                "common": 90.5
+              },
+              {
+                "product": "RON91",
+                "low": 81.1,
+                "high": 96.36,
+                "common": 89.5
+              },
+              {
+                "product": "Diesel",
+                "low": 89.5,
+                "high": 96.2,
+                "common": 91.8
+              },
+              {
+                "product": "Diesel Plus",
+                "low": 93.7,
+                "high": 99.9,
+                "common": 94.8
+              },
+              {
+                "product": "Kerosene",
+                "low": 138.5,
+                "high": 138.5
+              }
+            ]
+          },
+          {
+            "city": "Muntinlupa",
+            "prices": [
+              {
+                "product": "RON100",
+                "low": 98.8,
+                "high": 101.2
+              },
+              {
+                "product": "RON97",
+                "low": 88.95,
+                "high": 103.3,
+                "common": 101.3
+              },
+              {
+                "product": "RON95",
+                "low": 86.7,
+                "high": 102.4,
+                "common": 91.2
+              },
+              {
+                "product": "RON91",
+                "low": 85.75,
+                "high": 98.07,
+                "common": 91
+              },
+              {
+                "product": "Diesel",
+                "low": 89.9,
+                "high": 94.2,
+                "common": 90.9
+              },
+              {
+                "product": "Diesel Plus",
+                "low": 93.9,
+                "high": 95.6,
+                "common": 95.6
+              },
+              {
+                "product": "Kerosene",
+                "low": 130,
+                "high": 131.24
+              }
+            ]
+          },
+          {
+            "city": "Pasay",
+            "prices": [
+              {
+                "product": "RON100",
+                "low": 98.8,
+                "high": 101.5
+              },
+              {
+                "product": "RON97",
+                "low": 101.3,
+                "high": 101.9
+              },
+              {
+                "product": "RON95",
+                "low": 80.56,
+                "high": 102.8
+              },
+              {
+                "product": "RON91",
+                "low": 80.06,
+                "high": 96.9
+              },
+              {
+                "product": "Diesel",
+                "low": 87.26,
+                "high": 95.6,
+                "common": 90.7
+              },
+              {
+                "product": "Diesel Plus",
+                "low": 90.7,
+                "high": 99.4,
+                "common": 94.4
+              },
+              {
+                "product": "Kerosene",
+                "low": 124.4,
+                "high": 144.7
+              }
+            ]
+          },
+          {
+            "city": "Marikina",
+            "prices": [
+              {
+                "product": "RON100",
+                "low": 98.8,
+                "high": 98.8
+              },
+              {
+                "product": "RON97",
+                "low": 86.63,
+                "high": 102.3
+              },
+              {
+                "product": "RON95",
+                "low": 80.22,
+                "high": 95.3,
+                "common": 81.72
+              },
+              {
+                "product": "RON91",
+                "low": 79.8,
+                "high": 91.1,
+                "common": 81.22
+              },
+              {
+                "product": "Diesel",
+                "low": 87,
+                "high": 91.4,
+                "common": 91.4
+              },
+              {
+                "product": "Kerosene",
+                "low": 120.9,
+                "high": 120.9
+              }
+            ]
+          },
+          {
+            "city": "Valenzuela",
+            "prices": [
+              {
+                "product": "RON97",
+                "low": 103.2,
+                "high": 103.8
+              },
+              {
+                "product": "RON95",
+                "low": 82.4,
+                "high": 98.9
+              },
+              {
+                "product": "RON91",
+                "low": 81.8,
+                "high": 92.8,
+                "common": 91.3
+              },
+              {
+                "product": "Diesel",
+                "low": 85.7,
+                "high": 94,
+                "common": 91.9
+              },
+              {
+                "product": "Diesel Plus",
+                "low": 94.9,
+                "high": 95.1
+              }
+            ]
+          },
+          {
+            "city": "Navotas",
+            "prices": [
+              {
+                "product": "RON95",
+                "low": 93.4,
+                "high": 97.3
+              },
+              {
+                "product": "RON91",
+                "low": 79.2,
+                "high": 93.3
+              },
+              {
+                "product": "Diesel",
+                "low": 90.2,
+                "high": 92.4
+              }
+            ]
+          }
+        ],
         "source_url": "https://d24qbtp4vooyzi.cloudfront.net/api/media/file/NCR%20Price%20Monitoring%2010132026.pdf?prefix=dev%2Fmedia"
       },
       {
@@ -200,6 +667,469 @@
             "low": 115,
             "high": 144.57,
             "common": 122.7
+          }
+        ],
+        "cities": [
+          {
+            "city": "Caloocan",
+            "prices": [
+              {
+                "product": "RON97",
+                "low": 84.83,
+                "high": 101.5
+              },
+              {
+                "product": "RON95",
+                "low": 79.6,
+                "high": 98.8
+              },
+              {
+                "product": "RON91",
+                "low": 78.6,
+                "high": 93.8,
+                "common": 88.3
+              },
+              {
+                "product": "Diesel",
+                "low": 83,
+                "high": 97.3
+              },
+              {
+                "product": "Diesel Plus",
+                "low": 98.1,
+                "high": 102.9
+              },
+              {
+                "product": "Kerosene",
+                "low": 121,
+                "high": 122.7
+              }
+            ]
+          },
+          {
+            "city": "Quezon",
+            "prices": [
+              {
+                "product": "RON100",
+                "low": 97.2,
+                "high": 100.1,
+                "common": 97.2
+              },
+              {
+                "product": "RON97",
+                "low": 84.28,
+                "high": 99.7
+              },
+              {
+                "product": "RON95",
+                "low": 80,
+                "high": 98.1,
+                "common": 86.4
+              },
+              {
+                "product": "RON91",
+                "low": 79.5,
+                "high": 92.9,
+                "common": 79.5
+              },
+              {
+                "product": "Diesel",
+                "low": 86.7,
+                "high": 96.9,
+                "common": 93.7
+              },
+              {
+                "product": "Diesel Plus",
+                "low": 95.8,
+                "high": 100.6,
+                "common": 96.7
+              }
+            ]
+          },
+          {
+            "city": "Manila",
+            "prices": [
+              {
+                "product": "RON100",
+                "low": 97.9,
+                "high": 99.4
+              },
+              {
+                "product": "RON97",
+                "low": 87.59,
+                "high": 103
+              },
+              {
+                "product": "RON95",
+                "low": 86.39,
+                "high": 98.3,
+                "common": 86.6
+              },
+              {
+                "product": "RON91",
+                "low": 83.6,
+                "high": 91.33,
+                "common": 85.6
+              },
+              {
+                "product": "Diesel",
+                "low": 89.63,
+                "high": 96.7,
+                "common": 93.5
+              },
+              {
+                "product": "Diesel Plus",
+                "low": 95.8,
+                "high": 102.1,
+                "common": 96.5
+              },
+              {
+                "product": "Kerosene",
+                "low": 115,
+                "high": 122
+              }
+            ]
+          },
+          {
+            "city": "Pasig",
+            "prices": [
+              {
+                "product": "RON100",
+                "low": 97.3,
+                "high": 98.1
+              },
+              {
+                "product": "RON97",
+                "low": 87.25,
+                "high": 98.9,
+                "common": 98.9
+              },
+              {
+                "product": "RON95",
+                "low": 81,
+                "high": 97.9,
+                "common": 88.1
+              },
+              {
+                "product": "RON91",
+                "low": 80,
+                "high": 92.2,
+                "common": 90.5
+              },
+              {
+                "product": "Diesel",
+                "low": 90.05,
+                "high": 99.4,
+                "common": 93.4
+              },
+              {
+                "product": "Diesel Plus",
+                "low": 95.4,
+                "high": 100.2,
+                "common": 95.4
+              }
+            ]
+          },
+          {
+            "city": "Taguig",
+            "prices": [
+              {
+                "product": "RON100",
+                "low": 98.8,
+                "high": 100.6
+              },
+              {
+                "product": "RON97",
+                "low": 97.9,
+                "high": 100
+              },
+              {
+                "product": "RON95",
+                "low": 82.8,
+                "high": 99.98,
+                "common": 97.1
+              },
+              {
+                "product": "RON91",
+                "low": 81.8,
+                "high": 91.98,
+                "common": 91.4
+              },
+              {
+                "product": "Diesel",
+                "low": 91.3,
+                "high": 98.89,
+                "common": 91.3
+              },
+              {
+                "product": "Diesel Plus",
+                "low": 96.2,
+                "high": 103.17
+              },
+              {
+                "product": "Kerosene",
+                "low": 128.25,
+                "high": 144.57
+              }
+            ]
+          },
+          {
+            "city": "Makati",
+            "prices": [
+              {
+                "product": "RON100",
+                "low": 98.4,
+                "high": 98.9
+              },
+              {
+                "product": "RON97",
+                "low": 91.5,
+                "high": 101.9
+              },
+              {
+                "product": "RON95",
+                "low": 87.4,
+                "high": 97.4,
+                "common": 88.4
+              },
+              {
+                "product": "RON91",
+                "low": 86.9,
+                "high": 91.8,
+                "common": 87.9
+              },
+              {
+                "product": "Diesel",
+                "low": 92.9,
+                "high": 97.6,
+                "common": 93.7
+              },
+              {
+                "product": "Diesel Plus",
+                "low": 95.69,
+                "high": 100.4,
+                "common": 98.6
+              }
+            ]
+          },
+          {
+            "city": "Parañaque",
+            "prices": [
+              {
+                "product": "RON100",
+                "low": 99.5,
+                "high": 101.3
+              },
+              {
+                "product": "RON97",
+                "low": 89.39,
+                "high": 100.9
+              },
+              {
+                "product": "RON95",
+                "low": 82.9,
+                "high": 97.8,
+                "common": 91.3
+              },
+              {
+                "product": "RON91",
+                "low": 81.8,
+                "high": 94.8,
+                "common": 90.3
+              },
+              {
+                "product": "Diesel",
+                "low": 92.5,
+                "high": 98.32,
+                "common": 94.8
+              },
+              {
+                "product": "Diesel Plus",
+                "low": 96.7,
+                "high": 101.6,
+                "common": 98.6
+              },
+              {
+                "product": "Kerosene",
+                "low": 136.8,
+                "high": 136.8
+              }
+            ]
+          },
+          {
+            "city": "Muntinlupa",
+            "prices": [
+              {
+                "product": "RON100",
+                "low": 97.3,
+                "high": 97.8
+              },
+              {
+                "product": "RON97",
+                "low": 89.29,
+                "high": 105.9,
+                "common": 99.8
+              },
+              {
+                "product": "RON95",
+                "low": 85.2,
+                "high": 101.8,
+                "common": 89.7
+              },
+              {
+                "product": "RON91",
+                "low": 84.25,
+                "high": 96.5,
+                "common": 88.7
+              },
+              {
+                "product": "Diesel",
+                "low": 91.93,
+                "high": 97.2,
+                "common": 93.9
+              },
+              {
+                "product": "Diesel Plus",
+                "low": 96.9,
+                "high": 98.6,
+                "common": 98.6
+              },
+              {
+                "product": "Kerosene",
+                "low": 128.23,
+                "high": 129.44
+              }
+            ]
+          },
+          {
+            "city": "Pasay",
+            "prices": [
+              {
+                "product": "RON100",
+                "low": 98.2,
+                "high": 100
+              },
+              {
+                "product": "RON97",
+                "low": 99.8,
+                "high": 101.9
+              },
+              {
+                "product": "RON95",
+                "low": 80.56,
+                "high": 101.2
+              },
+              {
+                "product": "RON91",
+                "low": 80.06,
+                "high": 95.3
+              },
+              {
+                "product": "Diesel",
+                "low": 89.7,
+                "high": 98.5,
+                "common": 93.7
+              },
+              {
+                "product": "Diesel Plus",
+                "low": 93.7,
+                "high": 102.1,
+                "common": 97.4
+              },
+              {
+                "product": "Kerosene",
+                "low": 122.7,
+                "high": 142.9
+              }
+            ]
+          },
+          {
+            "city": "Marikina",
+            "prices": [
+              {
+                "product": "RON100",
+                "low": 97.3,
+                "high": 97.3
+              },
+              {
+                "product": "RON97",
+                "low": 85.13,
+                "high": 100.8
+              },
+              {
+                "product": "RON95",
+                "low": 80.3,
+                "high": 93.8,
+                "common": 80.46
+              },
+              {
+                "product": "RON91",
+                "low": 79.8,
+                "high": 89.6,
+                "common": 79.96
+              },
+              {
+                "product": "Diesel",
+                "low": 89.9,
+                "high": 94.4,
+                "common": 94.4
+              },
+              {
+                "product": "Kerosene",
+                "low": 121.5,
+                "high": 121.5
+              }
+            ]
+          },
+          {
+            "city": "Valenzuela",
+            "prices": [
+              {
+                "product": "RON97",
+                "low": 101.7,
+                "high": 102.3
+              },
+              {
+                "product": "RON95",
+                "low": 80.61,
+                "high": 97.4
+              },
+              {
+                "product": "RON91",
+                "low": 80.11,
+                "high": 91.5
+              },
+              {
+                "product": "Diesel",
+                "low": 88.6,
+                "high": 97
+              },
+              {
+                "product": "Diesel Plus",
+                "low": 97.9,
+                "high": 98.1
+              }
+            ]
+          },
+          {
+            "city": "Navotas",
+            "prices": [
+              {
+                "product": "RON95",
+                "low": 91.6,
+                "high": 95.7
+              },
+              {
+                "product": "RON91",
+                "low": 88.6,
+                "high": 91.7
+              },
+              {
+                "product": "Diesel",
+                "low": 92,
+                "high": 93.4
+              }
+            ]
           }
         ],
         "source_url": "https://d24qbtp4vooyzi.cloudfront.net/api/media/file/NCR%20Price%20Monitoring%2010062026.pdf?prefix=dev%2Fmedia"
@@ -256,17 +1186,81 @@
   ],
   "water": {
     "city": "Las Piñas",
-    "checked_at": "2026-10-26T07:26:40+08:00",
+    "checked_at": "2026-10-26T08:55:58+08:00",
     "scheduled": [],
     "emergency": [],
     "rotational": [],
     "maintenance": []
   },
+  "water_rates": [
+    {
+      "effective": "2026-10-01",
+      "avg_basic": 52.86,
+      "fcda_pct": -0.02,
+      "fcda": -0.01,
+      "rate": 52.85,
+      "post_url": "https://www.mayniladwater.com.ph/notice-to-maynilad-customers-foreign-currency-differential-adjustment-fcda-effective-october-1-2026/",
+      "posted": "2026-09-15T09:15:43"
+    },
+    {
+      "effective": "2026-07-01",
+      "avg_basic": 52.86,
+      "fcda_pct": -0.47,
+      "fcda": -0.25,
+      "rate": 52.61,
+      "post_url": "https://www.mayniladwater.com.ph/notice-to-maynilad-customers-foreign-currency-differential-adjustment-fcda-effective-july-1-2026/",
+      "posted": "2026-06-15T09:42:42"
+    },
+    {
+      "effective": "2026-04-01",
+      "avg_basic": 52.86,
+      "fcda_pct": -0.24,
+      "fcda": -0.13,
+      "rate": 52.73,
+      "post_url": "https://www.mayniladwater.com.ph/notice-to-maynilad-customers-foreign-currency-differential-adjustment-fcda-effective-april-1-2026/",
+      "posted": "2026-03-16T09:05:05"
+    },
+    {
+      "effective": "2025-10-01",
+      "avg_basic": 51.4,
+      "fcda_pct": -0.36,
+      "fcda": -0.19,
+      "rate": 51.21,
+      "post_url": "https://www.mayniladwater.com.ph/notice-to-maynilad-customers-and-the-public-2/",
+      "posted": "2025-09-15T08:48:37"
+    },
+    {
+      "effective": "2025-07-01",
+      "avg_basic": 51.4,
+      "fcda_pct": -0.64,
+      "fcda": -0.329,
+      "rate": 51.071,
+      "post_url": "https://www.mayniladwater.com.ph/notice-to-maynilad-customers-and-the-public/",
+      "posted": "2025-06-16T14:36:25"
+    },
+    {
+      "effective": "2024-10-01",
+      "avg_basic": 47.57,
+      "fcda_pct": -0.62,
+      "fcda": -0.29,
+      "rate": 47.28,
+      "post_url": "https://www.mayniladwater.com.ph/notice-to-maynilad-customers-foreign-currency-differential-adjustment-fcda-effective-october-1-2024/",
+      "posted": "2024-09-16T11:32:28"
+    }
+  ],
+  "section_fetched_at": {
+    "fcda": "2026-10-26T08:55:58+08:00",
+    "fuel": "2026-10-26T08:55:58+08:00",
+    "lpg": "2026-10-26T08:55:58+08:00",
+    "meralco": "2026-10-26T08:55:58+08:00",
+    "pump": "2026-10-26T08:55:58+08:00",
+    "water": "2026-10-26T08:55:58+08:00"
+  },
   "sources": [
     {
       "name": "doe-oil-monitor",
       "url": "https://doe.gov.ph/data-and-prices/liquid-fuels/oil-monitor",
-      "fetched_at": "2026-10-26T07:26:40+08:00",
+      "fetched_at": "2026-10-26T08:55:58+08:00",
       "http_status": 200,
       "bytes": 87189,
       "sha256": "d5ac7cad1cd55284be63503d1f5145f49a6db4fb8545cbfa7003d758624e8f7f"
@@ -274,7 +1268,7 @@
     {
       "name": "doe-oil-monitor-pdf",
       "url": "https://d24qbtp4vooyzi.cloudfront.net/api/media/file/Oil%20Monitor%2020%20October.pdf?prefix=dev%2Fmedia",
-      "fetched_at": "2026-10-26T07:26:41+08:00",
+      "fetched_at": "2026-10-26T08:55:59+08:00",
       "http_status": 200,
       "bytes": 370751,
       "sha256": "8cd477200ce79322fcf822b4572122ef22c521b7ef9c33cf5451b36c4d591f74"
@@ -282,7 +1276,7 @@
     {
       "name": "doe-oil-monitor-pdf",
       "url": "https://d24qbtp4vooyzi.cloudfront.net/api/media/file/Oil%20Monitor%2013%20October.pdf?prefix=dev%2Fmedia",
-      "fetched_at": "2026-10-26T07:26:46+08:00",
+      "fetched_at": "2026-10-26T08:55:59+08:00",
       "http_status": 200,
       "bytes": 372940,
       "sha256": "e85dc409f7f7303c7698d1be65ee3d1098c0c130bc0af4a0fa24cd2b8c1236c4"
@@ -290,7 +1284,7 @@
     {
       "name": "doe-oil-monitor-pdf",
       "url": "https://d24qbtp4vooyzi.cloudfront.net/api/media/file/Oil%20Monitor%2006%20October.pdf?prefix=dev%2Fmedia",
-      "fetched_at": "2026-10-26T07:26:51+08:00",
+      "fetched_at": "2026-10-26T08:56:00+08:00",
       "http_status": 200,
       "bytes": 372541,
       "sha256": "9bb07565a17cfb36dfbb9df481575ebfe5059a6d3df9dd3d36aa9805afa045e8"
@@ -298,7 +1292,7 @@
     {
       "name": "doe-oil-monitor-pdf",
       "url": "https://d24qbtp4vooyzi.cloudfront.net/api/media/file/Oil%20Monitor%2029%20September.pdf?prefix=dev%2Fmedia",
-      "fetched_at": "2026-10-26T07:26:56+08:00",
+      "fetched_at": "2026-10-26T08:56:00+08:00",
       "http_status": 200,
       "bytes": 374834,
       "sha256": "734ed4affea758ff9e0d405a7cc47bd35b44b25a09f3e57871c9ca4d852448cf"
@@ -306,7 +1300,7 @@
     {
       "name": "doe-oil-monitor-pdf",
       "url": "https://d24qbtp4vooyzi.cloudfront.net/api/media/file/Oil%20Monitor%2022%20September.pdf?prefix=dev%2Fmedia",
-      "fetched_at": "2026-10-26T07:27:01+08:00",
+      "fetched_at": "2026-10-26T08:56:00+08:00",
       "http_status": 200,
       "bytes": 376174,
       "sha256": "414aab384faa0215ba8e6b952bae6290b5805203f7457e5b1a085141000d033e"
@@ -314,7 +1308,7 @@
     {
       "name": "doe-oil-monitor-pdf",
       "url": "https://d24qbtp4vooyzi.cloudfront.net/api/media/file/Oil%20Monitor%20As%20of%2015%20September%202026.pdf?prefix=dev%2Fmedia",
-      "fetched_at": "2026-10-26T07:27:06+08:00",
+      "fetched_at": "2026-10-26T08:56:00+08:00",
       "http_status": 200,
       "bytes": 374196,
       "sha256": "4b5f2df63ad69bc13424da5ac2c3038e272a032cbbf86f125960d45d59e3baeb"
@@ -322,7 +1316,7 @@
     {
       "name": "doe-ncr-pump",
       "url": "https://doe.gov.ph/data-and-prices/liquid-fuels/retail-pump-prices/ncr-pump-prices",
-      "fetched_at": "2026-10-26T07:27:06+08:00",
+      "fetched_at": "2026-10-26T08:56:03+08:00",
       "http_status": 200,
       "bytes": 301244,
       "sha256": "42b2ba2038787865114896b12c9d8d680f89eb52ef448793f6b600d25d67f04f"
@@ -330,7 +1324,7 @@
     {
       "name": "doe-ncr-pump-pdf",
       "url": "https://d24qbtp4vooyzi.cloudfront.net/api/media/file/NCR%20Liquid%20Fuel%20Price%20Monitoring%2029%20Sep%20to%205%20Oct%202026.pdf?prefix=dev%2Fmedia",
-      "fetched_at": "2026-10-26T07:27:11+08:00",
+      "fetched_at": "2026-10-26T08:56:04+08:00",
       "http_status": 200,
       "bytes": 132261,
       "sha256": "6b8c62a887746c61a9439a3e98df19b5f90a0cfb502a8de38b3793b77553e812"
@@ -338,7 +1332,7 @@
     {
       "name": "doe-ncr-pump-pdf",
       "url": "https://d24qbtp4vooyzi.cloudfront.net/api/media/file/NCR%20Price%20Monitoring%2010062026.pdf?prefix=dev%2Fmedia",
-      "fetched_at": "2026-10-26T07:27:16+08:00",
+      "fetched_at": "2026-10-26T08:56:04+08:00",
       "http_status": 200,
       "bytes": 132365,
       "sha256": "d039185874cd1ccc42b2167045403f635f3928da70fdda1bb8f3d33ac5a773ec"
@@ -346,7 +1340,7 @@
     {
       "name": "doe-ncr-pump-pdf",
       "url": "https://d24qbtp4vooyzi.cloudfront.net/api/media/file/NCR%20Price%20Monitoring%2010132026.pdf?prefix=dev%2Fmedia",
-      "fetched_at": "2026-10-26T07:27:21+08:00",
+      "fetched_at": "2026-10-26T08:56:04+08:00",
       "http_status": 200,
       "bytes": 132449,
       "sha256": "80e82b8587b1cfe93af283c148c85128ae5385c411b3a2bf06e414e3ec535f99"
@@ -354,7 +1348,7 @@
     {
       "name": "doe-ncr-pump-pdf",
       "url": "https://d24qbtp4vooyzi.cloudfront.net/api/media/file/NCR%20Price%20Monitoring%20Sep%201-7%202026.pdf?prefix=dev%2Fmedia",
-      "fetched_at": "2026-10-26T07:27:26+08:00",
+      "fetched_at": "2026-10-26T08:56:05+08:00",
       "http_status": 200,
       "bytes": 132614,
       "sha256": "3d285530fa04184177a6760fc02c062c92691a12220764f879046bc0068658a1"
@@ -362,7 +1356,7 @@
     {
       "name": "doe-ncr-lpg",
       "url": "https://doe.gov.ph/data-and-prices/lpg-monitor/ncr-lpg-prices",
-      "fetched_at": "2026-10-26T07:27:27+08:00",
+      "fetched_at": "2026-10-26T08:56:08+08:00",
       "http_status": 200,
       "bytes": 65089,
       "sha256": "023572ce37741acd5f0e73d11bb746e8e9b3e2b1f0bea2ed9d7bba6da237fc24"
@@ -370,7 +1364,7 @@
     {
       "name": "doe-ncr-lpg-pdf",
       "url": "https://d24qbtp4vooyzi.cloudfront.net/api/media/file/NCR%20October%202026%20LPG%20Price%20Monitoring.pdf?prefix=dev%2Fmedia",
-      "fetched_at": "2026-10-26T07:27:31+08:00",
+      "fetched_at": "2026-10-26T08:56:09+08:00",
       "http_status": 200,
       "bytes": 230527,
       "sha256": "4127af4f37eac9c9f83cde8e474d0587f3d4bb162297486305b5f6fb3ffcc879"
@@ -378,7 +1372,7 @@
     {
       "name": "doe-ncr-lpg-pdf",
       "url": "https://d24qbtp4vooyzi.cloudfront.net/api/media/file/NCR%20September%202026%20LPG%20Price%20Monitoring.pdf?prefix=dev%2Fmedia",
-      "fetched_at": "2026-10-26T07:27:36+08:00",
+      "fetched_at": "2026-10-26T08:56:09+08:00",
       "http_status": 200,
       "bytes": 257109,
       "sha256": "52cf2ecebe8aea6b317dde0c97fb42502a103d8ba62048d90e0460a3759a56d7"
@@ -386,31 +1380,31 @@
     {
       "name": "meralco-news",
       "url": "https://company.meralco.com.ph/news-and-advisories/latest-news-and-press-releases",
-      "fetched_at": "2026-10-26T07:27:37+08:00",
+      "fetched_at": "2026-10-26T08:56:09+08:00",
       "http_status": 200,
-      "bytes": 229877,
-      "sha256": "3cbd8e68e9e9be4c06293a62d666441605bca7956adc42c7cf1abcb4de03fc77"
+      "bytes": 229960,
+      "sha256": "56b4dc2b162734baa9bda43360ee65d7cc3fefcc956a295ef235dfe777ab3017"
     },
     {
       "name": "meralco-release",
       "url": "https://company.meralco.com.ph/news-and-advisories/higher-residential-rates-october-2026",
-      "fetched_at": "2026-10-26T07:27:42+08:00",
+      "fetched_at": "2026-10-26T08:56:14+08:00",
       "http_status": 200,
-      "bytes": 224777,
-      "sha256": "c82721cd9105a3cf8a6c12dd4827ae1d52f5dc7dffc330e99227dcb1b014b0e1"
+      "bytes": 224774,
+      "sha256": "370f58994f79714e211ae69306dafb1e850295282af01ec0a775e4182c79dbd6"
     },
     {
       "name": "meralco-release",
       "url": "https://company.meralco.com.ph/news-and-advisories/lower-rates-september-2026",
-      "fetched_at": "2026-10-26T07:27:47+08:00",
+      "fetched_at": "2026-10-26T08:56:19+08:00",
       "http_status": 200,
-      "bytes": 221632,
-      "sha256": "9db6df1684e5ecb7c3da34e7230c3db113aebe76302ca7b07a1119ecbcfa087b"
+      "bytes": 221629,
+      "sha256": "8c8a3d3c944b76445393dd06068a834193d3986f2bb1334a0cfea95012d5b65e"
     },
     {
       "name": "maynilad-scheduled",
       "url": "https://www.mayniladwater.com.ph/wp-json/interruptions/scheduled?id=\u0026city=Las+Pi%C3%B1as",
-      "fetched_at": "2026-10-26T07:27:48+08:00",
+      "fetched_at": "2026-10-26T08:56:20+08:00",
       "http_status": 200,
       "bytes": 302,
       "sha256": "68fbbbd43d3fdbeafa7962a915cca038ded8e0da50ce1a48f0575dffd10bc3a2"
@@ -418,7 +1412,7 @@
     {
       "name": "maynilad-emergency",
       "url": "https://www.mayniladwater.com.ph/wp-json/interruptions/emergency?id=\u0026city=Las+Pi%C3%B1as",
-      "fetched_at": "2026-10-26T07:27:53+08:00",
+      "fetched_at": "2026-10-26T08:56:25+08:00",
       "http_status": 200,
       "bytes": 302,
       "sha256": "79deddfec2dcb930e06e31a3b7d2d667e4a72ef8d14c3d29d39d7b5d99f279b2"
@@ -426,7 +1420,7 @@
     {
       "name": "maynilad-rotational",
       "url": "https://www.mayniladwater.com.ph/wp-json/interruptions/rotational?id=\u0026city=Las+Pi%C3%B1as",
-      "fetched_at": "2026-10-26T07:27:58+08:00",
+      "fetched_at": "2026-10-26T08:56:30+08:00",
       "http_status": 200,
       "bytes": 291,
       "sha256": "6f989b293c0da41f7fe34e8d5d8e8ba05c04343b20bed0deeb443cc1db44c1a4"
@@ -434,10 +1428,18 @@
     {
       "name": "maynilad-maintenance",
       "url": "https://www.mayniladwater.com.ph/wp-json/wp/v2/posts?search=maintenance%20activities\u0026_fields=id,date,link,title,content\u0026per_page=3",
-      "fetched_at": "2026-10-26T07:28:03+08:00",
+      "fetched_at": "2026-10-26T08:56:35+08:00",
       "http_status": 200,
       "bytes": 10143,
       "sha256": "cf9e2a1786273b2ef9904ff0ad45eb68ce79e085abbeb0c7e2cbd81a0d64586f"
+    },
+    {
+      "name": "maynilad-fcda",
+      "url": "https://www.mayniladwater.com.ph/wp-json/wp/v2/posts?search=FCDA\u0026per_page=6\u0026_fields=id,date,link,title,content",
+      "fetched_at": "2026-10-26T08:56:40+08:00",
+      "http_status": 200,
+      "bytes": 19994,
+      "sha256": "5ab18b5900b947120d5be4f4d14d81527908ce6501f301daf9cb7ddf2e5d765a"
     }
   ],
   "errors": []

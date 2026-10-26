@@ -58,6 +58,54 @@ func TestCheckFuelTampered(t *testing.T) {
 	}
 }
 
+func TestCheckFuelTrendTampered(t *testing.T) {
+	snap := fixtureSnapshot(t)
+	adj13, err := ParseOilMonitor(mustLines(t, "oilmon_13oct.pdf"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	snap.Fuel.Adjustments = []OilAdjustment{snap.Fuel.Adjustments[0], adj13}
+	text, err := RenderFuelPost(snap)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if problems := CheckPost(text, snap, "fuel"); len(problems) != 0 {
+		t.Fatalf("trend caption fails: %v", problems)
+	}
+	// Swapped last-week products.
+	swapped := strings.Replace(text,
+		"gasolina +₱1.50 hanggang +₱1.56 · diesel −₱3.00 hanggang −₱3.02",
+		"gasolina −₱3.00 hanggang −₱3.02 · diesel +₱1.50 hanggang +₱1.56", 1)
+	if problems := CheckPost(swapped, snap, "fuel"); len(problems) == 0 {
+		t.Fatal("swapped last-week products passed")
+	}
+	// Tampered cumulative sum.
+	bad := strings.Replace(text, "gasolina −₱2.80 hanggang −₱2.74", "gasolina −₱9.80 hanggang −₱2.74", 1)
+	if problems := CheckPost(bad, snap, "fuel"); len(problems) == 0 {
+		t.Fatal("tampered cumulative passed")
+	}
+	// Tampered pump delta.
+	bad = strings.Replace(text, "RON 91 ₱87.90 −₱0.40", "RON 91 ₱87.90 −₱0.90", 1)
+	if problems := CheckPost(bad, snap, "fuel"); len(problems) == 0 {
+		t.Fatal("tampered delta passed")
+	}
+	// Delta with flipped sign.
+	flipped := strings.Replace(text, "RON 95 ₱88.90 +₱0.50", "RON 95 ₱88.90 −₱0.50", 1)
+	if problems := CheckPost(flipped, snap, "fuel"); len(problems) == 0 {
+		t.Fatal("flipped delta passed")
+	}
+	// Delta swapped across products (NCR RON91 gets RON95's delta).
+	swappedPump := strings.Replace(text, "RON 91 ₱87.90 −₱0.40", "RON 91 ₱87.90 +₱0.50", 1)
+	if problems := CheckPost(swappedPump, snap, "fuel"); len(problems) == 0 {
+		t.Fatal("swapped pump delta passed")
+	}
+	// Delta swapped across cities (Parañaque gets Muntinlupa's delta).
+	swappedCity := strings.Replace(text, "Parañaque: RON 91 ₱89.50 −₱0.80", "Parañaque: RON 91 ₱89.50 +₱2.30", 1)
+	if problems := CheckPost(swappedCity, snap, "fuel"); len(problems) == 0 {
+		t.Fatal("swapped city delta passed")
+	}
+}
+
 func TestCheckBillsTampered(t *testing.T) {
 	snap := fixtureSnapshot(t)
 	text, err := RenderBillsPost(snap)
@@ -79,6 +127,26 @@ func TestCheckBillsTampered(t *testing.T) {
 	if problems := CheckPost(swapped, snap, "bills"); len(problems) == 0 {
 		t.Fatal("swapped city range passed")
 	}
+	// Wrong previous LPG common.
+	badPrev := strings.Replace(text, "₱1,341 → ₱1,430", "₱1,300 → ₱1,430", 1)
+	if problems := CheckPost(badPrev, snap, "bills"); len(problems) == 0 {
+		t.Fatal("tampered prev LPG passed")
+	}
+	// Wrong water rate.
+	badWater := strings.Replace(text, "₱52.61 → ₱52.85/cu.m", "₱52.61 → ₱52.99/cu.m", 1)
+	if problems := CheckPost(badWater, snap, "bills"); len(problems) == 0 {
+		t.Fatal("tampered water rate passed")
+	}
+	// Wrong family total.
+	badFam := strings.Replace(text, "₱5,341.68 → ₱5,499.30", "₱5,341.68 → ₱5,599.30", 1)
+	if problems := CheckPost(badFam, snap, "bills"); len(problems) == 0 {
+		t.Fatal("tampered family total passed")
+	}
+	// Wrong family component.
+	badComp := strings.Replace(text, "kuryente +₱63.82", "kuryente +₱64.82", 1)
+	if problems := CheckPost(badComp, snap, "bills"); len(problems) == 0 {
+		t.Fatal("tampered family component passed")
+	}
 }
 
 func TestCheckLint(t *testing.T) {
@@ -90,20 +158,71 @@ func TestCheckLint(t *testing.T) {
 	if problems := CheckPost(text+" $5", snap, "fuel"); len(problems) == 0 {
 		t.Fatal("dollar sign passed")
 	}
-	if problems := CheckPost(strings.Replace(text, "(DOE,", "(DOE (x,", 1), snap, "fuel"); len(problems) == 0 {
+	if problems := CheckPost(strings.Replace(text, "（DOE、", "（DOE（x、", 1), snap, "fuel"); len(problems) == 0 {
 		t.Fatal("nested parens passed")
 	}
 	if problems := CheckPost(text+" NaN", snap, "fuel"); len(problems) == 0 {
 		t.Fatal("NaN passed")
 	}
-	// Empty section.
-	empty := strings.Replace(text, "Gasoline", "", 1)
-	_ = empty
-	blank := strings.Replace(text, "🇬🇧 Fuel prices — effective Oct 20–26, 2026\nGasoline −₱4.30/L · Diesel +₱2.60/L · Kerosene −₱1.00/L\nPer 10 L: gasoline −₱43.00, diesel +₱26.00\nNCR common pump prices before this change (DOE, Oct 13–19): RON 91 ₱87.90 · RON 95 ₱88.90 · Diesel ₱91.40", "  ", 1)
+	// Empty section: blank the whole EN block.
+	parts := strings.Split(text, Separator)
+	parts[1] = "  \n"
+	blank := strings.Join(parts, Separator)
 	if problems := CheckPost(blank, snap, "fuel"); len(problems) == 0 {
 		t.Fatal("empty section passed")
 	}
 	if problems := CheckPost(text, snap, "bogus"); len(problems) == 0 {
 		t.Fatal("bogus kind passed")
+	}
+}
+
+func waterSnap(t *testing.T) (*Snapshot, string) {
+	t.Helper()
+	b := readFixture(t, "maynilad_maintenance_posts.json")
+	rows, err := ParseMaintenancePosts(b, "Las Pi")
+	if err != nil {
+		t.Fatal(err)
+	}
+	w := &WaterStatus{City: "Las Piñas", Maintenance: rows}
+	alerts := BuildWaterAlerts(w)
+	if len(alerts) != 1 {
+		t.Fatalf("got %d alerts", len(alerts))
+	}
+	snap := &Snapshot{Water: w, Alerts: alerts}
+	return snap, RenderWaterAlertPost(alerts[0], false)
+}
+
+func TestCheckWaterPasses(t *testing.T) {
+	snap, text := waterSnap(t)
+	if problems := CheckPost(text, snap, "water"); len(problems) != 0 {
+		t.Fatalf("problems: %v", problems)
+	}
+}
+
+func TestCheckWaterTampered(t *testing.T) {
+	snap, text := waterSnap(t)
+	// Wrong time.
+	bad := strings.Replace(text, "10:00 PM", "11:00 PM", 1)
+	if problems := CheckPost(bad, snap, "water"); len(problems) == 0 {
+		t.Fatal("tampered time passed")
+	}
+	// Wrong day.
+	bad = strings.Replace(text, "Ago 26", "Ago 29", 1)
+	if problems := CheckPost(bad, snap, "water"); len(problems) == 0 {
+		t.Fatal("tampered day passed")
+	}
+	// Swapped area.
+	bad = strings.Replace(text, "Talon Singko", "Talon Sais", 1)
+	if problems := CheckPost(bad, snap, "water"); len(problems) == 0 {
+		t.Fatal("tampered area passed")
+	}
+	// Wrong reason.
+	bad = strings.Replace(text, "facility maintenance", "pipe repair", 1)
+	if problems := CheckPost(bad, snap, "water"); len(problems) == 0 {
+		t.Fatal("tampered reason passed")
+	}
+	// No alert in snapshot.
+	if problems := CheckPost(text, &Snapshot{}, "water"); len(problems) == 0 {
+		t.Fatal("missing alert passed")
 	}
 }

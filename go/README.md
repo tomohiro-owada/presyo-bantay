@@ -388,35 +388,74 @@ area-deal); `internal/fbchart.RenderWeekly` renders the 1080x1350 PNG.
 
 ## Household utilities (prototype)
 
-Dry-run only prototype for household utility costs (fuel / LPG /
-Meralco / Maynilad): fetch + parse official public sources, render
-sample Facebook-style post images + trilingual captions locally. No
-Facebook code, no posting, no cron/VPS changes.
+Household utility costs (fuel / LPG / Meralco / Maynilad water):
+fetch + parse official public sources, render trilingual captions +
+1080x1350 charts locally, publish frozen pages on the static site, and
+post them with the same state/gap machinery as the daily/weekly posts.
+Every post, image and site page shows the trend vs the previous period.
 
 ```sh
-./bin/presyo utilities fetch -cache /tmp/ucache -out /tmp/snapshot.json [-city "Las Piñas"] [-max-oil 6]
-./bin/presyo utilities render -snapshot /tmp/snapshot.json -kind fuel|bills -out-dir /tmp/uout
+./bin/presyo utilities fetch -cache /tmp/ucache -out /tmp/snapshot.json [-city "Las Piñas"] [-max-oil 6] [-sections fuel,pump,lpg,meralco,water,fcda]
+./bin/presyo utilities render -snapshot /tmp/snapshot.json -kind fuel|bills|water -out-dir /tmp/uout [-alert-id ID] [-maintenance-json FILE -city C -past-sample]
+./bin/presyo utilpages -snapshot /tmp/snapshot.json -site-public ../site/public [-force] [-base-url URL] [-now RFC3339]
+./bin/presyo fbutil -db /tmp/presyo-snap.db -site-public ../site/public -auto [-dry-run] [-now RFC3339]
 ```
 
-- `utilities fetch` is the ONLY network-touching mode (DOE Oil
+- `utilities fetch` is the ONLY network-touching fetch mode (DOE Oil
   Monitor + NCR pump/LPG pages, Meralco news releases, Maynilad
-  interruption/maintenance endpoints; same UA as the daily pipeline,
-  60 s timeout, one attempt per URL, ≥ 5 s between two requests to
-  the same host, PDFs cached by file name). Writes indented
-  `snapshot.json`. Exit 0 even with partial source errors (to
-  stderr), 1 if nothing parsed.
-- `utilities render` is offline: writes `<kind>.txt` (TL/EN/JA post),
-  `<kind>.png` (1080x1350 compact chart, same style as the weekly
-  chart) and `<kind>.check.json` (`{ok, problems}`); exit 3 when the
-  checker fails. Kinds: `fuel` (newest DOE oil adjustment + the NCR
-  pump week before it) and `bills` (newest Meralco rate + LPG months
-  + Maynilad status for the city).
+  interruption/maintenance/FCDA endpoints; same UA as the daily
+  pipeline, 60 s timeout, one attempt per URL, ≥ 5 s between two
+  requests to the same host, PDFs cached by file name).
+  `-sections` limits the run and MERGES into the existing `-out`
+  snapshot (untouched sections keep old data; per-section fetched_at
+  recorded). Exit 0 even with partial source errors (to stderr), 1
+  if nothing parsed.
+- `utilities render` is offline: writes `<kind>.txt`, `<kind>.png`
+  (compact) and `<kind>.check.json` (`{ok, problems}`); exit 3 when
+  the checker fails. Kinds: `fuel` (this + last week, 6-week
+  cumulative, NCR/nearby pump now-vs-prev), `bills` (Meralco/LPG/
+  water old → new + family total), `water` (one alert; `-alert-id`
+  selects it, default first; `-maintenance-json` builds a water-only
+  snapshot offline, `-past-sample` marks sample output).
+- `utilpages` publishes `site/public/u/`: frozen per-post pages
+  (`u/fuel/<date>/`, `u/bills/<YYYY-MM>/`, `u/water/<id>/`, each with
+  `index.html`, `post.json`, `<kind>.png` — the SAME text/PNG used
+  for FB), `u/index.html` (latest fuel/bills, pump table, water
+  interruptions, sources) and `data/utilities.json`. Frozen pages
+  are never re-rendered without `-force`.
+- `fbutil` posts frozen pages only (FB == site), sharing the fbpost
+  state file, flock, uploader and token handling. `-auto` posts at
+  most ONE per run, priority water > fuel > bills: window 12:00–19:00
+  Manila, Sunday 16:00–20:00 hold for the weekly post, global 2 h
+  min-gap over every entry, `-publish-delay` (default 10 m) for the
+  GitHub Pages deploy lag. DA first: fuel/bills wait until the DB's
+  latest price date has all 5 regions posted (water alerts are
+  exempt); fuel posts Tue/Wed only while its week is ≤ 2 days old,
+  bills once per current month, water when its start is 3–72 h ahead
+  (or an emergency is still running) at most one per day. Suggested
+  cron (VPS TZ server-TZ = Manila+1h; install commented out, `deploy.sh`
+  never edits crontab):
+  ```
+<CRON_LINE_REMOVED>
+  ```
+  `scripts/utilities.sh` runs fetch (hourly fuel+pump on Tue/Wed,
+  daily otherwise; meralco days 5–20; LPG days 1–15; water/FCDA every
+  3rd hour) → `utilpages` → commits `site/public/u` and
+  `site/public/data/utilities.json` → `fbutil -auto` (dry-run with
+  `PRESYO_UTIL_DRY_RUN=1`).
+- Water wording policy: interruption posts use OUR OWN short wording
+  (`ReasonKey`: maintenance ng pasilidad / pipe network maintenance /
+  pipe repair / limited supply / generic Maynilad work) plus a link
+  to the Maynilad advisory — never copy their sentences, locations
+  aside from barangay names, or images. Barangay names and times are
+  relayed as facts.
 - Sources: DOE Oil Monitor / NCR pump / NCR LPG PDFs (parsed with the
   existing pure-Go `internal/pdftext`), Meralco rate releases,
-  Maynilad advisories. Every number in text/charts comes from parsed
-  data or a documented derivation (10× fuel amounts, LPG
-  month-on-month diff, 200 kWh impact); missing fields omit their
-  line. See `internal/utilities` and `UTILITIES_SPEC.md`.
+  Maynilad advisories + FCDA notices. Every number in text/charts
+  comes from parsed data or a documented derivation (10× fuel
+  amounts, LPG month-on-month diff, 200 kWh impact, pump deltas,
+  family totals); a missing previous value is stated, never guessed.
+  See `internal/utilities` and `UTILITIES_SPEC_V2.md`.
 
 ## Deploy
 

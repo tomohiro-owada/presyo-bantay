@@ -65,7 +65,13 @@ type FetchOptions struct {
 	MayniladBase string
 	// Sleep waits out politeness delays (default time.Sleep).
 	Sleep func(time.Duration)
+	// Sections limits the fetch to named sections
+	// (fuel,pump,lpg,meralco,water,fcda); nil/empty fetches all.
+	Sections []string
 }
+
+// FetchSections are the valid -sections names.
+var FetchSections = []string{"fuel", "pump", "lpg", "meralco", "water", "fcda"}
 
 // fetcher carries Fetch's running state.
 type fetcher struct {
@@ -82,6 +88,7 @@ type fetcher struct {
 	meralco  string
 	maynilad string
 	sleep    func(time.Duration)
+	sections map[string]bool
 
 	lastHost map[string]time.Time
 	requests int
@@ -153,16 +160,49 @@ func Fetch(ctx context.Context, opts FetchOptions) (*Snapshot, error) {
 	if f.sleep == nil {
 		f.sleep = time.Sleep
 	}
+	f.sections = map[string]bool{}
+	if len(opts.Sections) == 0 {
+		for _, s := range FetchSections {
+			f.sections[s] = true
+		}
+	} else {
+		for _, s := range opts.Sections {
+			f.sections[s] = true
+		}
+	}
 	f.snap.FetchedAt = f.now.In(manilaLoc).Format(time.RFC3339)
 
 	if err := ctx.Err(); err != nil {
 		return f.snap, err
 	}
-	f.fetchFuel(ctx)
-	f.fetchLPG(ctx)
-	f.fetchMeralco(ctx)
-	f.fetchWater(ctx)
+	if f.sections["fuel"] {
+		f.fetchFuel(ctx)
+	}
+	if f.sections["pump"] {
+		f.fetchPump(ctx)
+	}
+	if f.sections["lpg"] {
+		f.fetchLPG(ctx)
+	}
+	if f.sections["meralco"] {
+		f.fetchMeralco(ctx)
+	}
+	if f.sections["water"] {
+		f.fetchWater(ctx)
+	}
+	if f.sections["fcda"] {
+		f.fetchFCDA(ctx)
+	}
 	return f.snap, nil
+}
+
+// stampSection records a per-section fetched_at for a refreshed
+// section (merge keeps older timestamps for untouched sections).
+func (f *fetcher) stampSection(name string) {
+	if f.snap.SectionFetchedAt == nil {
+		f.snap.SectionFetchedAt = map[string]string{}
+	}
+	f.snap.SectionFetchedAt[name] = f.now.In(manilaLoc).Format(time.RFC3339)
 }
 
 // fail records a per-source failure; partial snapshots are OK.

@@ -35,11 +35,26 @@ type PumpPrice struct {
 	Common  float64 `json:"common"`
 }
 
+// CityPrice is one per-city product row ("#N/A" common → nil).
+type CityPrice struct {
+	Product string   `json:"product"`
+	Low     float64  `json:"low"`
+	High    float64  `json:"high"`
+	Common  *float64 `json:"common,omitempty"`
+}
+
+// CityPump is the per-city table block for one monitored city.
+type CityPump struct {
+	City   string      `json:"city"`
+	Prices []CityPrice `json:"prices"`
+}
+
 // PumpSummary is the NCR prevailing retail price table for one week.
 type PumpSummary struct {
 	WeekFrom  string      `json:"week_from"`
 	WeekTo    string      `json:"week_to"`
 	Prices    []PumpPrice `json:"prices"`
+	Cities    []CityPump  `json:"cities,omitempty"`
 	SourceURL string      `json:"source_url,omitempty"`
 }
 
@@ -124,11 +139,14 @@ type Source struct {
 
 // Snapshot is the offline bundle behind both post kinds.
 type Snapshot struct {
-	FetchedAt string        `json:"fetched_at"`
-	Fuel      FuelStatus    `json:"fuel"`
-	LPG       []LPGMonth    `json:"lpg"`
-	Meralco   []MeralcoRate `json:"meralco"`
-	Water     *WaterStatus  `json:"water,omitempty"`
-	Sources   []Source      `json:"sources"`
-	Errors    []string      `json:"errors"`
+	FetchedAt        string            `json:"fetched_at"`
+	Fuel             FuelStatus        `json:"fuel"`
+	LPG              []LPGMonth        `json:"lpg"`
+	Meralco          []MeralcoRate     `json:"meralco"`
+	Water            *WaterStatus      `json:"water,omitempty"`
+	WaterRates       []WaterRate       `json:"water_rates,omitempty"`
+	Alerts           []WaterAlert      `json:"alerts,omitempty"`
+	SectionFetchedAt map[string]string `json:"section_fetched_at,omitempty"`
+	Sources          []Source          `json:"sources"`
+	Errors           []string          `json:"errors"`
 }

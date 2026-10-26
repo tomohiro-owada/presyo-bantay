@@ -1,0 +1,124 @@
+{{define "uindex"}}<!doctype html>
+<html lang="fil">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Title}}</title>
+<meta name="description" content="{{.Description}}">
+<link rel="canonical" href="{{.Canonical}}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{.Root}}favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="{{.Root}}favicon-16.png">
+<link rel="apple-touch-icon" href="{{.Root}}apple-touch-icon.png">
+<meta name="theme-color" content="#0b5d3b">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Presyo Bantay">
+<meta property="og:title" content="{{.Title}}">
+<meta property="og:description" content="{{.Description}}">
+<meta property="og:url" content="{{.Canonical}}">
+{{if .OGImage}}<meta property="og:image" content="{{.OGImage}}">
+<meta property="og:image:width" content="1080">
+<meta property="og:image:height" content="1350">
+{{end}}<meta property="og:locale" content="fil_PH">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:locale:alternate" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{.Title}}">
+<meta name="twitter:description" content="{{.Description}}">
+{{if .OGImage}}<meta name="twitter:image" content="{{.OGImage}}">
+{{end}}<script async src="https://www.googletagmanager.com/gtag/js?id=G-VL047YCMK8"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-VL047YCMK8');</script>
+<style>
+:root{--bg:#faf8f2;--card:#fff;--ink:#1c1a15;--muted:#5c5648;--line:#e2dccb;--accent:#0b5d3b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;line-height:1.5;font-size:16px}
+.wrap{max-width:880px;margin:0 auto;padding:0 12px}
+.site-header{background:var(--accent);color:#fff;padding:16px 0 14px}
+.brand{display:flex;align-items:center;gap:12px;margin:0 0 10px;color:#fff;text-decoration:none}
+a.brand:focus-visible{outline:3px solid #fff;outline-offset:3px;border-radius:10px}
+.brand-mark{display:block;width:48px;height:48px;flex:none;border-radius:50%;background:#fdf6e3;box-shadow:0 0 0 2px rgba(244,197,66,.85)}
+.brand-text{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+.brand-name{font-weight:800;letter-spacing:-0.02em;font-size:1.7rem;line-height:1.15;white-space:nowrap}
+.brand-name .gold{color:#f4c542}
+.tagline{margin:2px 0 0;font-size:.92rem;font-weight:400;letter-spacing:normal;color:rgba(255,255,255,.88)}
+@media(max-width:519px){.brand-name{font-size:1.4rem}.brand-mark{width:40px;height:40px}}
+.lang-toggle{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:0;font-size:.9rem}
+.lang-toggle button{border:1px solid currentColor;background:transparent;color:inherit;border-radius:999px;padding:4px 12px;font:inherit;cursor:pointer;white-space:nowrap}
+.lang-toggle button[aria-pressed="true"]{background:#fff;color:var(--accent);font-weight:700}
+@media(max-width:519px){.lang-toggle .lang-label{display:none}}
+main.wrap{padding-top:12px;padding-bottom:24px;display:grid;gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.hint{margin:0 0 8px;color:var(--muted);font-size:.88rem}
+.ph{font-weight:700;margin:8px 0 4px}
+.deals-list{margin:4px 0;padding-left:1.4em}
+.nw{white-space:nowrap}
+.srclist{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px;font-size:.9rem}
+.srclist a{color:var(--accent)}
+.postlinks{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}
+.postlinks a{color:var(--accent);font-weight:700}
+.site-footer{border-top:1px solid var(--line);padding:16px 0 24px;color:var(--muted);font-size:.9rem}
+.site-footer a{color:var(--accent)}
+table.pumptable{border-collapse:collapse;margin:8px 0;width:100%}
+table.pumptable th,table.pumptable td{border:1px solid var(--line);padding:4px 8px;text-align:right}
+table.pumptable th:first-child,table.pumptable td:first-child{text-align:left}
+</style>
+</head>
+<body>
+<header class="site-header"><div class="wrap">
+<a class="brand home" href="{{.Root}}"><picture><source type="image/webp" srcset="{{.Root}}brand/logo-mark-96.webp 2x, {{.Root}}brand/logo-mark-144.webp 3x"><img class="brand-mark" src="{{.Root}}brand/logo-mark-96.png" srcset="{{.Root}}brand/logo-mark-96.png 2x, {{.Root}}brand/logo-mark-144.png 3x" width="48" height="48" alt="" aria-hidden="true" fetchpriority="high" decoding="async"></picture><span class="brand-text"><span class="brand-name">Presyo <span class="gold">Bantay</span></span><span class="tagline"><span data-lang="tl">Araw-araw na presyo sa palengke, mula sa DA</span><span data-lang="en">Daily market prices from DA Bantay Presyo</span><span data-lang="ja">DAの市場価格を毎日お届け</span></span></span></a>
+<div class="lang-toggle" role="group" aria-label="Wika / Language / 言語"><span class="lang-label">Taglish / English / 日本語:</span>
+<button type="button" data-setlang="tl">Taglish</button>
+<button type="button" data-setlang="en">English</button>
+<button type="button" data-setlang="ja">日本語</button>
+</div>
+</div></header>
+<main class="wrap">
+<div>
+<h1><span data-lang="tl">Bayarin</span><span data-lang="en">Utilities</span><span data-lang="ja">光熱費</span></h1>
+<p class="hint"><span data-lang="tl">Kuryente, LPG at tubig — laging may pagkukumpara sa nakaraang panahon</span><span data-lang="en">Power, LPG and water — always compared with the previous period</span><span data-lang="ja">電気・LPG・水道 — 常に前回との比較つき</span></p>
+</div>
+{{if or .FuelTL .Weeks}}<section class="card" aria-label="fuel">
+<h2><span data-lang="tl">Presyo ng langis</span><span data-lang="en">Fuel prices</span><span data-lang="ja">燃料価格</span></h2>
+<div data-lang="tl">{{range .FuelTL}}{{template "ublock" .}}{{end}}</div>
+<div data-lang="en">{{range .FuelEN}}{{template "ublock" .}}{{end}}</div>
+<div data-lang="ja">{{range .FuelJA}}{{template "ublock" .}}{{end}}</div>
+{{if .Weeks}}<h3><span data-lang="tl">Huling 6 na linggo</span><span data-lang="en">Last 6 weeks</span><span data-lang="ja">直近6週間</span></h3>
+<ul class="deals-list">
+{{range .Weeks}}<li><span data-lang="tl">{{index . 0}}</span><span data-lang="en">{{index . 1}}</span><span data-lang="ja">{{index . 2}}</span></li>
+{{end}}</ul>{{end}}
+{{if .PumpRows}}<h3><span data-lang="tl">Presyo sa bomba, DOE {{.PumpNow}} vs {{.PumpPrev}}</span><span data-lang="en">Pump prices, DOE {{.PumpNow}} vs {{.PumpPrev}}</span><span data-lang="ja">店頭価格 DOE {{.PumpNow}} vs {{.PumpPrev}}</span></h3>
+<table class="pumptable"><thead><tr><th></th><th>RON 91</th><th>RON 95</th><th>Diesel</th></tr></thead><tbody>
+{{range .PumpRows}}<tr><td>{{.Label}}</td>{{range .Cells}}<td>{{if .None}}—{{else}}{{.Value}} ({{.Delta}}){{end}}</td>{{end}}</tr>
+{{end}}</tbody></table>{{end}}
+{{if .FuelLink}}<p><a href="{{.FuelLink}}"><span data-lang="tl">Buong post ng gasolina</span><span data-lang="en">Full fuel post</span><span data-lang="ja">燃料の投稿全文</span></a></p>{{end}}
+</section>{{end}}
+{{if or .BillsTL .BillsEN .BillsJA}}<section class="card" aria-label="bills">
+<h2><span data-lang="tl">Bayarin sa bahay</span><span data-lang="en">Household bills</span><span data-lang="ja">家計の光熱費</span></h2>
+<div data-lang="tl">{{range .BillsTL}}{{template "ublock" .}}{{end}}</div>
+<div data-lang="en">{{range .BillsEN}}{{template "ublock" .}}{{end}}</div>
+<div data-lang="ja">{{range .BillsJA}}{{template "ublock" .}}{{end}}</div>
+{{if .BillsLink}}<p><a href="{{.BillsLink}}"><span data-lang="tl">Buong post ng bayarin</span><span data-lang="en">Full bills post</span><span data-lang="ja">光熱費の投稿全文</span></a></p>{{end}}
+</section>{{end}}
+<section class="card" aria-label="water">
+<h2><span data-lang="tl">Tubig sa Las Piñas</span><span data-lang="en">Water in Las Piñas</span><span data-lang="ja">ラスピニャスの水道</span></h2>
+{{if .Alerts}}<ul class="deals-list">
+{{range .Alerts}}<li><a href="{{.Path}}">{{.Areas}}</a> — {{.Window}} ({{.Reason}})</li>
+{{end}}</ul>{{else}}<p>{{.NoWater}}</p>{{end}}
+{{range .WaterLinks}}<p><a href="{{.Path}}">{{.Label}}</a></p>
+{{end}}</section>
+{{if .Sources}}<section class="card" aria-label="sources">
+<h2><span data-lang="tl">Pinagmulan</span><span data-lang="en">Sources</span><span data-lang="ja">出典</span></h2>
+<ul class="srclist">
+{{range .Sources}}<li><a href="{{.URL}}">{{.Name}}</a> — {{.Fetched}} (HTTP {{.Status}})</li>
+{{end}}</ul>
+</section>{{end}}
+</main>
+<footer class="site-footer"><div class="wrap">
+<p>Source: DOE · Meralco · Maynilad</p>
+<p><span data-lang="tl">Hindi opisyal na page</span><span data-lang="en">Not an official page</span><span data-lang="ja">公式ページではありません</span></p>
+<p><span data-lang="tl">Gumagamit ang site na ito ng Google Analytics para sa bilang ng bisita.</span><span data-lang="en">This site uses Google Analytics to count visits.</span><span data-lang="ja">アクセス解析にGoogleアナリティクスを使っています。</span></p>
+<p><a href="{{.Root}}">Presyo Bantay</a></p>
+</div></footer>
+{{template "ulangscript"}}
+</body>
+</html>
+{{end}}
