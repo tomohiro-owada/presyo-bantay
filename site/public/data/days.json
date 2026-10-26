@@ -1,6 +1,34 @@
 {
-  "latest": "2026-10-25",
+  "latest": "2026-10-26",
   "days": [
+    {
+      "date": "2026-10-26",
+      "path": "d/2026-10-26/",
+      "label": {
+        "tl": "Okt 26, 2026",
+        "en": "Oct 26, 2026",
+        "ja": "2026年10月26日"
+      },
+      "regions_with_data": 4,
+      "south": {
+        "text": {
+          "tl": "🛒 Sulit sa South Metro — presyo noong Okt 26\n\n✅ Mas mura kaysa usual:\n• Sayote ₱40/kg (−60%) · Bicutan\n• Pechay Baguio ₱120/kg (−46%) · Las Piñas\n• Kamatis ₱80/kg (−33%) · Bicutan\n• Siling berde ₱130/kg (−28%) · Bicutan\n• Talong ₱110/kg (−24%) · Taguig People's\n\n⚠️ Mas mahal ngayon:\n• Siling pula ₱380/kg (+50%)\n• Patatas ₱200/kg (+29%)\n• Karot ₱145/kg (+21%)\n",
+          "en": "🇬🇧 Deals in South Metro — prices of Oct 26\n✅ Chayote ₱40 (−60%), Pechay Baguio ₱120 (−46%), Tomato ₱80 (−33%), Green chili ₱130 (−28%), Eggplant ₱110 (−24%)\n⚠️ Pricier: Red chili ₱380 (+50%), Potato ₱200 (+29%), Carrots ₱145 (+21%)\n",
+          "ja": "🇯🇵 南部（ラス・ピニャス周辺）のお買い得 — 10/26の価格\n✅ サヨテ ₱40（−60%）、ペチャイ・バギオ ₱120（−46%）、トマト ₱80（−33%）、青唐辛子 ₱130（−28%）、ナス ₱110（−24%）\n⚠️ 高め：赤唐辛子 ₱380（+50%）、じゃがいも ₱200（+29%）、にんじん ₱145（+21%）\n"
+        },
+        "summary": {
+          "tl": "Sayote ₱40/kg (−60%) · Bicutan",
+          "en": "Chayote ₱40 (−60%)",
+          "ja": "サヨテ ₱40（−60%）"
+        },
+        "image": "d/2026-10-26/south.png",
+        "title": {
+          "tl": "South Metro",
+          "en": "South Metro",
+          "ja": "南部（ラス・ピニャス周辺）"
+        }
+      }
+    },
     {
       "date": "2026-10-25",
       "path": "d/2026-10-25/",
