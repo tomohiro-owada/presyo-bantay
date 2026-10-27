@@ -1,6 +1,6 @@
 {
   "date": "2026-10-26",
-  "generated_at": "2026-10-27T05:30:56+08:00",
+  "generated_at": "2026-10-28T02:46:05+08:00",
   "regions": [
     {
       "id": "south",
@@ -66,25 +66,25 @@
         "en": "Quezon City",
         "ja": "ケソン市"
       },
-      "has_data": false,
-      "image": "",
-      "image_bytes": 0,
+      "has_data": true,
+      "image": "qc.png",
+      "image_bytes": 74520,
       "alt": {
-        "tl": "Quezon City: walang data ngayon.",
-        "en": "Quezon City: no data today.",
-        "ja": "ケソン市：本日のデータなし。"
+        "tl": "Quezon City: mas mura ang Sayote −52%, Pechay Baguio −44%, Siling berde −40%",
+        "en": "Quezon City: cheaper than usual: Chayote −52%, Pechay Baguio −44%, Green chili −40%",
+        "ja": "ケソン市のお買い得：サヨテ −52%、ペチャイ・バギオ −44%、青唐辛子 −40%"
       },
       "text": {
-        "tl": "",
-        "en": "",
-        "ja": ""
+        "tl": "🛒 Sulit sa Quezon City — presyo noong Okt 26\n\n✅ Mas mura kaysa usual:\n• Sayote ₱30/kg (−52%) · Commonwealth\n• Pechay Baguio ₱100/kg (−44%) · Farmers, Cubao\n• Siling berde ₱150/kg (−40%) · Murphy\n• Ampalaya ₱90/kg (−25%) · North Diversion\n• Kamatis ₱70/kg (−13%) · Commonwealth\n\n⚠️ Mas mahal ngayon:\n• Siling pula ₱300/kg (+21%)\n• Karot ₱140/kg (+20%)\n• Patatas ₱152.50/kg (+16%)\n",
+        "en": "🇬🇧 Deals in Quezon City — prices of Oct 26\n✅ Chayote ₱30 (−52%), Pechay Baguio ₱100 (−44%), Green chili ₱150 (−40%), Ampalaya ₱90 (−25%), Tomato ₱70 (−13%)\n⚠️ Pricier: Red chili ₱300 (+21%), Carrots ₱140 (+20%), Potato ₱152.50 (+16%)\n",
+        "ja": "🇯🇵 ケソン市のお買い得 — 10/26の価格\n✅ サヨテ ₱30（−52%）、ペチャイ・バギオ ₱100（−44%）、青唐辛子 ₱150（−40%）、ゴーヤ ₱90（−25%）、トマト ₱70（−13%）\n⚠️ 高め：赤唐辛子 ₱300（+21%）、にんじん ₱140（+20%）、じゃがいも ₱152.50（+16%）\n"
       },
       "summary": {
-        "tl": "",
-        "en": "",
-        "ja": ""
+        "tl": "Sayote ₱30/kg (−52%) · Commonwealth",
+        "en": "Chayote ₱30 (−52%)",
+        "ja": "サヨテ ₱30（−52%）"
       },
-      "check": "skip"
+      "check": "pass"
     },
     {
       "id": "north",
