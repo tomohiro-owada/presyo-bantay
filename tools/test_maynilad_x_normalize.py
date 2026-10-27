@@ -116,6 +116,44 @@ class TestNormalize(unittest.TestCase):
         self.assertEqual(p.returncode, 0, p.stderr)
         self.assertEqual(len(json.loads(p.stdout)["posts"]), 1)
 
+    def test_tool_layer_trailing_text_ignored(self):
+        raw = FIXTURE.read_text(encoding="utf-8")
+        trailing = "\n\nmax_results was lowered from 40 to 25 due to X API limits.\n\nX reads left for this user: 10\n"
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as tf:
+            tf.write(raw + trailing)
+            path = tf.name
+        p = run(path, "--fetched-at", "2026-10-28T12:00:00+08:00")
+        self.assertEqual(p.returncode, 0, p.stderr)
+        d = json.loads(p.stdout)
+        p_clean = run(str(FIXTURE), "--fetched-at", "2026-10-28T12:00:00+08:00")
+        self.assertEqual(d["posts"], json.loads(p_clean.stdout)["posts"])
+
+    def test_tool_layer_leading_text_ignored(self):
+        raw = FIXTURE.read_text(encoding="utf-8")
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as tf:
+            tf.write("some tool-layer preamble line\n" + raw)
+            path = tf.name
+        p = run(path, "--fetched-at", "2026-10-28T12:00:00+08:00")
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertTrue(len(json.loads(p.stdout)["posts"]) > 0)
+
+    def test_result_wrapped_response(self):
+        raw = json.loads(FIXTURE.read_text(encoding="utf-8"))
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as tf:
+            json.dump({"result": raw}, tf)
+            path = tf.name
+        p = run(path, "--fetched-at", "2026-10-28T12:00:00+08:00")
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertTrue(len(json.loads(p.stdout)["posts"]) > 0)
+
+    def test_garbage_only_fails(self):
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as tf:
+            tf.write("max_results was lowered from 40 to 25\n\nX reads left for this user: 10\n")
+            path = tf.name
+        p = run(path)
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("no JSON object", p.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

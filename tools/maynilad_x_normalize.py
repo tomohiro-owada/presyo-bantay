@@ -121,6 +121,49 @@ def normalize_inbox(obj):
     return posts
 
 
+def load_first_json(raw):
+    """Return the first JSON object in raw, ignoring leading/trailing text.
+
+    Agent tool-layer files (CallDynamicTool write_to_file) may contain the
+    JSON object followed by plain text (e.g. "max_results was lowered ...",
+    "X reads left ...") and possibly leading text. Locate the first '{'
+    and decode one object with json.JSONDecoder().raw_decode.
+    """
+    if not isinstance(raw, str) or not raw.strip():
+        raise ValueError("empty input")
+    idx = raw.find("{")
+    if idx < 0:
+        raise ValueError("no JSON object found in input")
+    dec = json.JSONDecoder()
+    try:
+        obj, _ = dec.raw_decode(raw[idx:])
+    except json.JSONDecodeError as e:
+        raise ValueError("no JSON object found in input: %s" % e)
+    if not isinstance(obj, dict):
+        raise ValueError("no JSON object found in input (first value is not an object)")
+    return obj
+
+
+def unwrap_tool_response(obj):
+    """Unwrap agent tool-layer envelopes like {"result": {...}}.
+
+    Returns the inner dict when the outer object is not itself a raw X
+    response (data[]) or v1 inbox (posts[]) but wraps one under "result".
+    A bare {"data": [...]} object is already raw and passes through.
+    """
+    seen = 0
+    while (
+        isinstance(obj, dict)
+        and "data" not in obj
+        and "posts" not in obj
+        and isinstance(obj.get("result"), dict)
+        and seen < 5
+    ):
+        obj = obj["result"]
+        seen += 1
+    return obj
+
+
 def load_merge(path):
     try:
         with open(path, "r", encoding="utf-8") as fh:
@@ -130,8 +173,8 @@ def load_merge(path):
     if not content.strip():
         return []
     try:
-        obj = json.loads(content)
-    except json.JSONDecodeError:
+        obj = unwrap_tool_response(load_first_json(content))
+    except ValueError:
         return []
     try:
         return normalize_inbox(obj)
@@ -156,8 +199,8 @@ def main(argv=None):
         print("error: input file is empty: %s" % args.input, file=sys.stderr)
         return 1
     try:
-        obj = json.loads(raw)
-    except json.JSONDecodeError as e:
+        obj = unwrap_tool_response(load_first_json(raw))
+    except ValueError as e:
         print("error: invalid JSON in %s: %s" % (args.input, e), file=sys.stderr)
         return 1
 
