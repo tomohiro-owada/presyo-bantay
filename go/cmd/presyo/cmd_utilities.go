@@ -49,11 +49,13 @@ func cmdUtilitiesFetch(argv []string) int {
 	city := fs.String("city", "Las Piñas", "Maynilad city")
 	maxOil := fs.Int("max-oil", 6, "max oil-monitor PDFs to parse")
 	sections := fs.String("sections", "", "comma-separated sections to fetch (default all: fuel,pump,lpg,meralco,water,fcda)")
+	mayniladX := fs.String("maynilad-x", "", "Maynilad X inbox JSON path (enables the X water source)")
+	mayniladSite := fs.Bool("maynilad-site", false, "enable the legacy Maynilad website fetch for water (default off)")
 	if err := fs.Parse(argv); err != nil {
 		return 1
 	}
 	if *cacheDir == "" || *outPath == "" {
-		fmt.Fprintln(os.Stderr, "usage: presyo utilities fetch -cache DIR -out snapshot.json [-city \"Las Piñas\"] [-max-oil 6] [-sections fuel,pump,lpg,meralco,water,fcda]")
+		fmt.Fprintln(os.Stderr, "usage: presyo utilities fetch -cache DIR -out snapshot.json [-city \"Las Piñas\"] [-max-oil 6] [-sections fuel,pump,lpg,meralco,water,fcda] [-maynilad-x FILE] [-maynilad-site]")
 		return 1
 	}
 	var wanted []string
@@ -89,6 +91,8 @@ func cmdUtilitiesFetch(argv []string) int {
 		City:           *city,
 		UserAgent:      UserAgent,
 		Sections:       wanted,
+		MayniladXInbox: *mayniladX,
+		MayniladSite:   *mayniladSite,
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "utilities fetch: error: %s\n", err.Error())

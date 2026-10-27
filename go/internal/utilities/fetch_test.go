@@ -140,6 +140,7 @@ func fetchOpts(srv *httptest.Server, fs *fixtureServer, cache string) FetchOptio
 		DOEMediaBase: srv.URL,
 		MeralcoBase:  srv.URL,
 		MayniladBase: srv.URL,
+		MayniladSite: true,
 		Sleep:        func(time.Duration) {},
 	}
 }

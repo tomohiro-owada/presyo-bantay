@@ -583,13 +583,20 @@ func checkWaterAlert(text string, s *Snapshot) []string {
 		}
 	}
 	// The joined area lists must appear verbatim per language, so a
-	// renamed area in any block fails.
+	// renamed area in any block fails. X-sourced alerts store the TL
+	// marker and render a per-language label instead.
 	areasTL := strings.Join(a.Areas, ", ")
+	areasEN := areasTL
 	areasJA := strings.Join(a.Areas, "、")
+	if len(a.Areas) == 1 && a.Areas[0] == XAreasTL {
+		areasTL = XAreasTL
+		areasEN = XAreasEN
+		areasJA = XAreasJA
+	}
 	if !strings.Contains(text, "📍 "+areasTL) {
 		add("area list mismatch (TL)")
 	}
-	if !strings.Contains(text, "· "+areasTL+" ·") {
+	if !strings.Contains(text, "· "+areasEN+" ·") {
 		add("area list mismatch (EN)")
 	}
 	if !strings.Contains(text, "・"+areasJA+"・") {

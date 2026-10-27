@@ -30,13 +30,25 @@ type WaterAlert struct {
 	SourceURL  string    `json:"source_url"`
 }
 
+// XAreasTL/EN/JA are the per-language areas labels for X-sourced
+// alerts (no barangay list in the post text). BuildWaterAlerts stores
+// the TL marker; RenderWaterAlertPost and checkWaterAlert expand it
+// per language. All three are digit-free.
+const (
+	XAreasTL = "Ilang barangay — tingnan ang abiso ng Maynilad"
+	XAreasEN = "Some barangays — see the Maynilad advisory"
+	XAreasJA = "一部の地区（詳細は告知をご確認ください）"
+)
+
 // Reason keys and our own wording per language.
 var reasonWords = map[string][3]string{
-	"facility": {"maintenance ng pasilidad", "facility maintenance", "設備メンテナンス"},
-	"network":  {"maintenance ng linya ng tubig", "pipe network maintenance", "配管網メンテナンス"},
-	"repair":   {"pagkukumpuni ng linya", "pipe repair", "配管修理"},
-	"limited":  {"limitadong suplay", "limited supply capacity", "供給能力の制約"},
-	"generic":  {"trabaho ng Maynilad", "Maynilad work", "Maynilad作業"},
+	"facility":  {"maintenance ng pasilidad", "facility maintenance", "設備メンテナンス"},
+	"network":   {"maintenance ng linya ng tubig", "pipe network maintenance", "配管網メンテナンス"},
+	"repair":    {"pagkukumpuni ng linya", "pipe repair", "配管修理"},
+	"limited":   {"limitadong suplay", "limited supply capacity", "供給能力の制約"},
+	"audit":     {"water audit", "water audit", "水量点検"},
+	"emergency": {"emergency na trabaho", "emergency works", "緊急作業"},
+	"generic":   {"trabaho ng Maynilad", "Maynilad work", "Maynilad作業"},
 }
 
 // AlertReason returns our own wording for a reason key by language
@@ -74,6 +86,10 @@ func AlertWindowTL(a *WaterAlert) []string {
 func reasonKeyOf(raw string) string {
 	lower := strings.ToLower(raw)
 	switch {
+	case strings.Contains(lower, "water audit"):
+		return "audit"
+	case strings.Contains(lower, "emergency"):
+		return "emergency"
 	case strings.Contains(lower, "limitation"):
 		return "limited"
 	case strings.Contains(lower, "repair"):
@@ -81,6 +97,10 @@ func reasonKeyOf(raw string) string {
 	case strings.Contains(lower, "network maintenance"):
 		return "network"
 	case strings.Contains(lower, "facility maintenance"):
+		return "facility"
+	case strings.Contains(lower, "pumping station"):
+		return "facility"
+	case strings.Contains(lower, "facility"):
 		return "facility"
 	}
 	return "generic"
@@ -243,6 +263,19 @@ func BuildWaterAlerts(w *WaterStatus) []WaterAlert {
 		}
 		push("maintenance", m.Barangays, m.Schedule, m.Activity, m.PostURL, start, end)
 	}
+	for _, adv := range w.Advisories {
+		out = append(out, WaterAlert{
+			ID:         alertID(adv.Kind, w.City, "x", fmtAlertTime(adv.Start), fmtAlertTime(adv.End)),
+			Kind:       adv.Kind,
+			City:       w.City,
+			Areas:      []string{XAreasTL},
+			Start:      adv.Start,
+			End:        adv.End,
+			WindowText: adv.WindowText,
+			ReasonKey:  adv.ReasonKey,
+			SourceURL:  adv.PostURL,
+		})
+	}
 	return out
 }
 
@@ -292,13 +325,19 @@ func RenderWaterAlertPost(a WaterAlert, pastSample bool) string {
 		reason = reasonWords["generic"]
 	}
 	areasTL := strings.Join(a.Areas, ", ")
+	areasEN := areasTL
 	areasJA := strings.Join(a.Areas, "、")
+	if len(a.Areas) == 1 && a.Areas[0] == XAreasTL {
+		areasTL = XAreasTL
+		areasEN = XAreasEN
+		areasJA = XAreasJA
+	}
 	cityJA := jaCity(a.City)
 	if a.Start.IsZero() || a.End.IsZero() {
 		fmt.Fprintf(&tl, "💧 Walang tubig sa ilang bahagi ng %s\n📅 %s\n📍 %s\n🔧 Dahilan: %s\nMag-ipon ng tubig bago magsimula.\n",
 			a.City, a.WindowText, areasTL, reason[0])
 		fmt.Fprintf(&en, "🇬🇧 Water interruption in parts of %s\n%s · %s · Reason: %s. Store water beforehand.\n",
-			a.City, a.WindowText, areasTL, reason[1])
+			a.City, a.WindowText, areasEN, reason[1])
 		fmt.Fprintf(&ja, "🇯🇵 %sの一部で断水\n%s・%s・理由：%s。事前に水の確保を。\n",
 			cityJA, a.WindowText, areasJA, reason[2])
 	} else {
@@ -308,12 +347,17 @@ func RenderWaterAlertPost(a WaterAlert, pastSample bool) string {
 			tlWeekday[e.Weekday()], tlShort[e.Month()], e.Day(), fmt12(e), areasTL, reason[0])
 		fmt.Fprintf(&en, "🇬🇧 Water interruption in parts of %s\n%s %s %d, %s to %s %s %d, %s · %s · Reason: %s. Store water beforehand.\n",
 			a.City, enWeekday[s.Weekday()], enShort[s.Month()], s.Day(), fmt12(s),
-			enWeekday[e.Weekday()], enShort[e.Month()], e.Day(), fmt12(e), areasTL, reason[1])
+			enWeekday[e.Weekday()], enShort[e.Month()], e.Day(), fmt12(e), areasEN, reason[1])
 		fmt.Fprintf(&ja, "🇯🇵 %sの一部で断水\n%d/%d（%s）%02d:%02d〜%d/%d（%s）%02d:%02d・%s・理由：%s。事前に水の確保を。\n",
 			cityJA, int(s.Month()), s.Day(), jaWeekday[s.Weekday()], s.Hour(), s.Minute(),
 			int(e.Month()), e.Day(), jaWeekday[e.Weekday()], e.Hour(), e.Minute(), areasJA, reason[2])
 	}
 	details := "Details: " + MayniladAdvisoriesURL
+	if strings.HasPrefix(a.SourceURL, "https://x.com/") {
+		details = "Details: " + a.SourceURL
+		footer := details + "\nSource: Maynilad (X) · Hindi opisyal na Maynilad page"
+		return joinAlertBlocks(tl.String(), en.String(), ja.String(), footer)
+	}
 	if a.Kind == "maintenance" && a.SourceURL != "" && a.SourceURL != MayniladAdvisoriesURL {
 		details += " " + a.SourceURL
 	}

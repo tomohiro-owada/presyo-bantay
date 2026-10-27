@@ -118,6 +118,7 @@ type WaterStatus struct {
 	Emergency   []Interruption `json:"emergency"`
 	Rotational  []Interruption `json:"rotational"`
 	Maintenance []Maintenance  `json:"maintenance"`
+	Advisories  []XAdvisory    `json:"advisories,omitempty"`
 }
 
 // FuelStatus groups the DOE fuel datasets (newest first).

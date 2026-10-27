@@ -3,6 +3,7 @@ package utilities
 import (
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestCheckFuelPasses(t *testing.T) {
@@ -224,5 +225,41 @@ func TestCheckWaterTampered(t *testing.T) {
 	// No alert in snapshot.
 	if problems := CheckPost(text, &Snapshot{}, "water"); len(problems) == 0 {
 		t.Fatal("missing alert passed")
+	}
+}
+
+func TestCheckWaterXLabels(t *testing.T) {
+	s := time.Date(2026, 10, 22, 22, 0, 0, 0, manilaLoc)
+	e := time.Date(2026, 10, 23, 6, 0, 0, 0, manilaLoc)
+	a := WaterAlert{
+		ID:         "xtest1234567",
+		Kind:       "scheduled",
+		City:       "Las Piñas",
+		Areas:      []string{XAreasTL},
+		Start:      s,
+		End:        e,
+		WindowText: "from 10:00 p.m. of October 22, 2026 until 6:00 a.m. of October 23, 2026",
+		ReasonKey:  "audit",
+		SourceURL:  "https://x.com/maynilad/status/2111361327537279200",
+	}
+	w := &WaterStatus{City: "Las Piñas", CheckedAt: "2026-10-17T10:00:00+08:00"}
+	snap := &Snapshot{Water: w, Alerts: []WaterAlert{a}}
+	text := RenderWaterAlertPost(a, false)
+	if problems := CheckPost(text, snap, "water"); len(problems) != 0 {
+		t.Fatalf("X alert problems: %v\n%s", problems, text)
+	}
+	if !strings.Contains(text, "📍 "+XAreasTL) {
+		t.Fatalf("TL label missing:\n%s", text)
+	}
+	if !strings.Contains(text, "· "+XAreasEN+" ·") {
+		t.Fatalf("EN label missing:\n%s", text)
+	}
+	if !strings.Contains(text, "・"+XAreasJA+"・") {
+		t.Fatalf("JA label missing:\n%s", text)
+	}
+	// Swapping the JA label for the EN label must fail.
+	bad := strings.Replace(text, XAreasJA, XAreasEN, 1)
+	if problems := CheckPost(bad, snap, "water"); len(problems) == 0 {
+		t.Fatal("swapped JA/EN label passed")
 	}
 }

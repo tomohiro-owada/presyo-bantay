@@ -260,3 +260,10 @@ to its commit paths only if they exist (update daily_test.sh).
 ### B4. Docs
 Update go/README.md utilities section (commands, posting rules, cron line,
 water wording policy: own words + link, no copied text/images).
+
+### B5. Maynilad water via X (offline inbox)
+The website is Cloudflare-challenged, so water advisories come from
+@maynilad via a pushed inbox file instead of the site fetch. See
+`go/UTILITIES_MAYNILAD_X.md` for the v1 inbox format, the normalizer /
+push tooling, and the Go fetch behaviour (`-maynilad-x`, `-maynilad-site`,
+`WaterStatus.Advisories`, `XAdvisory`, `XAreasLabel`).

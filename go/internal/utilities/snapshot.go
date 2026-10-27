@@ -287,48 +287,89 @@ func (f *fetcher) fetchMeralco(ctx context.Context) {
 	}
 }
 
-// fetchWater runs Fetch step 5 (Maynilad interruptions + maintenance).
+// fetchWater runs Fetch step 5 (Maynilad water status).
+// The legacy website fetch is OPTIONAL and DISABLED by default
+// (MayniladSite). The X inbox (MayniladXInbox path) is a cheap local
+// file read. The FCDA fetch still uses the website; it is unchanged.
 func (f *fetcher) fetchWater(ctx context.Context) {
 	water := &WaterStatus{City: f.city, CheckedAt: f.snap.FetchedAt}
-	failed := 0
-	for _, kind := range []string{"scheduled", "emergency", "rotational"} {
-		u := f.maynilad + "/wp-json/interruptions/" + kind + "?id=&city=" + url.QueryEscape(f.city)
-		body, ok := f.getPage(ctx, "maynilad-"+kind, u)
-		if !ok {
-			failed++
-			continue
+	siteOK := false
+	siteFailed := 0
+	siteAttempted := f.site
+	if f.site {
+		for _, kind := range []string{"scheduled", "emergency", "rotational"} {
+			u := f.maynilad + "/wp-json/interruptions/" + kind + "?id=&city=" + url.QueryEscape(f.city)
+			body, ok := f.getPage(ctx, "maynilad-"+kind, u)
+			if !ok {
+				siteFailed++
+				continue
+			}
+			rows, err := ParseInterruptions(body, kind)
+			if err != nil {
+				f.fail("maynilad-%s %s: %v", kind, u, err)
+				siteFailed++
+				continue
+			}
+			switch kind {
+			case "scheduled":
+				water.Scheduled = rows
+			case "emergency":
+				water.Emergency = rows
+			case "rotational":
+				water.Rotational = rows
+			}
 		}
-		rows, err := ParseInterruptions(body, kind)
-		if err != nil {
-			f.fail("maynilad-%s %s: %v", kind, u, err)
-			failed++
-			continue
-		}
-		switch kind {
-		case "scheduled":
-			water.Scheduled = rows
-		case "emergency":
-			water.Emergency = rows
-		case "rotational":
-			water.Rotational = rows
-		}
-	}
-	postsURL := f.maynilad + "/wp-json/wp/v2/posts?search=maintenance%20activities&_fields=id,date,link,title,content&per_page=3"
-	if body, ok := f.getPage(ctx, "maynilad-maintenance", postsURL); ok {
-		rows, err := ParseMaintenancePosts(body, f.city)
-		if err != nil {
-			f.fail("maynilad-maintenance %s: %v", postsURL, err)
-			failed++
+		postsURL := f.maynilad + "/wp-json/wp/v2/posts?search=maintenance%20activities&_fields=id,date,link,title,content&per_page=3"
+		if body, ok := f.getPage(ctx, "maynilad-maintenance", postsURL); ok {
+			rows, err := ParseMaintenancePosts(body, f.city)
+			if err != nil {
+				f.fail("maynilad-maintenance %s: %v", postsURL, err)
+				siteFailed++
+			} else {
+				water.Maintenance = rows
+			}
 		} else {
-			water.Maintenance = rows
+			siteFailed++
 		}
-	} else {
-		failed++
+		if siteFailed < 4 {
+			siteOK = true
+		}
 	}
-	if failed == 4 {
-		f.fail("maynilad: no water status parsed")
+	// X inbox source.
+	xOK := false
+	var advisories []XAdvisory
+	if f.xInbox != "" {
+		in, err := LoadXInbox(f.xInbox)
+		if err != nil {
+			if os.IsNotExist(err) {
+				// Missing file: warning only, no section failure.
+				// (No f.fail so offline runs without an inbox stay clean.)
+			} else {
+				f.fail("maynilad-x %s: %v", f.xInbox, err)
+			}
+		} else {
+			if staleXInbox(in.FetchedAt, f.now) {
+				f.warn("maynilad-x %s: stale inbox (fetched_at %s)", f.xInbox, in.FetchedAt.Format(time.RFC3339))
+			}
+			advisories = ParseXAdvisories(in, f.city, f.now)
+			if advisories == nil {
+				advisories = []XAdvisory{}
+			}
+			f.source("maynilad-x", f.xInbox, 200, len(advisories), nil, time.Now(), nil)
+			xOK = true
+		}
+	}
+	if !siteAttempted && !xOK && f.xInbox == "" {
+		return // neither source configured: omit Water like today
+	}
+	if !siteOK && !xOK {
+		if siteAttempted && siteFailed == 4 && f.xInbox == "" {
+			f.fail("maynilad: no water status parsed")
+		}
 		return // water fetch failed entirely: omit the water status
 	}
+	// A site-wide 403 no longer fails the whole section when the X
+	// inbox produced data: siteOK==false + xOK==true still stamps.
 	if water.Scheduled == nil {
 		water.Scheduled = []Interruption{}
 	}
@@ -341,8 +382,22 @@ func (f *fetcher) fetchWater(ctx context.Context) {
 	if water.Maintenance == nil {
 		water.Maintenance = []Maintenance{}
 	}
+	if xOK {
+		water.Advisories = advisories
+		if water.Advisories == nil {
+			water.Advisories = []XAdvisory{}
+		}
+	}
 	f.snap.Water = water
 	f.stampSection("water")
+}
+
+// staleXInbox reports whether fetched_at is older than 12h at fetch time.
+func staleXInbox(fetchedAt, now time.Time) bool {
+	if fetchedAt.IsZero() {
+		return true
+	}
+	return now.Sub(fetchedAt.In(manilaLoc)) > 12*time.Hour
 }
 
 // fetchFCDA runs the Maynilad FCDA notices fetch (section "fcda").
@@ -378,7 +433,7 @@ var sectionSourcePrefixes = map[string][]string{
 	"pump":    {"doe-ncr-pump"},
 	"lpg":     {"doe-ncr-lpg"},
 	"meralco": {"meralco-"},
-	"water":   {"maynilad-scheduled", "maynilad-emergency", "maynilad-rotational", "maynilad-maintenance"},
+	"water":   {"maynilad-scheduled", "maynilad-emergency", "maynilad-rotational", "maynilad-maintenance", "maynilad-x"},
 	"fcda":    {"maynilad-fcda"},
 }
 

@@ -68,6 +68,12 @@ type FetchOptions struct {
 	// Sections limits the fetch to named sections
 	// (fuel,pump,lpg,meralco,water,fcda); nil/empty fetches all.
 	Sections []string
+	// MayniladSite enables the legacy Maynilad website fetch for the
+	// water section (default false: behind a Cloudflare challenge).
+	MayniladSite bool
+	// MayniladXInbox is the path to the normalized X inbox JSON for
+	// the water section (empty disables the X source).
+	MayniladXInbox string
 }
 
 // FetchSections are the valid -sections names.
@@ -89,6 +95,8 @@ type fetcher struct {
 	maynilad string
 	sleep    func(time.Duration)
 	sections map[string]bool
+	xInbox   string
+	site     bool
 
 	lastHost map[string]time.Time
 	requests int
@@ -118,6 +126,8 @@ func Fetch(ctx context.Context, opts FetchOptions) (*Snapshot, error) {
 		meralco:  opts.MeralcoBase,
 		maynilad: opts.MayniladBase,
 		sleep:    opts.Sleep,
+		xInbox:   opts.MayniladXInbox,
+		site:     opts.MayniladSite,
 		lastHost: map[string]time.Time{},
 		snap: &Snapshot{
 			Sources: []Source{},
@@ -207,6 +217,12 @@ func (f *fetcher) stampSection(name string) {
 
 // fail records a per-source failure; partial snapshots are OK.
 func (f *fetcher) fail(format string, args ...any) {
+	f.snap.Errors = append(f.snap.Errors, fmt.Sprintf(format, args...))
+}
+
+// warn records a non-failing warning (still surfaced via Errors,
+// printed as WARNING by the CLI, but never omits a section).
+func (f *fetcher) warn(format string, args ...any) {
 	f.snap.Errors = append(f.snap.Errors, fmt.Sprintf(format, args...))
 }
 

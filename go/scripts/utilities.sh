@@ -99,9 +99,10 @@ if [ "$DOM" -ge 1 ] && [ "$DOM" -le 15 ] && ! stamp_is_today lpg; then
   add_section lpg
   echo "$TODAY" >"$UDATA/stamps/lpg"
 fi
-# water + fcda: hours divisible by 3 (fcda on days 10-20 only).
+# water: every hour (cheap local X inbox read); fcda: hours divisible
+# by 3 on days 10-20 only (still the website fetch).
+add_section water
 if [ "$((HOUR % 3))" -eq 0 ]; then
-  add_section water
   if [ "$DOM" -ge 10 ] && [ "$DOM" -le 20 ]; then
     add_section fcda
   fi
@@ -109,12 +110,13 @@ fi
 echo "utilities.sh: sections='$sections' (dow=$DOW dom=$DOM hour=$HOUR)"
 
 SNAP="$UDATA/snapshot.json"
+MAYNILAD_X_INBOX="${MAYNILAD_X_INBOX:-$PRESYO_HOME/inbox/maynilad_x.json}"
 
 # --- 2. fetch (skipped when no section is due) ---
 if [ -z "$sections" ]; then
   echo "utilities.sh: no sections due, skipping fetch/utilpages/commit"
 else
-  if "$BIN" utilities fetch -sections "$sections" -cache "$UDATA/cache" -out "$SNAP"; then
+  if "$BIN" utilities fetch -sections "$sections" -cache "$UDATA/cache" -out "$SNAP" -maynilad-x "$MAYNILAD_X_INBOX"; then
     fetch_rc=0
   else
     fetch_rc=$?

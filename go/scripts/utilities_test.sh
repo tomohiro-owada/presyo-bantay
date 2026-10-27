@@ -96,6 +96,8 @@ rev_before="$(origin_rev)"
 if ! "$UTIL"; then bad "utilities.sh exited non-zero on Tue"; else ok "Tue run exit 0"; fi
 [ "$(fetch_sections)" = "fetch -sections fuel,pump,meralco,lpg,water,fcda" ] \
   && ok "Tue sections = all due" || bad "Tue sections: $(fetch_sections)"
+calls | grep -q -- "-maynilad-x $PRESYO_HOME/inbox/maynilad_x.json" \
+  && ok "Tue fetch passes default -maynilad-x" || bad "missing default -maynilad-x: $(calls)"
 calls | grep -q "utilpages -snapshot $UDATA/snapshot.json -site-public $REPO/site/public" \
   && ok "utilpages runs with snapshot + site-public" || bad "utilpages call: $(calls)"
 calls | grep -q "fbutil -db $DB -site-public $REPO/site/public -auto$" \
@@ -105,31 +107,31 @@ calls | grep -q "fbutil -db $DB -site-public $REPO/site/public -auto$" \
 git -C "$REPO" log -1 --format=%s | grep -qE '^utilities: [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$' \
   && ok "commit message is 'utilities: YYYY-MM-DD HH:MM'" || bad "commit message: $(git -C "$REPO" log -1 --format=%s)"
 
-# --- 2. Thursday 08:00: only stamped dailies (no fuel, no water) ---
+# --- 2. Thursday 08:00: stamped dailies + hourly water (no fuel, no fcda) ---
 export UTIL_DOW=4 UTIL_DOM=12 UTIL_HOUR=8 UTIL_TODAY=2026-10-29
 rm -rf "$UDATA/stamps"
 reset_calls
 if ! "$UTIL"; then bad "Thu 08:00 run failed"; else ok "Thu 08:00 exit 0"; fi
-[ "$(fetch_sections)" = "fetch -sections meralco,lpg" ] \
-  && ok "Thu 08:00 sections = meralco,lpg" || bad "sections: $(fetch_sections)"
+[ "$(fetch_sections)" = "fetch -sections meralco,lpg,water" ] \
+  && ok "Thu 08:00 sections = meralco,lpg,water" || bad "sections: $(fetch_sections)"
+calls | grep -q -- "-maynilad-x " \
+  && ok "fetch passes -maynilad-x" || bad "missing -maynilad-x: $(calls)"
 
-# --- 3. second run same day: stamps suppress refetch, fbutil still runs ---
+# --- 3. second run same day: stamps suppress dailies, hourly water still runs ---
 reset_calls
 if ! "$UTIL"; then bad "second run failed"; else ok "second run exit 0"; fi
-calls | grep -q "utilities fetch" \
-  && bad "fetch ran despite stamps: $(calls)" || ok "fetch skipped when nothing due"
-grep -q "no sections due" "$LOG" \
-  && ok "nothing-due logged" || bad "nothing-due not logged"
+[ "$(fetch_sections)" = "fetch -sections water" ] \
+  && ok "second run fetches water only" || bad "sections: $(fetch_sections)"
 calls | grep -q "fbutil .* -auto" \
-  && ok "fbutil still runs with no sections" || bad "fbutil missing: $(calls)"
+  && ok "fbutil still runs with water-only fetch" || bad "fbutil missing: $(calls)"
 
 # --- 4. Thursday 10:00: first run after 09:00 fetches fuel+pump ---
 rm -rf "$UDATA/stamps"
 export UTIL_HOUR=10
 reset_calls
 if ! "$UTIL"; then bad "Thu 10:00 run failed"; else ok "Thu 10:00 exit 0"; fi
-[ "$(fetch_sections)" = "fetch -sections fuel,pump,meralco,lpg" ] \
-  && ok "Thu 10:00 sections include fuel,pump" || bad "sections: $(fetch_sections)"
+[ "$(fetch_sections)" = "fetch -sections fuel,pump,meralco,lpg,water" ] \
+  && ok "Thu 10:00 sections include fuel,pump,water" || bad "sections: $(fetch_sections)"
 
 # --- 5. disabled file skips fbutil only ---
 mkdir -p "$PRESYO_HOME/.config/presyo"
