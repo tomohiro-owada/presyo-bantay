@@ -128,6 +128,9 @@ func FetchRates(since, until, base, quote string) (map[string]float64, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusNotFound {
+		return map[string]float64{}, nil
+	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, fmt.Errorf("frankfurter HTTP %d", resp.StatusCode)
 	}

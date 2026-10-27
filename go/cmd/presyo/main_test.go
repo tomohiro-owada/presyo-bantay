@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/tomohiro-owada/presyo-bantay/go/internal/fx"
 	"github.com/tomohiro-owada/presyo-bantay/go/internal/store"
 )
 
@@ -371,5 +372,24 @@ func TestIngestSummaryListsDates(t *testing.T) {
 	}
 	if !strings.Contains(out.String(), "2026-10-23") {
 		t.Fatalf("summary missing date: %q", out.String())
+	}
+}
+
+// TestFx404NoNewRatesExitsZero ensures a Frankfurter 404 (no published
+// rate yet for the range) is not a failure: cmdFx exits 0.
+func TestFx404NoNewRatesExitsZero(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(404)
+		io.WriteString(w, `{"message":"not found"}`)
+	}))
+	defer srv.Close()
+	old := fx.APIBase
+	fx.APIBase = srv.URL + "/v1"
+	defer func() { fx.APIBase = old }()
+
+	dbPath := filepath.Join(t.TempDir(), "t.db")
+	if code := cmdFx([]string{"-db", dbPath, "-since", "2026-10-27", "-until", "2026-10-27"}); code != 0 {
+		t.Fatalf("exit %d, want 0", code)
 	}
 }

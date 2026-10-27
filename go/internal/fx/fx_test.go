@@ -222,6 +222,52 @@ func TestFetchRatesURLAndParams(t *testing.T) {
 	}
 }
 
+func TestFetchRatesStatuses(t *testing.T) {
+	fixture := string(fixtureBytes(t, "fx", "frankfurter-usd-php-2026-10.json"))
+	tests := []struct {
+		name     string
+		status   int
+		body     string
+		wantLen  int
+		wantErr  string
+		wantRate float64
+	}{
+		{name: "404 no new rates", status: 404, body: `{"message":"not found"}`, wantLen: 0},
+		{name: "500 still errors", status: 500, body: `internal error`, wantLen: 0, wantErr: "HTTP 500"},
+		{name: "200 range parses", status: 200, body: fixture, wantLen: 17, wantRate: 62.799},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(tc.status)
+				w.Write([]byte(tc.body))
+			}))
+			defer srv.Close()
+			old := APIBase
+			APIBase = srv.URL + "/v1"
+			defer func() { APIBase = old }()
+
+			rates, err := FetchRates("2026-10-01", "2026-10-23", FXBase, FXQuote)
+			if tc.wantErr != "" {
+				if err == nil || !contains(err.Error(), tc.wantErr) {
+					t.Fatalf("err = %v, want containing %q", err, tc.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("err = %v", err)
+			}
+			if len(rates) != tc.wantLen {
+				t.Fatalf("rates = %d, want %d", len(rates), tc.wantLen)
+			}
+			if tc.wantRate != 0 && rates["2026-10-01"] != tc.wantRate {
+				t.Fatalf("10-01 = %v, want %v", rates["2026-10-01"], tc.wantRate)
+			}
+		})
+	}
+}
+
 func contains(s, sub string) bool {
 	for i := 0; i+len(sub) <= len(s); i++ {
 		if s[i:i+len(sub)] == sub {
