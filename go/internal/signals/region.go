@@ -349,18 +349,14 @@ func ComputeRegion(db *sql.DB, regionID string, opt RegionOptions) (*RegionSigna
 		}
 		return deals[i].Name < deals[j].Name
 	})
-	if len(deals) > RegionMaxDeals {
-		deals = deals[:RegionMaxDeals]
-	}
-	for i := range deals {
-		deals[i].Rank = i + 1
-	}
-	if deals == nil {
-		deals = []RegionDeal{}
-	}
 
 	// Pricier: per commodity, among region markets with a valid basis, if
 	// at least half of them (and >= 2 markets) have pct >= +deal.
+	// Computed UNCAPPED before deals are capped so the regional majority
+	// view wins: a commodity that is region-wide pricier must never also
+	// appear as a single-market deal (same price would read as both
+	// cheaper and pricier), even when it falls outside the top-3 pricier
+	// cap. Excluded deals are refilled by the next-best candidates below.
 	var pricier []RegionPricier
 	for c := range unitAcross(stats) {
 		var withBasis []*regionMarketStats
@@ -400,6 +396,28 @@ func ComputeRegion(db *sql.DB, regionID string, opt RegionOptions) (*RegionSigna
 		}
 		return pricier[i].Name < pricier[j].Name
 	})
+	pricierEligible := map[string]bool{}
+	for _, p := range pricier {
+		pricierEligible[p.Name] = true
+	}
+	if len(pricierEligible) > 0 {
+		kept := deals[:0]
+		for _, d := range deals {
+			if !pricierEligible[d.Name] {
+				kept = append(kept, d)
+			}
+		}
+		deals = kept
+	}
+	if len(deals) > RegionMaxDeals {
+		deals = deals[:RegionMaxDeals]
+	}
+	for i := range deals {
+		deals[i].Rank = i + 1
+	}
+	if deals == nil {
+		deals = []RegionDeal{}
+	}
 	if len(pricier) > RegionMaxPricier {
 		pricier = pricier[:RegionMaxPricier]
 	}

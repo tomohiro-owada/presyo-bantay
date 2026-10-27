@@ -339,3 +339,153 @@ func TestRegionDefaultAsOf(t *testing.T) {
 		t.Errorf("as_of = %q", sig.AsOf)
 	}
 }
+
+// A commodity that is both a single-market deal and region-wide pricier
+// must appear only in pricier (regional majority wins); the deals list
+// refills up to the cap with the next-best candidates.
+func TestRegionDealPricierExclusion(t *testing.T) {
+	s := newRegionTestSetup(t)
+	comms := []string{"Tilapia", "Bangus", "Chayote", "Ampalaya", "Eggplant", "Tomato"}
+	for _, c := range comms {
+		s.addComm(t, c)
+	}
+	mk := regionTestMarkets[:5]
+	for _, c := range comms {
+		for _, m := range mk {
+			s.base(t, m, c, 30, 100)
+		}
+	}
+	// Conflict: single-market deal (-30) AND region-wide pricier
+	// (3 of 5 markets >= +8).
+	s.asof(t, mk[0], "Tilapia", 70)
+	s.asof(t, mk[1], "Tilapia", 110)
+	s.asof(t, mk[2], "Tilapia", 110)
+	s.asof(t, mk[3], "Tilapia", 110)
+	s.asof(t, mk[4], "Tilapia", 100)
+	// Fillers: deals only, other markets flat.
+	dealPrice := map[string]float64{
+		"Bangus": 75, "Chayote": 80, "Ampalaya": 85, "Eggplant": 88, "Tomato": 90,
+	}
+	for c, v := range dealPrice {
+		s.asof(t, mk[0], c, v)
+		for _, m := range mk[1:] {
+			s.asof(t, m, c, 100)
+		}
+	}
+	sig := computeSouth(t, s)
+	cases := []struct {
+		name          string
+		wantInDeals   bool
+		wantInPricier bool
+	}{
+		{"Tilapia", false, true},
+		{"Bangus", true, false},
+		{"Chayote", true, false},
+		{"Ampalaya", true, false},
+		{"Eggplant", true, false},
+		{"Tomato", true, false},
+	}
+	inDeals := map[string]bool{}
+	for _, d := range sig.Deals {
+		inDeals[d.Name] = true
+	}
+	inPricier := map[string]bool{}
+	for _, p := range sig.Pricier {
+		inPricier[p.Name] = true
+	}
+	for _, tc := range cases {
+		if got := inDeals[tc.name]; got != tc.wantInDeals {
+			t.Errorf("%s inDeals = %v, want %v (deals=%+v)", tc.name, got, tc.wantInDeals, sig.Deals)
+		}
+		if got := inPricier[tc.name]; got != tc.wantInPricier {
+			t.Errorf("%s inPricier = %v, want %v (pricier=%+v)", tc.name, got, tc.wantInPricier, sig.Pricier)
+		}
+	}
+	if len(sig.Deals) != 5 {
+		t.Fatalf("deals len = %d, want 5 (refilled): %+v", len(sig.Deals), sig.Deals)
+	}
+	// Refilled: the worst filler (-10) is present, ranks sequential.
+	foundTomato := false
+	for i, d := range sig.Deals {
+		if d.Rank != i+1 {
+			t.Errorf("deal rank = %d, want %d", d.Rank, i+1)
+		}
+		if d.Name == "Tomato" {
+			foundTomato = true
+		}
+	}
+	if !foundTomato {
+		t.Errorf("Tomato must refill the deals list: %+v", sig.Deals)
+	}
+	for _, d := range sig.Deals {
+		if d.Name == "Tilapia" {
+			t.Errorf("Tilapia must not appear in deals: %+v", sig.Deals)
+		}
+	}
+}
+
+// Pricier eligibility is uncapped for the exclusion: even a commodity
+// outside the final top-3 pricier cap must not appear as a deal.
+func TestRegionDealPricierUncappedExclusion(t *testing.T) {
+	s := newRegionTestSetup(t)
+	comms := []string{"Tilapia", "Bangus", "Chayote", "Ampalaya", "Eggplant"}
+	for _, c := range comms {
+		s.addComm(t, c)
+	}
+	mk := regionTestMarkets[:5]
+	for _, c := range comms {
+		for _, m := range mk {
+			s.base(t, m, c, 30, 100)
+		}
+	}
+	// Three strong pricier commodities (+50/+40/+30 on 3 of 5 markets).
+	strong := map[string]float64{"Bangus": 150, "Chayote": 140, "Ampalaya": 130}
+	for c, v := range strong {
+		for _, m := range mk[:3] {
+			s.asof(t, m, c, v)
+		}
+		for _, m := range mk[3:] {
+			s.asof(t, m, c, 100)
+		}
+	}
+	// Conflict: deal (-30) in one market, weak pricier (+10 on 3 markets).
+	// Pricier-eligible but ranked 4th, outside the top-3 cap.
+	s.asof(t, mk[0], "Tilapia", 70)
+	s.asof(t, mk[1], "Tilapia", 110)
+	s.asof(t, mk[2], "Tilapia", 110)
+	s.asof(t, mk[3], "Tilapia", 110)
+	s.asof(t, mk[4], "Tilapia", 100)
+	// Plain deal, never pricier.
+	s.asof(t, mk[0], "Eggplant", 90)
+	for _, m := range mk[1:] {
+		s.asof(t, m, "Eggplant", 100)
+	}
+	sig := computeSouth(t, s)
+	cases := []struct {
+		name          string
+		wantInDeals   bool
+		wantInPricier bool
+	}{
+		{"Tilapia", false, false},
+		{"Bangus", false, true},
+		{"Chayote", false, true},
+		{"Ampalaya", false, true},
+		{"Eggplant", true, false},
+	}
+	inDeals := map[string]bool{}
+	for _, d := range sig.Deals {
+		inDeals[d.Name] = true
+	}
+	inPricier := map[string]bool{}
+	for _, p := range sig.Pricier {
+		inPricier[p.Name] = true
+	}
+	for _, tc := range cases {
+		if got := inDeals[tc.name]; got != tc.wantInDeals {
+			t.Errorf("%s inDeals = %v, want %v (deals=%+v)", tc.name, got, tc.wantInDeals, sig.Deals)
+		}
+		if got := inPricier[tc.name]; got != tc.wantInPricier {
+			t.Errorf("%s inPricier = %v, want %v (pricier=%+v)", tc.name, got, tc.wantInPricier, sig.Pricier)
+		}
+	}
+}

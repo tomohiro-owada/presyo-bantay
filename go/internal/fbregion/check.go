@@ -268,8 +268,11 @@ func CheckPost(sig *signals.RegionSignals, post string) *Report {
 				continue
 			}
 			names := matchNames(norm, latin, jp)
-			isPricierLine := !strings.HasPrefix(strings.TrimSpace(ln), "•") || pricierLineHint(ln, dealByName, names)
-			_ = isPricierLine
+			// Section-aware binding: a bullet matching dealLineRe
+			// (ends with "· <market>") is a deal line, otherwise a
+			// pricier line. Check the entry of that kind first so a
+			// name/price collision binds to the right entry.
+			isDealLine := dealLineRe.MatchString(ln)
 			for _, m := range ms {
 				price, d := parseNum(m[1])
 				sign, pctStr := m[3], m[4]
@@ -284,8 +287,39 @@ func CheckPost(sig *signals.RegionSignals, post string) *Report {
 					flag(lnNo, snip, price, advice.KindPeso, ReasonNoMatch, nil)
 					continue
 				}
-				// Prefer a deal or pricier entry among the named items
-				// that matches the price; then verify pct + market.
+				kindMatched := false
+				if isDealLine {
+					for _, n := range names {
+						if dEntry, ok := dealByName[n]; ok && approxPrice(price, d, dEntry.Price) {
+							if pct != dEntry.PctRounded {
+								flag(lnNo, snip, float64(pct), advice.KindPercent, ReasonWrongPct, []string{n})
+							} else if mm := dealLineRe.FindStringSubmatch(ln); mm == nil || strings.TrimSpace(mm[2]) != dEntry.MarketShort {
+								flag(lnNo, snip, price, advice.KindPeso, ReasonMarketMismatch, []string{n})
+							} else {
+								markOK()
+							}
+							kindMatched = true
+							break
+						}
+					}
+				} else {
+					for _, n := range names {
+						if pEntry, ok := pricierByName[n]; ok && approxPrice(price, d, pEntry.PriceMedian) {
+							if pct != pEntry.PctRounded {
+								flag(lnNo, snip, float64(pct), advice.KindPercent, ReasonWrongPct, []string{n})
+							} else {
+								markOK()
+							}
+							kindMatched = true
+							break
+						}
+					}
+				}
+				if kindMatched {
+					continue
+				}
+				// Fall back to the generic behaviour (deal first then
+				// pricier) when this kind has no price match.
 				matched := false
 				for _, n := range names {
 					if dEntry, ok := dealByName[n]; ok && approxPrice(price, d, dEntry.Price) {
@@ -372,6 +406,10 @@ func CheckPost(sig *signals.RegionSignals, post string) *Report {
 		if idx := strings.Index(body, "："); idx >= 0 && strings.HasPrefix(body, "高め") {
 			body = strings.TrimSpace(body[idx+len("："):])
 		}
+		// Section-aware binding: ✅ lines are deal lines, ⚠️ lines are
+		// pricier lines. Check the entry of that kind first so a
+		// name/price collision binds to the right entry.
+		lineIsDeal := strings.HasPrefix(trimmed, "✅")
 		segs := splitSegments(body)
 		for _, sg := range segs {
 			sg = strings.TrimSpace(sg)
@@ -395,6 +433,37 @@ func CheckPost(sig *signals.RegionSignals, post string) *Report {
 				flag(lnNo, sg, price, advice.KindPeso, ReasonNoMatch, nil)
 				continue
 			}
+			kindBound := false
+			if lineIsDeal {
+				for _, n := range snames {
+					if de, isD := dealByName[n]; isD && approxPrice(price, d, de.Price) {
+						if pct != de.PctRounded {
+							flag(lnNo, sg, float64(pct), advice.KindPercent, ReasonWrongPct, []string{n})
+						} else {
+							markOK()
+						}
+						kindBound = true
+						break
+					}
+				}
+			} else {
+				for _, n := range snames {
+					if pe, isP := pricierByName[n]; isP && approxPrice(price, d, pe.PriceMedian) {
+						if pct != pe.PctRounded {
+							flag(lnNo, sg, float64(pct), advice.KindPercent, ReasonWrongPct, []string{n})
+						} else {
+							markOK()
+						}
+						kindBound = true
+						break
+					}
+				}
+			}
+			if kindBound {
+				continue
+			}
+			// Fall back to the generic behaviour (deal first then
+			// pricier) when this kind has no price match.
 			bound := false
 			for _, n := range snames {
 				if de, isD := dealByName[n]; isD && approxPrice(price, d, de.Price) {

@@ -131,6 +131,65 @@ func TestCheckPostTampering(t *testing.T) {
 	}
 }
 
+func overlapSignals() *signals.RegionSignals {
+	return &signals.RegionSignals{
+		AsOf:   "2026-10-26",
+		Region: signals.RegionRef{ID: "qc", TitleTL: "Quezon City", TitleEN: "Quezon City", TitleJA: "ケソン市"},
+		Thresholds: signals.RegionThresholds{
+			DealPct: 8, MinDays: 10, MaxTrend7dPct: 5,
+		},
+		Deals: []signals.RegionDeal{
+			{Name: "Red Chili (Local)", Market: "Murphy Public Market", MarketShort: "Murphy", Unit: "per kg", Price: 300, Median30d: 350, PctVsMedian30d: -14.3, PctRounded: -14, DiffVsMedian30d: -50, NMarketsWithDeal: 1},
+		},
+		Pricier: []signals.RegionPricier{
+			{Name: "Red Chili (Local)", Unit: "per kg", PriceMedian: 300, PctMedian: 21, PctRounded: 21, NMarketsPricier: 6, NMarkets: 7},
+		},
+		GeneratedBy: "test",
+	}
+}
+
+// Same commodity name and same price in both lists: each line binds to
+// the entry of its own kind. Correct pcts pass; a pricier line carrying
+// the wrong pct still fails with "wrong pct".
+func TestCheckPostOverlapNamePrice(t *testing.T) {
+	sig := overlapSignals()
+	good := RenderPost(sig)
+	if rep := CheckPost(sig, good); rep.Status != StatusPass {
+		t.Fatalf("overlap post should pass: flagged=%+v lint=%+v\n%s", rep.Flagged, rep.Lint, good)
+	}
+	cases := []struct {
+		name string
+		bad  string
+	}{
+		{"TL pricier +21->+14", tamper(good, "₱300/kg (+21%)", "₱300/kg (+14%)")},
+		{"TL pricier +21->-14", tamper(good, "• Siling pula ₱300/kg (+21%)", "• Siling pula ₱300/kg (−14%)")},
+		{"EN pricier +21->+14", tamper(good, "Red chili ₱300 (+21%)", "Red chili ₱300 (+14%)")},
+		{"EN pricier +21->-14", tamper(good, "Red chili ₱300 (+21%)", "Red chili ₱300 (−14%)")},
+		{"JA pricier +21->+14", tamper(good, "赤唐辛子 ₱300（+21%）", "赤唐辛子 ₱300（+14%）")},
+		{"JA pricier +21->-14", tamper(good, "赤唐辛子 ₱300（+21%）", "赤唐辛子 ₱300（−14%）")},
+		{"TL deal -14->-15", tamper(good, "• Siling pula ₱300/kg (−14%) · Murphy", "• Siling pula ₱300/kg (−15%) · Murphy")},
+		{"EN deal -14->-15", tamper(good, "Red chili ₱300 (−14%)", "Red chili ₱300 (−15%)")},
+		{"JA deal -14->-15", tamper(good, "赤唐辛子 ₱300（−14%）", "赤唐辛子 ₱300（−15%）")},
+	}
+	for _, c := range cases {
+		rep := CheckPost(sig, c.bad)
+		if rep.Status != StatusFail {
+			t.Errorf("%s: tampered post passed (total=%d ok=%d)", c.name, rep.Total, rep.OK)
+			continue
+		}
+		found := false
+		for _, f := range rep.Flagged {
+			if strings.Contains(f.Reason, "wrong pct") {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Errorf("%s: no wrong pct flag: %+v", c.name, rep.Flagged)
+		}
+	}
+}
+
 // TestNoNestedParensAllRegions renders a post for every region (using that
 // region's own market shorts, including the ex-parenthesised "Grace,
 // Pateros" and "Farmers, Cubao") and asserts no text line contains nested
