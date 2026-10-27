@@ -339,23 +339,27 @@ func (f *fetcher) fetchWater(ctx context.Context) {
 	xOK := false
 	var advisories []XAdvisory
 	if f.xInbox != "" {
+		// The inbox path is local and unpublished: sources and errors
+		// are stored verbatim in the snapshot, so only the base name
+		// (never the full path) may appear in them.
+		inboxLabel := filepath.Base(f.xInbox)
 		in, err := LoadXInbox(f.xInbox)
 		if err != nil {
 			if os.IsNotExist(err) {
 				// Missing file: warning only, no section failure.
 				// (No f.fail so offline runs without an inbox stay clean.)
 			} else {
-				f.fail("maynilad-x %s: %v", f.xInbox, err)
+				f.fail("maynilad-x %s: %v", inboxLabel, sanitizeInboxErr(err, f.xInbox, inboxLabel))
 			}
 		} else {
 			if staleXInbox(in.FetchedAt, f.now) {
-				f.warn("maynilad-x %s: stale inbox (fetched_at %s)", f.xInbox, in.FetchedAt.Format(time.RFC3339))
+				f.warn("maynilad-x %s: stale inbox (fetched_at %s)", inboxLabel, in.FetchedAt.Format(time.RFC3339))
 			}
 			advisories = ParseXAdvisories(in, f.city, f.now)
 			if advisories == nil {
 				advisories = []XAdvisory{}
 			}
-			f.source("maynilad-x", f.xInbox, 200, len(advisories), nil, time.Now(), nil)
+			f.source("maynilad-x", MayniladXAccountURL, 200, len(advisories), nil, time.Now(), nil)
 			xOK = true
 		}
 	}
@@ -390,6 +394,19 @@ func (f *fetcher) fetchWater(ctx context.Context) {
 	}
 	f.snap.Water = water
 	f.stampSection("water")
+}
+
+// sanitizeInboxErr rewrites an inbox load error for publication: the
+// wrapped error (os.ReadFile, LoadXInbox) embeds the full local path,
+// so every occurrence is replaced with the file's base name.
+func sanitizeInboxErr(err error, fullPath, base string) string {
+	if err == nil {
+		return ""
+	}
+	if fullPath == "" || fullPath == base {
+		return err.Error()
+	}
+	return strings.ReplaceAll(err.Error(), fullPath, base)
 }
 
 // staleXInbox reports whether fetched_at is older than 12h at fetch time.

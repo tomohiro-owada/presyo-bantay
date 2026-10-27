@@ -291,3 +291,91 @@ func TestFetchWaterXOnly(t *testing.T) {
 		t.Fatal("malformed inbox produced no error")
 	}
 }
+
+func TestFetchWaterXNoLocalPathLeak(t *testing.T) {
+	// The inbox lives in a local directory, but Sources and Errors are
+	// published verbatim in utilities.json: none of them may embed the
+	// inbox directory path.
+	srv := httptest.NewServer(httpHandlerFunc(func() {}))
+	defer srv.Close()
+	fetchWater := func(t *testing.T, inbox string, now time.Time) *Snapshot {
+		t.Helper()
+		snap, err := Fetch(context.Background(), FetchOptions{
+			Client:         srv.Client(),
+			Now:            now,
+			MinDelay:       -1,
+			MayniladBase:   srv.URL,
+			MayniladXInbox: inbox,
+			Sections:       []string{"water"},
+			Sleep:          func(time.Duration) {},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return snap
+	}
+	assertNoInboxDir := func(t *testing.T, snap *Snapshot, inboxDir string) {
+		t.Helper()
+		for _, src := range snap.Sources {
+			if strings.Contains(src.URL, inboxDir) {
+				t.Fatalf("source %q URL leaks inbox dir: %q", src.Name, src.URL)
+			}
+			if strings.Contains(src.Err, inboxDir) {
+				t.Fatalf("source %q err leaks inbox dir: %q", src.Name, src.Err)
+			}
+		}
+		for _, e := range snap.Errors {
+			if strings.Contains(e, inboxDir) {
+				t.Fatalf("error leaks inbox dir: %q", e)
+			}
+		}
+	}
+	// 1. Success: the maynilad-x source URL is the public account URL.
+	dir := t.TempDir()
+	tmp := filepath.Join(dir, "inbox.json")
+	b, _ := os.ReadFile(testdata(t, "maynilad_x/inbox-2026-10-28.json"))
+	if err := os.WriteFile(tmp, b, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	snap := fetchWater(t, tmp, manila(t, "2026-10-17T10:00:00+08:00"))
+	found := false
+	for _, src := range snap.Sources {
+		if src.Name == "maynilad-x" {
+			found = true
+			if src.URL != MayniladXAccountURL {
+				t.Fatalf("maynilad-x URL = %q, want %q", src.URL, MayniladXAccountURL)
+			}
+		}
+	}
+	if !found {
+		t.Fatal("no maynilad-x source")
+	}
+	assertNoInboxDir(t, snap, dir)
+	// 2. Stale inbox: the warning carries only the base name.
+	stale := fetchWater(t, tmp, manila(t, "2026-10-29T10:00:00+08:00"))
+	assertNoInboxDir(t, stale, dir)
+	staleWarn := false
+	for _, e := range stale.Errors {
+		if strings.Contains(e, "stale inbox") {
+			staleWarn = true
+			if !strings.Contains(e, "inbox.json") {
+				t.Fatalf("stale warning lost inbox name: %q", e)
+			}
+		}
+	}
+	if !staleWarn {
+		t.Fatal("expected stale inbox warning")
+	}
+	// 3. Malformed inbox: the failure carries only the base name.
+	badDir := t.TempDir()
+	badPath := filepath.Join(badDir, "bad.json")
+	os.WriteFile(badPath, []byte("{bad"), 0o644)
+	bad := fetchWater(t, badPath, manila(t, "2026-10-17T10:00:00+08:00"))
+	if len(bad.Errors) == 0 {
+		t.Fatal("malformed inbox produced no error")
+	}
+	assertNoInboxDir(t, bad, badDir)
+	if !strings.Contains(bad.Errors[0], "bad.json") {
+		t.Fatalf("malformed error lost inbox name: %q", bad.Errors[0])
+	}
+}

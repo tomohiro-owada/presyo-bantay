@@ -26,6 +26,12 @@ import (
 	"time"
 )
 
+// MayniladXAccountURL is the public X account URL recorded as the
+// Source URL for the maynilad-x inbox. The local inbox file path must
+// never appear in a Source: sources are published verbatim in the
+// public site's utilities.json.
+const MayniladXAccountURL = "https://x.com/maynilad"
+
 // XPost is one normalized X post.
 type XPost struct {
 	ID        string    `json:"id"`
