@@ -2,6 +2,10 @@ package utilities
 
 import (
 	"context"
+	"encoding/xml"
+	"fmt"
+	"io"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -288,11 +292,15 @@ func (f *fetcher) fetchMeralco(ctx context.Context) {
 }
 
 // fetchWater runs Fetch step 5 (Maynilad water status).
-// The legacy website fetch is OPTIONAL and DISABLED by default
-// (MayniladSite). The X inbox (MayniladXInbox path) is a cheap local
-// file read. The FCDA fetch still uses the website; it is unchanged.
+// The weekly-schedule RSS feed (MayniladFeed/File) is the primary
+// source for weekly rows; the legacy website fetch is OPTIONAL and
+// DISABLED by default (MayniladSite). The X inbox (MayniladXInbox
+// path) is a cheap local file read. The FCDA fetch still uses the
+// website; it is unchanged.
 func (f *fetcher) fetchWater(ctx context.Context) {
 	water := &WaterStatus{City: f.city, CheckedAt: f.snap.FetchedAt}
+	// Weekly-schedule feed first (primary source for weekly rows).
+	feedOK := f.fetchMayniladFeed(ctx, water)
 	siteOK := false
 	siteFailed := 0
 	siteAttempted := f.site
@@ -326,7 +334,7 @@ func (f *fetcher) fetchWater(ctx context.Context) {
 				f.fail("maynilad-maintenance %s: %v", postsURL, err)
 				siteFailed++
 			} else {
-				water.Maintenance = rows
+				water.Maintenance = append(water.Maintenance, rows...)
 			}
 		} else {
 			siteFailed++
@@ -363,11 +371,11 @@ func (f *fetcher) fetchWater(ctx context.Context) {
 			xOK = true
 		}
 	}
-	if !siteAttempted && !xOK && f.xInbox == "" {
+	if !siteAttempted && !xOK && f.xInbox == "" && !feedOK && f.feedFile == "" && !f.feed {
 		return // neither source configured: omit Water like today
 	}
-	if !siteOK && !xOK {
-		if siteAttempted && siteFailed == 4 && f.xInbox == "" {
+	if !siteOK && !xOK && !feedOK {
+		if siteAttempted && siteFailed == 4 && f.xInbox == "" && !f.feed && f.feedFile == "" {
 			f.fail("maynilad: no water status parsed")
 		}
 		return // water fetch failed entirely: omit the water status
@@ -386,6 +394,9 @@ func (f *fetcher) fetchWater(ctx context.Context) {
 	if water.Maintenance == nil {
 		water.Maintenance = []Maintenance{}
 	}
+	if water.Nearby == nil {
+		water.Nearby = []Maintenance{}
+	}
 	if xOK {
 		water.Advisories = advisories
 		if water.Advisories == nil {
@@ -394,6 +405,172 @@ func (f *fetcher) fetchWater(ctx context.Context) {
 	}
 	f.snap.Water = water
 	f.stampSection("water")
+}
+
+// feedBlocked reports a Maynilad bot-challenge response: HTTP 403,
+// a "cf-mitigated: challenge" header, or a "Just a moment" body.
+func feedBlocked(status int, header http.Header, body []byte) bool {
+	if status == 403 {
+		return true
+	}
+	if header != nil && strings.EqualFold(header.Get("cf-mitigated"), "challenge") {
+		return true
+	}
+	return strings.Contains(string(body), "Just a moment")
+}
+
+// countWeeklyFeedPosts counts weekly maintenance posts in a feed body.
+func countWeeklyFeedPosts(body []byte) int {
+	var feed rssFeed
+	if err := xml.Unmarshal(body, &feed); err != nil {
+		return 0
+	}
+	n := 0
+	for _, it := range feed.Channel.Items {
+		if weeklyTitleRe.MatchString(it.Title) {
+			n++
+		}
+	}
+	return n
+}
+
+// getFeedRaw performs one polite GET capturing status/headers/body
+// even for non-2xx (bot-challenge detection needs them).
+func (f *fetcher) getFeedRaw(ctx context.Context, rawURL string) ([]byte, int, http.Header, time.Time, error) {
+	if f.stopped {
+		return nil, 0, nil, time.Time{}, errMaxRequests
+	}
+	if f.requests >= f.maxReq {
+		f.stopped = true
+		return nil, 0, nil, time.Time{}, errMaxRequests
+	}
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, 0, nil, time.Time{}, err
+	}
+	if f.minDelay > 0 {
+		if last, ok := f.lastHost[u.Host]; ok {
+			if wait := f.minDelay - time.Since(last); wait > 0 {
+				f.sleep(wait)
+			}
+		}
+	}
+	req, err := http.NewRequestWithContext(ctx, "GET", rawURL, nil)
+	if err != nil {
+		return nil, 0, nil, time.Time{}, err
+	}
+	if f.ua != "" {
+		req.Header.Set("User-Agent", f.ua)
+	}
+	f.requests++
+	at := time.Now()
+	f.lastHost[u.Host] = at
+	resp, err := f.client.Do(req)
+	if err != nil {
+		return nil, 0, nil, at, err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 64<<20))
+	if err != nil {
+		return nil, resp.StatusCode, resp.Header, at, err
+	}
+	return body, resp.StatusCode, resp.Header, at, nil
+}
+
+// fetchMayniladFeed fills water.Maintenance (Las Piñas rows) and
+// water.Nearby (Parañaque/Muntinlupa/Bacoor rows) from the weekly RSS
+// feed, with retention. True when the feed produced data (even zero
+// rows from a valid feed). A blocked feed records its Source, prints
+// ONE stderr notice, adds nothing to Errors, and keeps the X inbox.
+func (f *fetcher) fetchMayniladFeed(ctx context.Context, water *WaterStatus) bool {
+	if f.feedFile != "" {
+		data, err := os.ReadFile(f.feedFile)
+		if err != nil {
+			f.fail("maynilad-feed %s: %v", filepath.Base(f.feedFile), err)
+			return false
+		}
+		rows, skipped, err := ParseMayniladFeedDetailed(data)
+		if err != nil {
+			f.fail("maynilad-feed %s: %v", filepath.Base(f.feedFile), err)
+			return false
+		}
+		if skipped > 0 {
+			f.warn("maynilad-feed %s: %d table(s) without parsable header skipped", filepath.Base(f.feedFile), skipped)
+		}
+		main, nearby := SplitFeedRows(rows, f.now)
+		water.Maintenance = append(water.Maintenance, main...)
+		water.Nearby = append(water.Nearby, nearby...)
+		f.source("maynilad-feed", f.maynilad+"/feed/", 200, len(data), sha256Sum(data), time.Now(), nil)
+		return true
+	}
+	if !f.feed {
+		return false
+	}
+	feedURL := strings.TrimSuffix(f.maynilad, "/") + "/feed/"
+	body, status, header, at, err := f.getFeedRaw(ctx, feedURL)
+	sum := sha256Sum(body)
+	if err != nil {
+		if err == errMaxRequests {
+			f.fail("maynilad-feed: %v", err)
+		} else {
+			f.fail("maynilad-feed %s: %v", feedURL, err)
+		}
+		f.source("maynilad-feed", feedURL, status, len(body), sum, at, err)
+		return false
+	}
+	if feedBlocked(status, header, body) {
+		f.source("maynilad-feed", feedURL, status, len(body), sum, at, fmt.Errorf("blocked; using X inbox"))
+		fmt.Fprintln(os.Stderr, "utilities fetch: maynilad feed blocked; using X inbox")
+		return false
+	}
+	if status < 200 || status >= 300 {
+		f.fail("maynilad-feed %s: HTTP %d", feedURL, status)
+		f.source("maynilad-feed", feedURL, status, len(body), sum, at, fmt.Errorf("HTTP %d", status))
+		return false
+	}
+	rows, skipped, err := ParseMayniladFeedDetailed(body)
+	if err != nil {
+		f.fail("maynilad-feed %s: %v", feedURL, err)
+		f.source("maynilad-feed", feedURL, status, len(body), sum, at, err)
+		return false
+	}
+	f.source("maynilad-feed", feedURL, status, len(body), sum, at, nil)
+	if skipped > 0 {
+		f.warn("maynilad-feed: %d table(s) without parsable header skipped", skipped)
+	}
+	// Page 2 only when page 1 holds no weekly post (max 2 requests).
+	if countWeeklyFeedPosts(body) == 0 {
+		pagedURL := feedURL + "?paged=2"
+		body2, status2, header2, at2, err2 := f.getFeedRaw(ctx, pagedURL)
+		sum2 := sha256Sum(body2)
+		if err2 != nil {
+			if err2 == errMaxRequests {
+				f.fail("maynilad-feed: %v", err2)
+			} else {
+				f.fail("maynilad-feed %s: %v", pagedURL, err2)
+			}
+			f.source("maynilad-feed", pagedURL, status2, len(body2), sum2, at2, err2)
+		} else if feedBlocked(status2, header2, body2) {
+			f.source("maynilad-feed", pagedURL, status2, len(body2), sum2, at2, fmt.Errorf("blocked; using X inbox"))
+			fmt.Fprintln(os.Stderr, "utilities fetch: maynilad feed blocked; using X inbox")
+		} else if status2 < 200 || status2 >= 300 {
+			f.fail("maynilad-feed %s: HTTP %d", pagedURL, status2)
+			f.source("maynilad-feed", pagedURL, status2, len(body2), sum2, at2, fmt.Errorf("HTTP %d", status2))
+		} else if rows2, skipped2, err2 := ParseMayniladFeedDetailed(body2); err2 != nil {
+			f.fail("maynilad-feed %s: %v", pagedURL, err2)
+			f.source("maynilad-feed", pagedURL, status2, len(body2), sum2, at2, err2)
+		} else {
+			f.source("maynilad-feed", pagedURL, status2, len(body2), sum2, at2, nil)
+			if skipped2 > 0 {
+				f.warn("maynilad-feed: %d table(s) without parsable header skipped", skipped2)
+			}
+			rows = append(rows, rows2...)
+		}
+	}
+	main, nearby := SplitFeedRows(rows, f.now)
+	water.Maintenance = append(water.Maintenance, main...)
+	water.Nearby = append(water.Nearby, nearby...)
+	return true
 }
 
 // sanitizeInboxErr rewrites an inbox load error for publication: the
@@ -450,7 +627,7 @@ var sectionSourcePrefixes = map[string][]string{
 	"pump":    {"doe-ncr-pump"},
 	"lpg":     {"doe-ncr-lpg"},
 	"meralco": {"meralco-"},
-	"water":   {"maynilad-scheduled", "maynilad-emergency", "maynilad-rotational", "maynilad-maintenance", "maynilad-x"},
+	"water":   {"maynilad-scheduled", "maynilad-emergency", "maynilad-rotational", "maynilad-maintenance", "maynilad-x", "maynilad-feed"},
 	"fcda":    {"maynilad-fcda"},
 }
 

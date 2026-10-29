@@ -74,6 +74,13 @@ type FetchOptions struct {
 	// MayniladXInbox is the path to the normalized X inbox JSON for
 	// the water section (empty disables the X source).
 	MayniladXInbox string
+	// MayniladFeed enables the Maynilad weekly-schedule RSS feed for
+	// the water section (CLI default true; direct Fetch callers opt
+	// in by setting it).
+	MayniladFeed bool
+	// MayniladFeedFile reads a local RSS XML file instead of HTTP
+	// (offline, for samples/tests).
+	MayniladFeedFile string
 }
 
 // FetchSections are the valid -sections names.
@@ -97,6 +104,8 @@ type fetcher struct {
 	sections map[string]bool
 	xInbox   string
 	site     bool
+	feed     bool
+	feedFile string
 
 	lastHost map[string]time.Time
 	requests int
@@ -128,6 +137,8 @@ func Fetch(ctx context.Context, opts FetchOptions) (*Snapshot, error) {
 		sleep:    opts.Sleep,
 		xInbox:   opts.MayniladXInbox,
 		site:     opts.MayniladSite,
+		feed:     opts.MayniladFeed,
+		feedFile: opts.MayniladFeedFile,
 		lastHost: map[string]time.Time{},
 		snap: &Snapshot{
 			Sources: []Source{},

@@ -28,6 +28,18 @@ type WaterAlert struct {
 	WindowText string    `json:"window_text"`
 	ReasonKey  string    `json:"reason_key"`
 	SourceURL  string    `json:"source_url"`
+	// Daily marks a one-alert-per-row nightly repeat; Windows holds
+	// the per-night windows, DailyFrom/To the start-date range.
+	Daily     bool         `json:"daily,omitempty"`
+	Windows   []TimeWindow `json:"windows,omitempty"`
+	DailyFrom string       `json:"daily_from,omitempty"`
+	DailyTo   string       `json:"daily_to,omitempty"`
+	// Trend: NthThisMonth is this alert's position in its Manila
+	// month (>=2 shows the trend line); PrevMonthCount/HasPrev
+	// carry the previous month count when the snapshot covers it.
+	NthThisMonth   int  `json:"nth_this_month,omitempty"`
+	PrevMonthCount int  `json:"prev_month_count,omitempty"`
+	HasPrev        bool `json:"has_prev,omitempty"`
 }
 
 // XAreasTL/EN/JA are the per-language areas labels for X-sourced
@@ -184,14 +196,91 @@ func fmtAlertTime(t time.Time) string {
 	return t.Format(time.RFC3339)
 }
 
+// WindowsOverlap50 reports whether two windows overlap by >= 50 %
+// of the shorter window.
+func WindowsOverlap50(aStart, aEnd, bStart, bEnd time.Time) bool {
+	if aEnd.IsZero() || bEnd.IsZero() || aStart.IsZero() || bStart.IsZero() {
+		return false
+	}
+	if !aStart.Before(aEnd) || !bStart.Before(bEnd) {
+		return false
+	}
+	latestStart := aStart
+	if bStart.After(latestStart) {
+		latestStart = bStart
+	}
+	earliestEnd := aEnd
+	if bEnd.Before(earliestEnd) {
+		earliestEnd = bEnd
+	}
+	overlap := earliestEnd.Sub(latestStart)
+	if overlap <= 0 {
+		return false
+	}
+	da := aEnd.Sub(aStart)
+	db := bEnd.Sub(bStart)
+	shorter := da
+	if db < shorter {
+		shorter = db
+	}
+	if shorter <= 0 {
+		return false
+	}
+	return float64(overlap) >= 0.5*float64(shorter)
+}
+
+// alertWindows returns the comparable windows of a feed alert: the
+// per-night windows for daily alerts, else the single Start/End.
+func alertWindows(a WaterAlert) []TimeWindow {
+	if a.Daily && len(a.Windows) > 0 {
+		return a.Windows
+	}
+	if a.Start.IsZero() || a.End.IsZero() {
+		return nil
+	}
+	return []TimeWindow{{Start: a.Start, End: a.End}}
+}
+
+// feedDropsX reports whether an X advisory window is covered by a
+// feed-sourced alert window (per night for daily alerts): same city
+// and >= 50 % overlap of the shorter window. The feed alert wins.
+func feedDropsX(feed WaterAlert, xStart, xEnd time.Time, city string) bool {
+	if foldAccent(feed.City) != foldAccent(city) {
+		return false
+	}
+	for _, fw := range alertWindows(feed) {
+		if WindowsOverlap50(fw.Start, fw.End, xStart, xEnd) {
+			return true
+		}
+	}
+	return false
+}
+
+// WaterAlertOverlapsPosted reports whether a candidate water alert
+// overlaps an already-posted util-water entry (same rule, same city):
+// for daily candidates each nightly window is checked, so a feed
+// alert is not re-posted after the same event was posted from X (and
+// vice versa).
+func WaterAlertOverlapsPosted(candidate WaterAlert, postedStart, postedEnd time.Time) bool {
+	for _, cw := range alertWindows(candidate) {
+		if WindowsOverlap50(cw.Start, cw.End, postedStart, postedEnd) {
+			return true
+		}
+	}
+	return false
+}
+
 // BuildWaterAlerts builds postable alerts from every interruption and
-// maintenance row in a water status.
+// maintenance row in a water status. Daily feed rows yield ONE alert
+// per row (not per night). X advisories whose window overlaps a
+// feed-sourced alert window (per night) by >= 50 % of the shorter
+// window are dropped; the feed alert wins because it has barangays.
 func BuildWaterAlerts(w *WaterStatus) []WaterAlert {
 	if w == nil {
 		return nil
 	}
 	var out []WaterAlert
-	push := func(kind, barangays, windowText, reason, sourceURL string, start, end time.Time) {
+	push := func(kind, barangays, windowText, reason, sourceURL string, start, end time.Time, daily bool, windows []TimeWindow, dailyFrom, dailyTo string) {
 		areas := splitAreas(barangays)
 		if len(areas) == 0 {
 			return
@@ -206,6 +295,10 @@ func BuildWaterAlerts(w *WaterStatus) []WaterAlert {
 			WindowText: windowText,
 			ReasonKey:  reasonKeyOf(reason),
 			SourceURL:  sourceURL,
+			Daily:      daily,
+			Windows:    windows,
+			DailyFrom:  dailyFrom,
+			DailyTo:    dailyTo,
 		})
 	}
 	lists := []struct {
@@ -247,24 +340,61 @@ func BuildWaterAlerts(w *WaterStatus) []WaterAlert {
 					}
 				}
 			}
-			push(l.kind, in.Barangays, windowText, in.Reason, MayniladAdvisoriesURL, start, end)
+			push(l.kind, in.Barangays, windowText, in.Reason, MayniladAdvisoriesURL, start, end, false, nil, "", "")
 		}
 	}
 	for _, m := range w.Maintenance {
-		var start, end time.Time
-		a, b := splitWindow(m.Schedule)
-		if t, ok := parseSchedTime(a); ok {
-			start = t
+		src := m.PostURL
+		if src == "" {
+			src = MayniladAdvisoriesURL
 		}
-		if b != "" {
-			if t, ok := parseSchedTime(b); ok {
-				end = t
+		windows, sched := ParseMaintSchedule(m.Schedule)
+		// Prefer stored feed windows when present (same parse).
+		if len(m.Windows) > 0 && len(windows) == 0 {
+			windows = m.Windows
+		}
+		if len(windows) == 0 {
+			push("maintenance", m.Barangays, m.Schedule, m.Activity, src, time.Time{}, time.Time{}, false, nil, "", "")
+			continue
+		}
+		if sched.Daily || m.Daily {
+			from, to := sched.DailyFrom, sched.DailyTo
+			if from == "" {
+				from = m.DailyFrom
+			}
+			if to == "" {
+				to = m.DailyTo
+			}
+			push("maintenance", m.Barangays, m.Schedule, m.Activity, src,
+				windows[0].Start, windows[len(windows)-1].End, true, windows, from, to)
+			continue
+		}
+		push("maintenance", m.Barangays, m.Schedule, m.Activity, src, windows[0].Start, windows[0].End, false, nil, "", "")
+	}
+	// X advisories, minus feed-covered windows.
+	var xAlerts []WaterAlert
+	for _, adv := range w.Advisories {
+		dropped := false
+		for _, f := range out {
+			if f.Kind != "maintenance" && f.Kind != "scheduled" && f.Kind != "emergency" && f.Kind != "rotational" {
+				continue
+			}
+			// Only feed-sourced alerts (maintenance rows carry
+			// barangays; interruption rows are site-sourced) win
+			// over X here; interruption overlap is handled by the
+			// fbutil posted guard.
+			if f.Kind != "maintenance" {
+				continue
+			}
+			if feedDropsX(f, adv.Start, adv.End, w.City) {
+				dropped = true
+				break
 			}
 		}
-		push("maintenance", m.Barangays, m.Schedule, m.Activity, m.PostURL, start, end)
-	}
-	for _, adv := range w.Advisories {
-		out = append(out, WaterAlert{
+		if dropped {
+			continue
+		}
+		xAlerts = append(xAlerts, WaterAlert{
 			ID:         alertID(adv.Kind, w.City, "x", fmtAlertTime(adv.Start), fmtAlertTime(adv.End)),
 			Kind:       adv.Kind,
 			City:       w.City,
@@ -276,7 +406,79 @@ func BuildWaterAlerts(w *WaterStatus) []WaterAlert {
 			SourceURL:  adv.PostURL,
 		})
 	}
+	out = append(out, xAlerts...)
+	assignWaterTrend(out, w)
 	return out
+}
+
+// assignWaterTrend fills NthThisMonth/PrevMonthCount/HasPrev: N is the
+// position among distinct alerts in the same Manila month ordered by
+// Start (shown only when N >= 2); the previous-month count is shown
+// only when the snapshot really covers last month (a feed post or an
+// alert in a previous month), never guessed.
+func assignWaterTrend(alerts []WaterAlert, w *WaterStatus) {
+	monthOf := func(t time.Time) string { return t.In(manilaLoc).Format("2006-01") }
+	byMonth := map[string][]int{}
+	for i, a := range alerts {
+		if a.Start.IsZero() {
+			continue
+		}
+		byMonth[monthOf(a.Start)] = append(byMonth[monthOf(a.Start)], i)
+	}
+	for m, idxs := range byMonth {
+		// Order by Start, then ID for stability.
+		ordered := append([]int(nil), idxs...)
+		for i := 1; i < len(ordered); i++ {
+			for j := i; j > 0; j-- {
+				ai, aj := alerts[ordered[j]], alerts[ordered[j-1]]
+				if ai.Start.Before(aj.Start) || (ai.Start.Equal(aj.Start) && ai.ID < aj.ID) {
+					ordered[j], ordered[j-1] = ordered[j-1], ordered[j]
+				} else {
+					break
+				}
+			}
+		}
+		_ = m
+		for pos, ai := range ordered {
+			alerts[ai].NthThisMonth = pos + 1
+		}
+	}
+	for i, a := range alerts {
+		if a.Start.IsZero() || a.NthThisMonth < 2 {
+			continue
+		}
+		cur := monthOf(a.Start)
+		prev := PrevMonth(cur)
+		if prev == "" {
+			continue
+		}
+		count := len(byMonth[prev])
+		if count == 0 {
+			continue
+		}
+		covered := false
+		if w != nil {
+			for _, mnt := range w.Maintenance {
+				if len(mnt.PostDate) >= 7 && mnt.PostDate[:7] <= prev {
+					covered = true
+					break
+				}
+			}
+		}
+		if !covered {
+			for m := range byMonth {
+				if m <= prev {
+					covered = true
+					break
+				}
+			}
+		}
+		if !covered {
+			continue
+		}
+		alerts[i].PrevMonthCount = count
+		alerts[i].HasPrev = true
+	}
 }
 
 var tlWeekday = map[time.Weekday]string{
@@ -311,8 +513,75 @@ func fmt12(t time.Time) string {
 	return fmt.Sprintf("%d:%02d %s", h12, mi, ap)
 }
 
+// dailyClock returns the nightly clock window of a daily alert:
+// 12h ends for TL/EN and 24h ends for JA.
+func dailyClock(a *WaterAlert) (tl, en, ja string) {
+	var sh, sm, eh, em int
+	if len(a.Windows) > 0 {
+		sh, sm = a.Windows[0].Start.Hour(), a.Windows[0].Start.Minute()
+		eh, em = a.Windows[0].End.Hour(), a.Windows[0].End.Minute()
+	} else {
+		sh, sm = a.Start.Hour(), a.Start.Minute()
+		eh, em = a.End.Hour(), a.End.Minute()
+	}
+	start12 := fmt12(time.Date(2026, 1, 1, sh, sm, 0, 0, manilaLoc))
+	end12 := fmt12(time.Date(2026, 1, 1, eh, em, 0, 0, manilaLoc))
+	tl = start12 + " hanggang " + end12
+	en = start12 + " to " + end12
+	ja = fmt.Sprintf("%02d:%02d〜%02d:%02d", sh, sm, eh, em)
+	return tl, en, ja
+}
+
+// dailyRange3 returns the DailyFrom/DailyTo range per language,
+// falling back to the Start/End dates when empty.
+func dailyRange3(a *WaterAlert) (tl, en, ja string) {
+	from, to := a.DailyFrom, a.DailyTo
+	if from == "" || to == "" {
+		if len(a.Windows) > 0 {
+			from = a.Windows[0].Start.In(manilaLoc).Format("2006-01-02")
+			to = a.Windows[len(a.Windows)-1].Start.In(manilaLoc).Format("2006-01-02")
+		} else if !a.Start.IsZero() && !a.End.IsZero() {
+			from = a.Start.In(manilaLoc).Format("2006-01-02")
+			to = a.End.In(manilaLoc).Format("2006-01-02")
+		}
+	}
+	if from == "" || to == "" {
+		return a.WindowText, a.WindowText, a.WindowText
+	}
+	return shortRange(from, to)
+}
+
+// waterTrendLines renders the extra trend line per language ("Nth
+// water interruption in Las Piñas this month", plus "last month: M"
+// only when the snapshot covers last month). Empty when N < 2.
+func waterTrendLines(a *WaterAlert) (tl, en, ja string, ok bool) {
+	if a.NthThisMonth < 2 || a.Start.IsZero() {
+		return "", "", "", false
+	}
+	m := a.Start.In(manilaLoc)
+	tlMon := tlFull[m.Month()]
+	enMon := enFull[m.Month()]
+	tl = fmt.Sprintf("📊 Ika-%d na water interruption sa %s ngayong %s", a.NthThisMonth, a.City, tlMon)
+	en = fmt.Sprintf("📊 Water interruption no. %d in %s this %s", a.NthThisMonth, a.City, enMon)
+	ja = fmt.Sprintf("📊 今月%sで%d回目の断水", jaCity(a.City), a.NthThisMonth)
+	if a.HasPrev && a.PrevMonthCount > 0 {
+		prev := PrevMonth(m.Format("2006-01"))
+		if py, pm, pok := splitMonth(prev); pok {
+			pmo := time.Month(pm)
+			tl += fmt.Sprintf(", %d noong %s", a.PrevMonthCount, tlFull[pmo])
+			en += fmt.Sprintf(", %d last %s", a.PrevMonthCount, enFull[pmo])
+			ja += fmt.Sprintf("（先月%d回）", a.PrevMonthCount)
+			_ = py
+		}
+	}
+	return tl, en, ja, true
+}
+
 // RenderWaterAlertPost renders the short trilingual alert caption. When
 // pastSample is true the first line marks it as old sample data.
+// Daily alerts say "bawat gabi"/"every night"/"毎晩" with the nightly
+// clock window and the date range (never one continuous outage), and
+// alerts with NthThisMonth >= 2 carry the monthly trend line.
 func RenderWaterAlertPost(a WaterAlert, pastSample bool) string {
 	var tl, en, ja strings.Builder
 	if pastSample {
@@ -333,6 +602,7 @@ func RenderWaterAlertPost(a WaterAlert, pastSample bool) string {
 		areasJA = XAreasJA
 	}
 	cityJA := jaCity(a.City)
+	trendTL, trendEN, trendJA, hasTrend := waterTrendLines(&a)
 	if a.Start.IsZero() || a.End.IsZero() {
 		fmt.Fprintf(&tl, "💧 Walang tubig sa ilang bahagi ng %s\n📅 %s\n📍 %s\n🔧 Dahilan: %s\nMag-ipon ng tubig bago magsimula.\n",
 			a.City, a.WindowText, areasTL, reason[0])
@@ -340,17 +610,46 @@ func RenderWaterAlertPost(a WaterAlert, pastSample bool) string {
 			a.City, a.WindowText, areasEN, reason[1])
 		fmt.Fprintf(&ja, "🇯🇵 %sの一部で断水\n%s・%s・理由：%s。事前に水の確保を。\n",
 			cityJA, a.WindowText, areasJA, reason[2])
+	} else if a.Daily {
+		clockTL, clockEN, clockJA := dailyClock(&a)
+		rangeTL, rangeEN, rangeJA := dailyRange3(&a)
+		fmt.Fprintf(&tl, "💧 Walang tubig sa ilang bahagi ng %s\n📅 bawat gabi %s, %s\n📍 %s\n🔧 Dahilan: %s\n",
+			a.City, clockTL, rangeTL, areasTL, reason[0])
+		if hasTrend {
+			fmt.Fprintf(&tl, "%s\n", trendTL)
+		}
+		fmt.Fprintf(&tl, "Mag-ipon ng tubig bago magsimula.\n")
+		fmt.Fprintf(&en, "🇬🇧 Water interruption in parts of %s\nevery night %s, %s · %s · Reason: %s. Store water beforehand.\n",
+			a.City, clockEN, rangeEN, areasEN, reason[1])
+		if hasTrend {
+			fmt.Fprintf(&en, "%s\n", trendEN)
+		}
+		fmt.Fprintf(&ja, "🇯🇵 %sの一部で断水\n毎晩%s、%s・%s・理由：%s。事前に水の確保を。\n",
+			cityJA, clockJA, rangeJA, areasJA, reason[2])
+		if hasTrend {
+			fmt.Fprintf(&ja, "%s\n", trendJA)
+		}
 	} else {
 		s, e := a.Start, a.End
-		fmt.Fprintf(&tl, "💧 Walang tubig sa ilang bahagi ng %s\n📅 %s %s %d, %s hanggang %s %s %d, %s\n📍 %s\n🔧 Dahilan: %s\nMag-ipon ng tubig bago magsimula.\n",
+		fmt.Fprintf(&tl, "💧 Walang tubig sa ilang bahagi ng %s\n📅 %s %s %d, %s hanggang %s %s %d, %s\n📍 %s\n🔧 Dahilan: %s\n",
 			a.City, tlWeekday[s.Weekday()], tlShort[s.Month()], s.Day(), fmt12(s),
 			tlWeekday[e.Weekday()], tlShort[e.Month()], e.Day(), fmt12(e), areasTL, reason[0])
+		if hasTrend {
+			fmt.Fprintf(&tl, "%s\n", trendTL)
+		}
+		fmt.Fprintf(&tl, "Mag-ipon ng tubig bago magsimula.\n")
 		fmt.Fprintf(&en, "🇬🇧 Water interruption in parts of %s\n%s %s %d, %s to %s %s %d, %s · %s · Reason: %s. Store water beforehand.\n",
 			a.City, enWeekday[s.Weekday()], enShort[s.Month()], s.Day(), fmt12(s),
 			enWeekday[e.Weekday()], enShort[e.Month()], e.Day(), fmt12(e), areasEN, reason[1])
+		if hasTrend {
+			fmt.Fprintf(&en, "%s\n", trendEN)
+		}
 		fmt.Fprintf(&ja, "🇯🇵 %sの一部で断水\n%d/%d（%s）%02d:%02d〜%d/%d（%s）%02d:%02d・%s・理由：%s。事前に水の確保を。\n",
 			cityJA, int(s.Month()), s.Day(), jaWeekday[s.Weekday()], s.Hour(), s.Minute(),
 			int(e.Month()), e.Day(), jaWeekday[e.Weekday()], e.Hour(), e.Minute(), areasJA, reason[2])
+		if hasTrend {
+			fmt.Fprintf(&ja, "%s\n", trendJA)
+		}
 	}
 	details := "Details: " + MayniladAdvisoriesURL
 	if strings.HasPrefix(a.SourceURL, "https://x.com/") {

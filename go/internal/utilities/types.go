@@ -7,6 +7,8 @@
 // derivation; missing fields omit their line.
 package utilities
 
+import "time"
+
 // Range is a signed pesos/L adjustment range. Lo is the smaller
 // magnitude, Hi the larger magnitude (same sign); a single value has
 // Lo == Hi.
@@ -99,6 +101,12 @@ type Interruption struct {
 	Reason    string `json:"reason"`
 }
 
+// TimeWindow is one parsed Manila-time interruption window.
+type TimeWindow struct {
+	Start time.Time `json:"start"`
+	End   time.Time `json:"end"`
+}
+
 // Maintenance is one Maynilad maintenance-activity table row.
 type Maintenance struct {
 	PostDate  string `json:"post_date"`
@@ -108,6 +116,13 @@ type Maintenance struct {
 	Schedule  string `json:"schedule"`
 	Activity  string `json:"activity"`
 	Location  string `json:"location"`
+	// AlsoCities lists normalised nearby cities named in the Barangay
+	// or Location cell (e.g. an Imus row listing Bacoor City).
+	AlsoCities []string     `json:"also_cities,omitempty"`
+	Windows    []TimeWindow `json:"windows,omitempty"`
+	Daily      bool         `json:"daily,omitempty"`
+	DailyFrom  string       `json:"daily_from,omitempty"`
+	DailyTo    string       `json:"daily_to,omitempty"`
 }
 
 // WaterStatus is the Maynilad status for one city.
@@ -118,7 +133,10 @@ type WaterStatus struct {
 	Emergency   []Interruption `json:"emergency"`
 	Rotational  []Interruption `json:"rotational"`
 	Maintenance []Maintenance  `json:"maintenance"`
-	Advisories  []XAdvisory    `json:"advisories,omitempty"`
+	// Nearby holds feed rows for Parañaque, Muntinlupa and Bacoor
+	// (site page only, never posted).
+	Nearby     []Maintenance `json:"nearby,omitempty"`
+	Advisories []XAdvisory   `json:"advisories,omitempty"`
 }
 
 // FuelStatus groups the DOE fuel datasets (newest first).

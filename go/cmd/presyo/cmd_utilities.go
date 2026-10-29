@@ -51,11 +51,13 @@ func cmdUtilitiesFetch(argv []string) int {
 	sections := fs.String("sections", "", "comma-separated sections to fetch (default all: fuel,pump,lpg,meralco,water,fcda)")
 	mayniladX := fs.String("maynilad-x", "", "Maynilad X inbox JSON path (enables the X water source)")
 	mayniladSite := fs.Bool("maynilad-site", false, "enable the legacy Maynilad website fetch for water (default off)")
+	mayniladFeed := fs.Bool("maynilad-feed", true, "enable the Maynilad weekly-schedule RSS feed for water (default true)")
+	mayniladFeedFile := fs.String("maynilad-feed-file", "", "read Maynilad feed XML from this local file instead of HTTP")
 	if err := fs.Parse(argv); err != nil {
 		return 1
 	}
 	if *cacheDir == "" || *outPath == "" {
-		fmt.Fprintln(os.Stderr, "usage: presyo utilities fetch -cache DIR -out snapshot.json [-city \"Las Piñas\"] [-max-oil 6] [-sections fuel,pump,lpg,meralco,water,fcda] [-maynilad-x FILE] [-maynilad-site]")
+		fmt.Fprintln(os.Stderr, "usage: presyo utilities fetch -cache DIR -out snapshot.json [-city \"Las Piñas\"] [-max-oil 6] [-sections fuel,pump,lpg,meralco,water,fcda] [-maynilad-x FILE] [-maynilad-site] [-maynilad-feed] [-maynilad-feed-file FILE]")
 		return 1
 	}
 	var wanted []string
@@ -83,16 +85,18 @@ func cmdUtilitiesFetch(argv []string) int {
 		}
 	}
 	snap, err := utilities.Fetch(context.Background(), utilities.FetchOptions{
-		Client:         &http.Client{Timeout: 60 * time.Second},
-		CacheDir:       *cacheDir,
-		MinDelay:       5 * time.Second,
-		MaxOilMonitors: *maxOil,
-		MaxRequests:    30,
-		City:           *city,
-		UserAgent:      UserAgent,
-		Sections:       wanted,
-		MayniladXInbox: *mayniladX,
-		MayniladSite:   *mayniladSite,
+		Client:           &http.Client{Timeout: 60 * time.Second},
+		CacheDir:         *cacheDir,
+		MinDelay:         5 * time.Second,
+		MaxOilMonitors:   *maxOil,
+		MaxRequests:      30,
+		City:             *city,
+		UserAgent:        UserAgent,
+		Sections:         wanted,
+		MayniladXInbox:   *mayniladX,
+		MayniladSite:     *mayniladSite,
+		MayniladFeed:     *mayniladFeed,
+		MayniladFeedFile: *mayniladFeedFile,
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "utilities fetch: error: %s\n", err.Error())

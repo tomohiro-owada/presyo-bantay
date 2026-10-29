@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/tomohiro-owada/presyo-bantay/go/internal/regions"
+	"github.com/tomohiro-owada/presyo-bantay/go/internal/utilities"
 	"github.com/tomohiro-owada/presyo-bantay/go/internal/utilpages"
 )
 
@@ -584,9 +585,55 @@ func fbutilDueWater(opt fbutilOptions, manila time.Time, st *fbPostState, posted
 		if err != nil {
 			continue
 		}
+		// Cross-source overlap guard: never post a water alert whose
+		// window overlaps (same rule, same city) an already-posted
+		// util-water entry, read from the posted ids' frozen post.json
+		// Start/End. For daily candidates each nightly window is
+		// checked, so a feed alert is not re-posted after the same
+		// event was posted from X (and vice versa).
+		if fbutilWaterOverlapsPosted(opt, st, frozen, manila) {
+			continue
+		}
 		return frozen
 	}
 	return nil
+}
+
+// fbutilWaterOverlapsPosted reports whether frozen's window overlaps
+// any already-posted util-water entry (>= 50 % of the shorter
+// window, same city). Daily candidates span first-night start to
+// last-night end, so a single-window post of the same event lies
+// fully inside and is caught. Posted windows come from the posted
+// ids' frozen post.json Start/End.
+func fbutilWaterOverlapsPosted(opt fbutilOptions, st *fbPostState, frozen *utilFrozen, manila time.Time) bool {
+	candStart, serr := time.Parse(time.RFC3339, frozen.doc.Start)
+	candEnd, _ := time.Parse(time.RFC3339, frozen.doc.End)
+	if serr != nil {
+		return false
+	}
+	_ = manila
+	for _, p := range st.Posts {
+		if p.Region != "util-water" || p.AsOf == frozen.id {
+			continue
+		}
+		docData, err := os.ReadFile(frozenDocPath(opt.sitePublic, "water", p.AsOf))
+		if err != nil {
+			continue
+		}
+		var doc utilpages.PostDoc
+		if err := json.Unmarshal(docData, &doc); err != nil {
+			continue
+		}
+		ps, serr := time.Parse(time.RFC3339, doc.Start)
+		pe, _ := time.Parse(time.RFC3339, doc.End)
+		if serr != nil || pe.IsZero() {
+			continue
+		}
+		if utilities.WindowsOverlap50(candStart, candEnd, ps, pe) {
+			return true
+		}
+	}
+	return false
 }
 
 func frozenDocPath(sitePublic, kind, id string) string {

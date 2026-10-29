@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // CheckPost validates a rendered post against its snapshot: every ₱
@@ -613,9 +614,47 @@ func checkWaterAlert(text string, s *Snapshot) []string {
 	if a.Start.IsZero() || a.End.IsZero() {
 		return problems
 	}
+	// Trend line: present with exact wording iff NthThisMonth >= 2.
+	if trendTL, trendEN, trendJA, ok := waterTrendLines(&a); ok {
+		for _, want := range []string{trendTL, trendEN, trendJA} {
+			if !strings.Contains(text, want) {
+				add("trend %q missing", want)
+			}
+		}
+	} else if strings.Contains(text, "📊 Ika-") || strings.Contains(text, "Water interruption no.") || strings.Contains(text, "回目の断水") {
+		add("unexpected water trend line")
+	}
 	wantHM := map[[2]int]bool{
 		{a.Start.Hour(), a.Start.Minute()}: true,
 		{a.End.Hour(), a.End.Minute()}:     true,
+	}
+	// Daily alerts repeat nightly: the clock window, not the
+	// first-start/last-end span, is printed.
+	allowedMD := map[[2]int]bool{
+		{int(a.Start.Month()), a.Start.Day()}: true,
+		{int(a.End.Month()), a.End.Day()}:     true,
+	}
+	if a.Daily {
+		if len(a.Windows) > 0 {
+			wantHM = map[[2]int]bool{
+				{a.Windows[0].Start.Hour(), a.Windows[0].Start.Minute()}: true,
+				{a.Windows[0].End.Hour(), a.Windows[0].End.Minute()}:     true,
+			}
+		}
+		from, to := a.DailyFrom, a.DailyTo
+		if from == "" || to == "" {
+			if len(a.Windows) > 0 {
+				from = a.Windows[0].Start.In(manilaLoc).Format("2006-01-02")
+				to = a.Windows[len(a.Windows)-1].Start.In(manilaLoc).Format("2006-01-02")
+			}
+		}
+		if d1, ok1 := mustDate(from); ok1 {
+			if d2, ok2 := mustDate(to); ok2 && !d2.Before(d1) {
+				for d := d1; !d.After(d2); d = d.Add(24 * time.Hour) {
+					allowedMD[[2]int{int(d.Month()), d.Day()}] = true
+				}
+			}
+		}
 	}
 	scrubbed := waterURLRe.ReplaceAllString(text, " ")
 	scrubbed = waterMDRe.ReplaceAllStringFunc(scrubbed, func(m string) string {
@@ -623,9 +662,7 @@ func checkWaterAlert(text string, s *Snapshot) []string {
 		var mo, d int
 		fmt.Sscanf(sub[1], "%d", &mo)
 		fmt.Sscanf(sub[2], "%d", &d)
-		sm, sd := int(a.Start.Month()), a.Start.Day()
-		em, ed := int(a.End.Month()), a.End.Day()
-		if (mo == sm && d == sd) || (mo == em && d == ed) {
+		if allowedMD[[2]int{mo, d}] {
 			return " "
 		}
 		add("date %q not in alert window", m)
@@ -654,6 +691,18 @@ func checkWaterAlert(text string, s *Snapshot) []string {
 	allowed := map[string]bool{}
 	for _, n := range []int{a.Start.Day(), a.End.Day(), int(a.Start.Month()), int(a.End.Month()), a.Start.Year(), a.End.Year()} {
 		allowed[strconv.Itoa(n)] = true
+	}
+	if a.Daily {
+		for md := range allowedMD {
+			allowed[strconv.Itoa(md[0])] = true
+			allowed[strconv.Itoa(md[1])] = true
+		}
+	}
+	if a.NthThisMonth >= 2 {
+		allowed[strconv.Itoa(a.NthThisMonth)] = true
+		if a.HasPrev {
+			allowed[strconv.Itoa(a.PrevMonthCount)] = true
+		}
 	}
 	for _, area := range a.Areas {
 		for _, m := range waterIntRe.FindAllString(area, -1) {
