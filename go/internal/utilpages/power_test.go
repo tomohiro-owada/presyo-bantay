@@ -112,6 +112,16 @@ func TestUtilpagesPowerWrites(t *testing.T) {
 			t.Fatalf("index missing %q", want)
 		}
 	}
+	// Power and water links carry date labels, not raw ids.
+	if !strings.Contains(s, ">Okt 7, 2026</a>") {
+		t.Fatalf("power link date label missing")
+	}
+	if strings.Contains(s, ">e8535cbefb82</a>") {
+		t.Fatalf("raw power id used as link label")
+	}
+	if !strings.Contains(s, ">Ago 26–27, 2026</a>") {
+		t.Fatalf("water link date label missing")
+	}
 	// Manifest has the additive power key; fuel/bills/water unchanged.
 	var manifest UtilitiesDoc
 	mdata, err := os.ReadFile(filepath.Join(site, "data", "utilities.json"))

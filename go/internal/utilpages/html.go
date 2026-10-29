@@ -635,7 +635,7 @@ func Rebuild(snap *utilities.Snapshot, sitePublic, base, gen string) error {
 	}
 	sort.Slice(waters, func(i, j int) bool { return waters[i].GeneratedAt > waters[j].GeneratedAt })
 	for _, d := range waters {
-		v.WaterLinks = append(v.WaterLinks, PostLink{Path: "water/" + d.AsOf + "/", Label: d.AsOf})
+		v.WaterLinks = append(v.WaterLinks, PostLink{Path: "water/" + d.AsOf + "/", Label: postLinkLabel(d)})
 	}
 	if len(waters) > 0 {
 		manifest.Water = &UtilEntry{ID: waters[0].AsOf, Path: "u/water/" + waters[0].AsOf + "/"}
@@ -652,7 +652,7 @@ func Rebuild(snap *utilities.Snapshot, sitePublic, base, gen string) error {
 	}
 	sort.Slice(powers, func(i, j int) bool { return powers[i].GeneratedAt > powers[j].GeneratedAt })
 	for _, d := range powers {
-		v.PowerLinks = append(v.PowerLinks, PostLink{Path: "power/" + d.AsOf + "/", Label: d.AsOf})
+		v.PowerLinks = append(v.PowerLinks, PostLink{Path: "power/" + d.AsOf + "/", Label: postLinkLabel(d)})
 	}
 	if len(powers) > 0 {
 		manifest.Power = &UtilEntry{ID: powers[0].AsOf, Path: "u/power/" + powers[0].AsOf + "/"}
@@ -692,4 +692,26 @@ func Rebuild(snap *utilities.Snapshot, sitePublic, base, gen string) error {
 		}
 	}
 	return nil
+}
+
+// postLinkLabel is the date label of a water/power alert link ("Okt 7,
+// 2026" or "Okt 22–23, 2026") from the frozen Start/End; the id when the
+// post carries no start.
+func postLinkLabel(d PostDoc) string {
+	if len(d.Start) < 10 {
+		return d.AsOf
+	}
+	from := d.Start[:10]
+	to := from
+	if len(d.End) >= 10 {
+		to = d.End[:10]
+	}
+	if to < from {
+		to = from
+	}
+	if from == to {
+		tl, _, _ := utilities.ShortDay(from)
+		return tl + ", " + from[:4]
+	}
+	return utilities.ShortRangeTL(from, to) + ", " + from[:4]
 }
