@@ -48,16 +48,18 @@ func cmdUtilitiesFetch(argv []string) int {
 	outPath := fs.String("out", "", "snapshot JSON output file (required)")
 	city := fs.String("city", "Las Piñas", "Maynilad city")
 	maxOil := fs.Int("max-oil", 6, "max oil-monitor PDFs to parse")
-	sections := fs.String("sections", "", "comma-separated sections to fetch (default all: fuel,pump,lpg,meralco,water,fcda)")
+	sections := fs.String("sections", "", "comma-separated sections to fetch (default all: fuel,pump,lpg,meralco,power,water,fcda)")
 	mayniladX := fs.String("maynilad-x", "", "Maynilad X inbox JSON path (enables the X water source)")
 	mayniladSite := fs.Bool("maynilad-site", false, "enable the legacy Maynilad website fetch for water (default off)")
 	mayniladFeed := fs.Bool("maynilad-feed", true, "enable the Maynilad weekly-schedule RSS feed for water (default true)")
 	mayniladFeedFile := fs.String("maynilad-feed-file", "", "read Maynilad feed XML from this local file instead of HTTP")
+	meralcoMS := fs.Bool("meralco-ms", true, "enable the Meralco maintenance-schedule fetch for power (default true)")
+	meralcoMSDir := fs.String("meralco-ms-dir", "", "read Meralco maintenance-schedule pages from this local directory instead of HTTP")
 	if err := fs.Parse(argv); err != nil {
 		return 1
 	}
 	if *cacheDir == "" || *outPath == "" {
-		fmt.Fprintln(os.Stderr, "usage: presyo utilities fetch -cache DIR -out snapshot.json [-city \"Las Piñas\"] [-max-oil 6] [-sections fuel,pump,lpg,meralco,water,fcda] [-maynilad-x FILE] [-maynilad-site] [-maynilad-feed] [-maynilad-feed-file FILE]")
+		fmt.Fprintln(os.Stderr, "usage: presyo utilities fetch -cache DIR -out snapshot.json [-city \"Las Piñas\"] [-max-oil 6] [-sections fuel,pump,lpg,meralco,power,water,fcda] [-maynilad-x FILE] [-maynilad-site] [-maynilad-feed] [-maynilad-feed-file FILE] [-meralco-ms] [-meralco-ms-dir DIR]")
 		return 1
 	}
 	var wanted []string
@@ -74,7 +76,7 @@ func cmdUtilitiesFetch(argv []string) int {
 				continue
 			}
 			if !valid[s] {
-				fmt.Fprintf(os.Stderr, "utilities fetch: error: unknown section %q (want one of fuel,pump,lpg,meralco,water,fcda)\n", s)
+				fmt.Fprintf(os.Stderr, "utilities fetch: error: unknown section %q (want one of fuel,pump,lpg,meralco,power,water,fcda)\n", s)
 				return 1
 			}
 			wanted = append(wanted, s)
@@ -97,6 +99,8 @@ func cmdUtilitiesFetch(argv []string) int {
 		MayniladSite:     *mayniladSite,
 		MayniladFeed:     *mayniladFeed,
 		MayniladFeedFile: *mayniladFeedFile,
+		MeralcoMS:        *meralcoMS,
+		MeralcoMSDir:     *meralcoMSDir,
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "utilities fetch: error: %s\n", err.Error())

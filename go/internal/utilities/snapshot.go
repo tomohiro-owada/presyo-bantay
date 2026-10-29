@@ -617,7 +617,7 @@ func (f *fetcher) fetchFCDA(ctx context.Context) {
 // Empty reports whether nothing was parsed at all.
 func (s *Snapshot) Empty() bool {
 	return len(s.Fuel.Adjustments) == 0 && len(s.Fuel.NCRPump) == 0 &&
-		len(s.LPG) == 0 && len(s.Meralco) == 0 && s.Water == nil
+		len(s.LPG) == 0 && len(s.Meralco) == 0 && s.Water == nil && s.Power == nil
 }
 
 // sectionSourcePrefixes maps sections to their Source.Name prefixes,
@@ -627,6 +627,7 @@ var sectionSourcePrefixes = map[string][]string{
 	"pump":    {"doe-ncr-pump"},
 	"lpg":     {"doe-ncr-lpg"},
 	"meralco": {"meralco-"},
+	"power":   {"meralco-ms"},
 	"water":   {"maynilad-scheduled", "maynilad-emergency", "maynilad-rotational", "maynilad-maintenance", "maynilad-x", "maynilad-feed"},
 	"fcda":    {"maynilad-fcda"},
 }
@@ -642,6 +643,8 @@ func freshSection(fresh *Snapshot, section string) bool {
 		return len(fresh.LPG) > 0
 	case "meralco":
 		return len(fresh.Meralco) > 0
+	case "power":
+		return fresh.Power != nil
 	case "water":
 		return fresh.Water != nil
 	case "fcda":
@@ -688,6 +691,19 @@ func MergeSnapshots(base, fresh *Snapshot, sections []string) *Snapshot {
 			out.LPG = fresh.LPG
 		case "meralco":
 			out.Meralco = fresh.Meralco
+		case "power":
+			if fresh.Power != nil && fresh.Power.LayoutAlarm != "" {
+				// Layout change: surface the alarm but keep the
+				// previous items (never replace with an empty list).
+				merged := *fresh.Power
+				if base != nil && base.Power != nil {
+					merged.Items = base.Power.Items
+					merged.HistoryFrom = base.Power.HistoryFrom
+				}
+				out.Power = &merged
+			} else if fresh.Power != nil {
+				out.Power = fresh.Power
+			}
 		case "water":
 			out.Water = fresh.Water
 		case "fcda":

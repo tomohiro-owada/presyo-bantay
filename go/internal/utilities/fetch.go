@@ -81,10 +81,21 @@ type FetchOptions struct {
 	// MayniladFeedFile reads a local RSS XML file instead of HTTP
 	// (offline, for samples/tests).
 	MayniladFeedFile string
+	// MeralcoMS enables the Meralco maintenance-schedule section
+	// "power" over HTTP (CLI default true; direct Fetch callers opt
+	// in by setting it).
+	MeralcoMS bool
+	// MeralcoMSDir reads maintenance-schedule pages from this local
+	// directory instead of HTTP (files all_pN.html / cityID_pN.html,
+	// for samples/tests). Works without MeralcoMS.
+	MeralcoMSDir string
+	// MeralcoMSBase rewrites the maintenance-schedule base (tests
+	// serve fixtures via httptest); empty means MeralcoBase.
+	MeralcoMSBase string
 }
 
 // FetchSections are the valid -sections names.
-var FetchSections = []string{"fuel", "pump", "lpg", "meralco", "water", "fcda"}
+var FetchSections = []string{"fuel", "pump", "lpg", "meralco", "power", "water", "fcda"}
 
 // fetcher carries Fetch's running state.
 type fetcher struct {
@@ -106,6 +117,9 @@ type fetcher struct {
 	site     bool
 	feed     bool
 	feedFile string
+	ms       bool
+	msDir    string
+	msBase   string
 
 	lastHost map[string]time.Time
 	requests int
@@ -139,6 +153,9 @@ func Fetch(ctx context.Context, opts FetchOptions) (*Snapshot, error) {
 		site:     opts.MayniladSite,
 		feed:     opts.MayniladFeed,
 		feedFile: opts.MayniladFeedFile,
+		ms:       opts.MeralcoMS,
+		msDir:    opts.MeralcoMSDir,
+		msBase:   opts.MeralcoMSBase,
 		lastHost: map[string]time.Time{},
 		snap: &Snapshot{
 			Sources: []Source{},
@@ -178,6 +195,9 @@ func Fetch(ctx context.Context, opts FetchOptions) (*Snapshot, error) {
 	if f.maynilad == "" {
 		f.maynilad = DefaultMayniladBase
 	}
+	if f.msBase == "" {
+		f.msBase = f.meralco
+	}
 	if f.sleep == nil {
 		f.sleep = time.Sleep
 	}
@@ -207,6 +227,9 @@ func Fetch(ctx context.Context, opts FetchOptions) (*Snapshot, error) {
 	}
 	if f.sections["meralco"] {
 		f.fetchMeralco(ctx)
+	}
+	if f.sections["power"] {
+		f.fetchPower(ctx)
 	}
 	if f.sections["water"] {
 		f.fetchWater(ctx)
