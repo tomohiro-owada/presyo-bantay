@@ -413,7 +413,7 @@ func BuildWaterAlerts(w *WaterStatus) []WaterAlert {
 
 // assignWaterTrend fills NthThisMonth/PrevMonthCount/HasPrev: N is the
 // position among distinct alerts in the same Manila month ordered by
-// Start (shown only when N >= 2); the previous-month count is shown
+// Start (always shown, from N=1); the previous-month count is shown
 // only when the snapshot really covers last month (a feed post or an
 // alert in a previous month), never guessed.
 func assignWaterTrend(alerts []WaterAlert, w *WaterStatus) {
@@ -444,7 +444,7 @@ func assignWaterTrend(alerts []WaterAlert, w *WaterStatus) {
 		}
 	}
 	for i, a := range alerts {
-		if a.Start.IsZero() || a.NthThisMonth < 2 {
+		if a.Start.IsZero() || a.NthThisMonth < 1 {
 			continue
 		}
 		cur := monthOf(a.Start)
@@ -553,16 +553,16 @@ func dailyRange3(a *WaterAlert) (tl, en, ja string) {
 
 // waterTrendLines renders the extra trend line per language ("Nth
 // water interruption in Las Piñas this month", plus "last month: M"
-// only when the snapshot covers last month). Empty when N < 2.
+// only when the snapshot covers last month). Empty when N < 1.
 func waterTrendLines(a *WaterAlert) (tl, en, ja string, ok bool) {
-	if a.NthThisMonth < 2 || a.Start.IsZero() {
+	if a.NthThisMonth < 1 || a.Start.IsZero() {
 		return "", "", "", false
 	}
 	m := a.Start.In(manilaLoc)
 	tlMon := tlFull[m.Month()]
 	enMon := enFull[m.Month()]
 	tl = fmt.Sprintf("📊 Ika-%d na water interruption sa %s ngayong %s", a.NthThisMonth, a.City, tlMon)
-	en = fmt.Sprintf("📊 Water interruption no. %d in %s this %s", a.NthThisMonth, a.City, enMon)
+	en = fmt.Sprintf("📊 %s water interruption in %s this %s", ordinalEN(a.NthThisMonth), a.City, enMon)
 	ja = fmt.Sprintf("📊 今月%sで%d回目の断水", jaCity(a.City), a.NthThisMonth)
 	if a.HasPrev && a.PrevMonthCount > 0 {
 		prev := PrevMonth(m.Format("2006-01"))
@@ -581,7 +581,7 @@ func waterTrendLines(a *WaterAlert) (tl, en, ja string, ok bool) {
 // pastSample is true the first line marks it as old sample data.
 // Daily alerts say "bawat gabi"/"every night"/"毎晩" with the nightly
 // clock window and the date range (never one continuous outage), and
-// alerts with NthThisMonth >= 2 carry the monthly trend line.
+// alerts with NthThisMonth >= 1 carry the monthly trend line.
 func RenderWaterAlertPost(a WaterAlert, pastSample bool) string {
 	var tl, en, ja strings.Builder
 	if pastSample {

@@ -524,7 +524,7 @@ func TestWaterTrendLine(t *testing.T) {
 		t.Fatalf("prev = %+v", second)
 	}
 	text := RenderWaterAlertPost(*second, false)
-	for _, want := range []string{"Ika-2", "no. 2", "2回目", "1 noong Setyembre", "1 last September", "先月1回"} {
+	for _, want := range []string{"Ika-2", "2nd water interruption", "2回目", "1 noong Setyembre", "1 last September", "先月1回"} {
 		if !strings.Contains(text, want) {
 			t.Fatalf("trend missing %q:\n%s", want, text)
 		}
@@ -540,15 +540,17 @@ func TestWaterTrendLine(t *testing.T) {
 		t.Fatalf("trend check problems: %v", problems)
 	}
 	_ = snap
-	// A lone alert shows no trend line.
+	// A lone alert shows the 1st-this-month trend line.
 	w1 := &WaterStatus{City: "Las Piñas", Maintenance: []Maintenance{mk(19)}}
 	a1 := BuildWaterAlerts(w1)
 	if len(a1) != 1 || a1[0].NthThisMonth != 1 {
 		t.Fatalf("single = %+v", a1)
 	}
 	t1 := RenderWaterAlertPost(a1[0], false)
-	if strings.Contains(t1, "Ika-") || strings.Contains(t1, "Water interruption no.") || strings.Contains(t1, "回目の断水") {
-		t.Fatalf("unexpected trend on N=1:\n%s", t1)
+	for _, want := range []string{"Ika-1 na water interruption", "1st water interruption in Las Piñas this October", "1回目の断水"} {
+		if !strings.Contains(t1, want) {
+			t.Fatalf("N=1 trend missing %q:\n%s", want, t1)
+		}
 	}
 	snap1 := &Snapshot{Water: w1, Alerts: a1}
 	if problems := CheckPost(t1, snap1, "water"); len(problems) != 0 {

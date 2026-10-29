@@ -617,14 +617,14 @@ func checkWaterAlert(text string, s *Snapshot) []string {
 	if a.Start.IsZero() || a.End.IsZero() {
 		return problems
 	}
-	// Trend line: present with exact wording iff NthThisMonth >= 2.
+	// Trend line: present with exact wording iff NthThisMonth >= 1.
 	if trendTL, trendEN, trendJA, ok := waterTrendLines(&a); ok {
 		for _, want := range []string{trendTL, trendEN, trendJA} {
 			if !strings.Contains(text, want) {
 				add("trend %q missing", want)
 			}
 		}
-	} else if strings.Contains(text, "📊 Ika-") || strings.Contains(text, "Water interruption no.") || strings.Contains(text, "回目の断水") {
+	} else if strings.Contains(text, "📊 Ika-") || strings.Contains(text, "water interruption in") || strings.Contains(text, "回目の断水") {
 		add("unexpected water trend line")
 	}
 	wantHM := map[[2]int]bool{
@@ -701,7 +701,7 @@ func checkWaterAlert(text string, s *Snapshot) []string {
 			allowed[strconv.Itoa(md[1])] = true
 		}
 	}
-	if a.NthThisMonth >= 2 {
+	if a.NthThisMonth >= 1 {
 		allowed[strconv.Itoa(a.NthThisMonth)] = true
 		if a.HasPrev {
 			allowed[strconv.Itoa(a.PrevMonthCount)] = true
@@ -775,14 +775,14 @@ func checkPowerAlert(text string, s *Snapshot) []string {
 	if a.Start.IsZero() || a.End.IsZero() {
 		return problems
 	}
-	// Trend line: present with exact wording iff NthThisMonth >= 2.
+	// Trend line: present with exact wording iff NthThisMonth >= 1.
 	if trendTL, trendEN, trendJA, ok := PowerTrendLines(&a); ok {
 		for _, want := range []string{trendTL, trendEN, trendJA} {
 			if !strings.Contains(text, want) {
 				add("trend %q missing", want)
 			}
 		}
-	} else if strings.Contains(text, "planadong brownout") || strings.Contains(text, "Planned brownout") || strings.Contains(text, "回目の計画停電") {
+	} else if strings.Contains(text, "planadong brownout") || strings.Contains(text, "planned brownout in") || strings.Contains(text, "回目の計画停電") {
 		add("unexpected power trend line")
 	}
 	// Expected clock times: daily uses the nightly clock pairs, else
@@ -882,7 +882,7 @@ func checkPowerAlert(text string, s *Snapshot) []string {
 			allowed[strconv.Itoa(w.End.Year())] = true
 		}
 	}
-	if a.NthThisMonth >= 2 {
+	if a.NthThisMonth >= 1 {
 		allowed[strconv.Itoa(a.NthThisMonth)] = true
 		if a.HistoryComplete {
 			allowed[strconv.Itoa(a.PrevMonthCount)] = true

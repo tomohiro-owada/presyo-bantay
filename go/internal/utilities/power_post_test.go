@@ -139,7 +139,7 @@ func TestPowerTrendLine(t *testing.T) {
 	text := RenderPowerAlertPost(*second, false)
 	for _, want := range []string{
 		"📊 Ika-2 na planadong brownout sa Las Piñas ngayong Oktubre, 1 noong Setyembre",
-		"📊 Planned brownout no. 2 in Las Piñas this October, 1 last September",
+		"📊 2nd planned brownout in Las Piñas this October, 1 last September",
 		"📊 今月ラスピニャスで2回目の計画停電（先月1回）",
 	} {
 		if !strings.Contains(text, want) {
@@ -149,7 +149,7 @@ func TestPowerTrendLine(t *testing.T) {
 	if problems := CheckPost(text, powerSnap(*second), "power"); len(problems) != 0 {
 		t.Fatalf("trend check: %v", problems)
 	}
-	// Lone alert shows no trend.
+	// A lone alert shows the 1st-this-month trend line.
 	single := PowerAlert{
 		ID: "s1", City: "Las Piñas",
 		Start:     time.Date(2026, 10, 5, 10, 0, 0, 0, manilaLoc),
@@ -158,8 +158,17 @@ func TestPowerTrendLine(t *testing.T) {
 		SourceURL: "https://example.invalid/s1", NthThisMonth: 1,
 	}
 	t1 := RenderPowerAlertPost(single, false)
-	if strings.Contains(t1, "planadong brownout") || strings.Contains(t1, "Planned brownout") || strings.Contains(t1, "回目の計画停電") {
-		t.Fatalf("unexpected trend:\n%s", t1)
+	for _, want := range []string{
+		"📊 Ika-1 na planadong brownout sa Las Piñas ngayong Oktubre",
+		"📊 1st planned brownout in Las Piñas this October",
+		"📊 今月ラスピニャスで1回目の計画停電",
+	} {
+		if !strings.Contains(t1, want) {
+			t.Fatalf("1st trend missing %q:\n%s", want, t1)
+		}
+	}
+	if problems := CheckPost(t1, powerSnap(single), "power"); len(problems) != 0 {
+		t.Fatalf("1st trend check: %v", problems)
 	}
 }
 

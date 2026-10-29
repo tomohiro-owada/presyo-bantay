@@ -29,13 +29,16 @@ func TestRenderWaterAlertPost(t *testing.T) {
 📅 Miy Ago 26, 10:00 PM hanggang Huw Ago 27, 1:00 PM
 📍 Almanza Uno, Pilar, Talon Uno, Talon Dos, Talon Singko
 🔧 Dahilan: maintenance ng pasilidad
+📊 Ika-1 na water interruption sa Las Piñas ngayong Agosto
 Mag-ipon ng tubig bago magsimula.
 ━━━━━━━━━━
 🇬🇧 Water interruption in parts of Las Piñas
 Wed Aug 26, 10:00 PM to Thu Aug 27, 1:00 PM · Almanza Uno, Pilar, Talon Uno, Talon Dos, Talon Singko · Reason: facility maintenance. Store water beforehand.
+📊 1st water interruption in Las Piñas this August
 ━━━━━━━━━━
 🇯🇵 ラスピニャスの一部で断水
 8/26（水）22:00〜8/27（木）13:00・Almanza Uno、Pilar、Talon Uno、Talon Dos、Talon Singko・理由：設備メンテナンス。事前に水の確保を。
+📊 今月ラスピニャスで1回目の断水
 ━━━━━━━━━━
 Details: https://www.mayniladwater.com.ph/service-advisories-2/ https://www.mayniladwater.com.ph/maintenance-activities-for-the-upcoming-week-146/
 Source: Maynilad advisory · Hindi opisyal na Maynilad page`

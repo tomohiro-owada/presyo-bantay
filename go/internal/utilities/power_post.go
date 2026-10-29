@@ -66,16 +66,16 @@ func shortRoads(roads []string) []string {
 
 // PowerTrendLines renders the extra trend line per language ("Nth
 // planned brownout in Las Piñas this month", plus "last month: M" only
-// when HistoryComplete). Empty when N < 2 or start is zero.
+// when HistoryComplete). Empty when N < 1 or start is zero.
 func PowerTrendLines(a *PowerAlert) (tl, en, ja string, ok bool) {
-	if a.NthThisMonth < 2 || a.Start.IsZero() {
+	if a.NthThisMonth < 1 || a.Start.IsZero() {
 		return "", "", "", false
 	}
 	m := a.Start.In(manilaLoc)
 	tlMon := tlFull[m.Month()]
 	enMon := enFull[m.Month()]
 	tl = fmt.Sprintf("📊 Ika-%d na planadong brownout sa %s ngayong %s", a.NthThisMonth, a.City, tlMon)
-	en = fmt.Sprintf("📊 Planned brownout no. %d in %s this %s", a.NthThisMonth, a.City, enMon)
+	en = fmt.Sprintf("📊 %s planned brownout in %s this %s", ordinalEN(a.NthThisMonth), a.City, enMon)
 	ja = fmt.Sprintf("📊 今月%sで%d回目の計画停電", jaCity(a.City), a.NthThisMonth)
 	if a.HistoryComplete && a.PrevMonthCount > 0 {
 		prev := PrevMonth(m.Format("2006-01"))
@@ -322,7 +322,7 @@ func powerAreas(a *PowerAlert) (tl, en, ja string) {
 // RenderPowerAlertPost renders the short trilingual power caption. When
 // pastSample is true the first line marks it as old sample data.
 // Daily alerts say "bawat gabi"/"every night"/"毎晩" with the nightly
-// clock window and the date range, and alerts with NthThisMonth >= 2
+// clock window and the date range, and alerts with NthThisMonth >= 1
 // carry the monthly trend line.
 func RenderPowerAlertPost(a PowerAlert, pastSample bool) string {
 	var tl, en, ja strings.Builder
@@ -372,4 +372,20 @@ func RenderPowerAlertPost(a PowerAlert, pastSample bool) string {
 	details := "Details: " + a.SourceURL
 	footer := details + "\nSource: Meralco maintenance schedule · Hindi opisyal na Meralco page"
 	return joinAlertBlocks(tl.String(), en.String(), ja.String(), footer)
+}
+
+// ordinalEN renders 1 -> "1st", 2 -> "2nd", 11 -> "11th".
+func ordinalEN(n int) string {
+	suf := "th"
+	if n%100 < 11 || n%100 > 13 {
+		switch n % 10 {
+		case 1:
+			suf = "st"
+		case 2:
+			suf = "nd"
+		case 3:
+			suf = "rd"
+		}
+	}
+	return fmt.Sprintf("%d%s", n, suf)
 }

@@ -120,7 +120,7 @@ func RenderPowerAlert(a *utilities.PowerAlert, pastSample bool) (*image.RGBA, er
 	// Trend line (~28 px, TL only on the chart).
 	var tls []string
 	tsz := powerTrendSize
-	hasTrend := a.NthThisMonth >= 2 && !a.Start.IsZero()
+	hasTrend := a.NthThisMonth >= 1 && !a.Start.IsZero()
 	if hasTrend {
 		if ttl, _, _, ok := utilities.PowerTrendLines(a); ok {
 			tls, tsz = wrapLines(ttl, Medium, powerTrendSize, powerTrendMin, cardW, 2)
