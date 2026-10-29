@@ -658,7 +658,8 @@ func RenderWaterAlertPost(a WaterAlert, pastSample bool) string {
 		return joinAlertBlocks(tl.String(), en.String(), ja.String(), footer)
 	}
 	if a.Kind == "maintenance" && a.SourceURL != "" && a.SourceURL != MayniladAdvisoriesURL {
-		details += " " + a.SourceURL
+		// Feed alerts link the specific weekly post only.
+		details = "Details: " + a.SourceURL
 	}
 	footer := details + "\nSource: Maynilad advisory · Hindi opisyal na Maynilad page"
 	return joinAlertBlocks(tl.String(), en.String(), ja.String(), footer)

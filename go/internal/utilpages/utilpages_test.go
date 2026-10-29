@@ -221,7 +221,7 @@ func TestUtilpagesWritesAll(t *testing.T) {
 
 	// Water page: own wording + advisory link, no copied sentences.
 	whtml := string(mustRead(t, filepath.Join(site, "u", "water", wpost.AsOf, "index.html")))
-	for _, want := range []string{"maintenance ng pasilidad", "mayniladwater.com.ph/service-advisories-2"} {
+	for _, want := range []string{"maintenance ng pasilidad", "mayniladwater.com.ph/maintenance-activities-for-the-upcoming-week"} {
 		if !strings.Contains(whtml, want) {
 			t.Fatalf("water page missing %q", want)
 		}

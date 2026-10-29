@@ -40,7 +40,7 @@ Wed Aug 26, 10:00 PM to Thu Aug 27, 1:00 PM · Almanza Uno, Pilar, Talon Uno, Ta
 8/26（水）22:00〜8/27（木）13:00・Almanza Uno、Pilar、Talon Uno、Talon Dos、Talon Singko・理由：設備メンテナンス。事前に水の確保を。
 📊 今月ラスピニャスで1回目の断水
 ━━━━━━━━━━
-Details: https://www.mayniladwater.com.ph/service-advisories-2/ https://www.mayniladwater.com.ph/maintenance-activities-for-the-upcoming-week-146/
+Details: https://www.mayniladwater.com.ph/maintenance-activities-for-the-upcoming-week-146/
 Source: Maynilad advisory · Hindi opisyal na Maynilad page`
 	if got != want {
 		t.Fatalf("alert post mismatch:\n got: %q\nwant: %q", got, want)
