@@ -57,3 +57,13 @@ read tools and pushes a normalized v1 JSON file to
   holds Parañaque/Muntinlupa/Bacoor rows (site page only, never posted).
   See `UTILITIES_MAINTENANCE.md` Part A (feed parsing, daily ranges,
   retention, X dedupe, trend line) and Part C (power posts/site).
+
+## Feed inbox (`~/inbox/maynilad_feed.xml`)
+
+The Maynilad site challenges some server networks (403 + `cf-mitigated`). We never try to get around
+that. Instead a machine that can fetch the public RSS (plain request, our polite User-Agent, one
+attempt) validates it and uploads the raw XML atomically to `~/inbox/maynilad_feed.xml` on the job
+host. `scripts/utilities.sh` passes it as `-maynilad-feed-file` when present: a warning is logged when
+it is older than 12 h, and it is ignored when older than 72 h (then the normal fetch runs and a blocked
+feed falls back to the X inbox). The snapshot still records the public feed URL as the source, never the
+local path. The pusher script lives outside this repo.
