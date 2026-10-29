@@ -99,13 +99,17 @@ if [ "$DOM" -ge 1 ] && [ "$DOM" -le 15 ] && ! stamp_is_today lpg; then
   add_section lpg
   echo "$TODAY" >"$UDATA/stamps/lpg"
 fi
-# water: every hour (cheap local X inbox read); fcda: hours divisible
-# by 3 on days 10-20 only (still the website fetch).
+# water: every hour (the feed fetch happens inside water); fcda: hours
+# divisible by 3 on days 10-20 only (still the website fetch).
+# power: Manila hours divisible by 6 (06/12/18).
 add_section water
 if [ "$((HOUR % 3))" -eq 0 ]; then
   if [ "$DOM" -ge 10 ] && [ "$DOM" -le 20 ]; then
     add_section fcda
   fi
+fi
+if [ "$((HOUR % 6))" -eq 0 ]; then
+  add_section power
 fi
 echo "utilities.sh: sections='$sections' (dow=$DOW dom=$DOM hour=$HOUR)"
 

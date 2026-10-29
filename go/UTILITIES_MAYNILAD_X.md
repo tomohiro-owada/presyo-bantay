@@ -50,3 +50,10 @@ read tools and pushes a normalized v1 JSON file to
   alerts use per-language `XAreasTL`/`XAreasEN`/`XAreasJA` labels). The `water` section stamps fresh whenever
   the inbox loads OK (even with zero advisories, so old alerts
   disappear). The FCDA fetch still uses the website (still blocked).
+- Weekly schedules: the feed (`{MayniladBase}/feed/`, `MayniladFeed: true`
+  by default) is now the primary source for weekly rows; the legacy
+  WP-REST maintenance fetch stays off by default (`MayniladSite: false`).
+  `WaterStatus.Maintenance` holds Las Piñas rows, `WaterStatus.Nearby`
+  holds Parañaque/Muntinlupa/Bacoor rows (site page only, never posted).
+  See `UTILITIES_MAINTENANCE.md` Part A (feed parsing, daily ranges,
+  retention, X dedupe, trend line) and Part C (power posts/site).

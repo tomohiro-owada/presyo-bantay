@@ -94,8 +94,8 @@ export UTIL_DOW=2 UTIL_DOM=12 UTIL_HOUR=6 UTIL_TODAY=2026-10-27
 reset_calls
 rev_before="$(origin_rev)"
 if ! "$UTIL"; then bad "utilities.sh exited non-zero on Tue"; else ok "Tue run exit 0"; fi
-[ "$(fetch_sections)" = "fetch -sections fuel,pump,meralco,lpg,water,fcda" ] \
-  && ok "Tue sections = all due" || bad "Tue sections: $(fetch_sections)"
+[ "$(fetch_sections)" = "fetch -sections fuel,pump,meralco,lpg,water,fcda,power" ] \
+  && ok "Tue 06:00 sections = all due + power" || bad "Tue sections: $(fetch_sections)"
 calls | grep -q -- "-maynilad-x $PRESYO_HOME/inbox/maynilad_x.json" \
   && ok "Tue fetch passes default -maynilad-x" || bad "missing default -maynilad-x: $(calls)"
 calls | grep -q "utilpages -snapshot $UDATA/snapshot.json -site-public $REPO/site/public" \
@@ -132,6 +132,19 @@ reset_calls
 if ! "$UTIL"; then bad "Thu 10:00 run failed"; else ok "Thu 10:00 exit 0"; fi
 [ "$(fetch_sections)" = "fetch -sections fuel,pump,meralco,lpg,water" ] \
   && ok "Thu 10:00 sections include fuel,pump,water" || bad "sections: $(fetch_sections)"
+
+# --- 4b. power at hours divisible by 6, water always included ---
+rm -rf "$UDATA/stamps"
+export UTIL_DOW=4 UTIL_DOM=12 UTIL_HOUR=12 UTIL_TODAY=2026-10-29
+reset_calls
+if ! "$UTIL"; then bad "12:00 run failed"; else ok "12:00 exit 0"; fi
+[ "$(fetch_sections)" = "fetch -sections fuel,pump,meralco,lpg,water,fcda,power" ] \
+  && ok "12:00 sections include power + water" || bad "12:00 sections: $(fetch_sections)"
+export UTIL_HOUR=13
+reset_calls
+if ! "$UTIL"; then bad "13:00 run failed"; else ok "13:00 exit 0"; fi
+[ "$(fetch_sections)" = "fetch -sections water" ] \
+  && ok "13:00 sections exclude power, keep water" || bad "13:00 sections: $(fetch_sections)"
 
 # --- 5. disabled file skips fbutil only ---
 mkdir -p "$PRESYO_HOME/.config/presyo"
