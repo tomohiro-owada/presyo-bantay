@@ -104,7 +104,18 @@ table.pumptable th:first-child,table.pumptable td:first-child{text-align:left}
 {{range .Alerts}}<li><a href="{{.Path}}">{{.Areas}}</a> — {{.Window}} ({{.Reason}})</li>
 {{end}}</ul>{{else}}<p>{{.NoWater}}</p>{{end}}
 {{range .WaterLinks}}<p><a href="{{.Path}}">{{.Label}}</a></p>
-{{end}}</section>
+{{end}}{{if .WaterNearby}}<h3><span data-lang="tl">Malapit na lugar</span><span data-lang="en">Nearby areas</span><span data-lang="ja">近隣エリア</span></h3>
+<ul class="deals-list">
+{{range .WaterNearby}}<li>{{.City}} — {{.Areas}} — {{.Schedule}}</li>
+{{end}}</ul>{{end}}</section>{{if .HasPower}}<section class="card" aria-label="power">
+<h2><span data-lang="tl">Kuryente</span><span data-lang="en">Power</span><span data-lang="ja">電気</span></h2>
+{{if .PowerAlerts}}<ul class="deals-list">
+{{range .PowerAlerts}}<li><a href="{{.Path}}">{{.Areas}}</a> — {{.Window}} ({{.Reason}}){{if .Trend}} — {{.Trend}}{{end}} <a href="{{.SourceURL}}">Details</a></li>
+{{end}}</ul>{{else}}<p>{{.NoPower}}</p>{{end}}{{if .NearbyPower}}<h3><span data-lang="tl">Malapit na lugar</span><span data-lang="en">Nearby areas</span><span data-lang="ja">近隣エリア</span></h3>
+<ul class="deals-list">
+{{range .NearbyPower}}<li><a href="{{.URL}}">{{.Title}}</a> — {{.Dates}}</li>
+{{end}}</ul>{{end}}{{range .PowerLinks}}<p><a href="{{.Path}}">{{.Label}}</a></p>
+{{end}}</section>{{end}}
 {{if .Sources}}<section class="card" aria-label="sources">
 <h2><span data-lang="tl">Pinagmulan</span><span data-lang="en">Sources</span><span data-lang="ja">出典</span></h2>
 <ul class="srclist">

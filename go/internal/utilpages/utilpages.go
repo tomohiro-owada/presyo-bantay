@@ -50,6 +50,7 @@ type UtilitiesDoc struct {
 	Fuel        *UtilEntry `json:"fuel,omitempty"`
 	Bills       *UtilEntry `json:"bills,omitempty"`
 	Water       *UtilEntry `json:"water,omitempty"`
+	Power       *UtilEntry `json:"power,omitempty"`
 }
 
 // Config tunes Run.
@@ -173,6 +174,37 @@ func Run(snap *utilities.Snapshot, cfg Config) error {
 		doc.AlertKind = a.Kind
 		if err := freezePost(cfg, frozenPost{kind: "water", id: a.ID, text: text, img: img, doc: doc}); err != nil {
 			return err
+		}
+	}
+
+	// Power pages: every Las Piñas alert, unless the snapshot carries
+	// a layout alarm (then no frozen power pages are generated).
+	if snap.Power != nil && snap.Power.LayoutAlarm != "" {
+		logf("skip power: layout alarm set (no frozen pages)")
+	} else {
+		for _, a := range utilities.BuildPowerAlerts(snap.Power, now) {
+			a := a
+			text := utilities.RenderPowerAlertPost(a, false)
+			checkSnap := &utilities.Snapshot{PowerAlerts: []utilities.PowerAlert{a}}
+			if problems := utilities.CheckPost(text, checkSnap, "power"); len(problems) > 0 {
+				logf("skip power %s: checker failed (unpublished)", a.ID)
+				continue
+			}
+			img, err := fbchart.RenderPowerAlert(&a, false)
+			if err != nil {
+				return fmt.Errorf("render power %s: %w", a.ID, err)
+			}
+			doc := PostDoc{Text: text, Kind: "power", AsOf: a.ID, GeneratedAt: gen, Check: "pass"}
+			if !a.Start.IsZero() {
+				doc.Start = a.Start.Format(time.RFC3339)
+			}
+			if !a.End.IsZero() {
+				doc.End = a.End.Format(time.RFC3339)
+			}
+			doc.AlertKind = "power"
+			if err := freezePost(cfg, frozenPost{kind: "power", id: a.ID, text: text, img: img, doc: doc}); err != nil {
+				return err
+			}
 		}
 	}
 

@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/tomohiro-owada/presyo-bantay/go/internal/utilities"
 )
@@ -300,6 +301,32 @@ type PostLink struct {
 	Label string
 }
 
+// PowerAlertLink is one Las Piñas power alert row (now+upcoming).
+type PowerAlertLink struct {
+	Path      string
+	Areas     string
+	Window    string
+	Reason    string
+	Trend     string
+	SourceURL string
+}
+
+// PowerNearbyLink is one compact nearby power item (Parañaque,
+// Muntinlupa, Bacoor) for the next 14 days.
+type PowerNearbyLink struct {
+	Title string
+	Dates string
+	URL   string
+}
+
+// WaterNearbyLink is one compact nearby water schedule row from
+// Water.Nearby.
+type WaterNearbyLink struct {
+	City     string
+	Areas    string
+	Schedule string
+}
+
 // IndexView is the data for SITE/u/index.html.
 type IndexView struct {
 	Title       string
@@ -319,10 +346,17 @@ type IndexView struct {
 	BillsJA     []Block
 	Alerts      []AlertLink
 	NoWater     string // "none, checked <time>" TL line when no alerts
+	WaterNearby []WaterNearbyLink
+	HasWater    bool // water section data present (keeps old pages byte-identical when false)
+	PowerAlerts []PowerAlertLink
+	NoPower     string // "none, checked <time>" TL line when power has no alerts
+	NearbyPower []PowerNearbyLink
+	HasPower    bool // power section present (nil Power omits the section, preserving old bytes)
 	Sources     []SourceRow
 	FuelLink    string
 	BillsLink   string
 	WaterLinks  []PostLink
+	PowerLinks  []PostLink
 }
 
 // PostView is the data for one frozen post page.
@@ -357,7 +391,7 @@ func postPage(doc PostDoc, base string) (string, error) {
 		return ""
 	}
 	pub := doc.AsOf
-	if doc.Kind == "water" && len(doc.Start) >= 10 {
+	if (doc.Kind == "water" || doc.Kind == "power") && len(doc.Start) >= 10 {
 		pub = doc.Start[:10]
 	}
 	if doc.Kind == "bills" && len(doc.AsOf) == 7 {
@@ -454,6 +488,119 @@ func Rebuild(snap *utilities.Snapshot, sitePublic, base, gen string) error {
 		ctl, _, _ := utilities.ShortDay(snap.Water.CheckedAt)
 		v.NoWater = "Walang naka-schedule na interruption — tiningnan " + ctl
 	}
+	if snap.Water != nil {
+		v.HasWater = true
+		for _, r := range snap.Water.Nearby {
+			v.WaterNearby = append(v.WaterNearby, WaterNearbyLink{
+				City:     r.City,
+				Areas:    r.Barangays,
+				Schedule: r.Schedule,
+			})
+		}
+		if v.WaterNearby == nil {
+			v.WaterNearby = []WaterNearbyLink{}
+		}
+	}
+	// Power section: Las Piñas planned interruptions now+upcoming, each
+	// with the official link and the trend; "none, checked <time>"
+	// otherwise (a layout alarm shows only "no data right now" publicly).
+	if snap.Power != nil {
+		v.HasPower = true
+		if snap.Power.LayoutAlarm != "" {
+			ctl, _, _ := utilities.ShortDay(snap.Power.CheckedAt)
+			if ctl == "" {
+				ctl = gen[:10]
+			}
+			v.NoPower = "Walang datos sa ngayon — tiningnan " + ctl
+		} else {
+			nowManila, _ := time.Parse(time.RFC3339, gen)
+			today := nowManila.In(time.FixedZone("Asia/Manila", 8*3600)).Format("2006-01-02")
+			horizon21 := nowManila.In(time.FixedZone("Asia/Manila", 8*3600)).Add(21 * 24 * time.Hour).Format("2006-01-02")
+			for _, a := range utilities.BuildPowerAlerts(snap.Power, nowManila) {
+				if a.End.Format("2006-01-02") < today {
+					continue
+				}
+				if a.Start.Format("2006-01-02") > horizon21 {
+					continue
+				}
+				trend := ""
+				if tl, _, _, ok := utilities.PowerTrendLines(&a); ok {
+					trend = tl
+				}
+				areas := strings.Join(a.Barangays, ", ")
+				// Window text for the site row: reuse the caption TL date.
+				window := ""
+				if text := utilities.RenderPowerAlertPost(a, false); text != "" {
+					for _, ln := range strings.Split(text, "\n") {
+						if strings.HasPrefix(ln, "📅 ") {
+							window = strings.TrimPrefix(ln, "📅 ")
+							break
+						}
+					}
+				}
+				v.PowerAlerts = append(v.PowerAlerts, PowerAlertLink{
+					Path:      "power/" + a.ID + "/",
+					Areas:     areas,
+					Window:    window,
+					Reason:    utilities.PowerReason(a.ReasonKey, 0),
+					Trend:     trend,
+					SourceURL: a.SourceURL,
+				})
+			}
+			if len(v.PowerAlerts) == 0 {
+				ctl, _, _ := utilities.ShortDay(snap.Power.CheckedAt)
+				if ctl == "" {
+					ctl = today
+				}
+				v.NoPower = "Walang naka-schedule na brownout — tiningnan " + ctl
+			}
+			// Nearby Parañaque/Muntinlupa/Bacoor items for the next 14 days.
+			horizon14 := nowManila.In(time.FixedZone("Asia/Manila", 8*3600)).Add(14 * 24 * time.Hour).Format("2006-01-02")
+			for _, it := range snap.Power.Items {
+				if it.DateFrom == "" || it.DateTo == "" {
+					continue
+				}
+				if it.DateTo < today || it.DateFrom > horizon14 {
+					continue
+				}
+				isNearby := false
+				for _, c := range it.Cities {
+					if c == "Parañaque" || c == "Muntinlupa" || c == "Bacoor" {
+						isNearby = true
+						break
+					}
+				}
+				if !isNearby {
+					continue
+				}
+				isLP := false
+				for _, c := range it.Cities {
+					if c == "Las Piñas" {
+						isLP = true
+						break
+					}
+				}
+				if isLP {
+					continue
+				}
+				dates := it.DateFrom
+				if it.DateTo != it.DateFrom {
+					dates += "–" + it.DateTo
+				}
+				v.NearbyPower = append(v.NearbyPower, PowerNearbyLink{
+					Title: it.Title,
+					Dates: dates,
+					URL:   it.URL,
+				})
+			}
+			if v.NearbyPower == nil {
+				v.NearbyPower = []PowerNearbyLink{}
+			}
+			if v.PowerAlerts == nil {
+				v.PowerAlerts = []PowerAlertLink{}
+			}
+		}
+	}
 	for _, s := range snap.Sources {
 		v.Sources = append(v.Sources, SourceRow{Name: s.Name, URL: s.URL, Fetched: s.FetchedAt, Status: s.HTTPStatus})
 	}
@@ -495,6 +642,23 @@ func Rebuild(snap *utilities.Snapshot, sitePublic, base, gen string) error {
 	}
 	if v.WaterLinks == nil {
 		v.WaterLinks = []PostLink{}
+	}
+	// Power links: every frozen power page, newest first.
+	var powers []PostDoc
+	for _, d := range docs {
+		if d.Kind == "power" {
+			powers = append(powers, d)
+		}
+	}
+	sort.Slice(powers, func(i, j int) bool { return powers[i].GeneratedAt > powers[j].GeneratedAt })
+	for _, d := range powers {
+		v.PowerLinks = append(v.PowerLinks, PostLink{Path: "power/" + d.AsOf + "/", Label: d.AsOf})
+	}
+	if len(powers) > 0 {
+		manifest.Power = &UtilEntry{ID: powers[0].AsOf, Path: "u/power/" + powers[0].AsOf + "/"}
+	}
+	if v.PowerLinks == nil {
+		v.PowerLinks = []PostLink{}
 	}
 	if len(v.Weeks) > 0 {
 		// OG image: latest fuel chart when present.
