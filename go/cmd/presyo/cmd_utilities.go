@@ -158,24 +158,33 @@ type utilitiesCheckDoc struct {
 // kind water renders one alert: -alert-id selects it (default first);
 // -maintenance-json plus -city builds a water-only snapshot offline
 // from a WP posts JSON file, and -past-sample marks sample output.
+// kind power renders one alert: -alert-id selects it (default first);
+// -meralco-ms-dir / -maynilad-feed-file / -now build offline samples
+// from fixtures.
 func cmdUtilitiesRender(argv []string) int {
 	fs := flag.NewFlagSet("utilities render", flag.ContinueOnError)
-	snapPath := fs.String("snapshot", "", "snapshot JSON file (required unless -maintenance-json)")
-	kind := fs.String("kind", "", "post kind: fuel|bills|water (required)")
+	snapPath := fs.String("snapshot", "", "snapshot JSON file (required unless -maintenance-json/-meralco-ms-dir)")
+	kind := fs.String("kind", "", "post kind: fuel|bills|water|power (required)")
 	outDir := fs.String("out-dir", "", "output directory (required)")
-	alertID := fs.String("alert-id", "", "water alert ID (default first)")
+	alertID := fs.String("alert-id", "", "water/power alert ID (default first)")
 	maintJSON := fs.String("maintenance-json", "", "WP posts JSON file for an offline water-only snapshot")
 	city := fs.String("city", "Las Piñas", "city for -maintenance-json")
 	pastSample := fs.Bool("past-sample", false, "mark output as a past-data sample")
+	meralcoMSDir := fs.String("meralco-ms-dir", "", "read Meralco maintenance-schedule pages from this local directory instead of HTTP")
+	mayniladFeedFile := fs.String("maynilad-feed-file", "", "read Maynilad feed XML from this local file instead of HTTP")
+	nowFlag := fs.String("now", "", "RFC3339 now override (for offline samples)")
 	if err := fs.Parse(argv); err != nil {
 		return 1
 	}
-	if (*kind != "fuel" && *kind != "bills" && *kind != "water") || *outDir == "" {
-		fmt.Fprintln(os.Stderr, "usage: presyo utilities render -snapshot FILE -kind fuel|bills|water -out-dir DIR [-alert-id ID] [-maintenance-json FILE -city C -past-sample]")
+	if (*kind != "fuel" && *kind != "bills" && *kind != "water" && *kind != "power") || *outDir == "" {
+		fmt.Fprintln(os.Stderr, "usage: presyo utilities render -snapshot FILE -kind fuel|bills|water|power -out-dir DIR [-alert-id ID] [-maintenance-json FILE -city C -past-sample] [-meralco-ms-dir DIR -maynilad-feed-file FILE -now RFC3339]")
 		return 1
 	}
 	if *kind == "water" {
-		return cmdUtilitiesRenderWater(*snapPath, *outDir, *alertID, *maintJSON, *city, *pastSample)
+		return cmdUtilitiesRenderWater(*snapPath, *outDir, *alertID, *maintJSON, *city, *pastSample, *meralcoMSDir, *mayniladFeedFile, *nowFlag)
+	}
+	if *kind == "power" {
+		return cmdUtilitiesRenderPower(*snapPath, *outDir, *alertID, *pastSample, *meralcoMSDir, *mayniladFeedFile, *nowFlag)
 	}
 	if *snapPath == "" {
 		fmt.Fprintln(os.Stderr, "usage: presyo utilities render -snapshot FILE -kind fuel|bills -out-dir DIR")
@@ -210,7 +219,7 @@ func cmdUtilitiesRender(argv []string) int {
 }
 
 // cmdUtilitiesRenderWater renders one water alert offline.
-func cmdUtilitiesRenderWater(snapPath, outDir, alertID, maintJSON, city string, pastSample bool) int {
+func cmdUtilitiesRenderWater(snapPath, outDir, alertID, maintJSON, city string, pastSample bool, meralcoMSDir, mayniladFeedFile, nowFlag string) int {
 	fail := func(format string, args ...any) int {
 		fmt.Fprintf(os.Stderr, "utilities render: error: "+format+"\n", args...)
 		return 1
@@ -228,20 +237,47 @@ func cmdUtilitiesRenderWater(snapPath, outDir, alertID, maintJSON, city string, 
 		snap.Water = &utilities.WaterStatus{City: city, Maintenance: rows}
 		snap.Alerts = utilities.BuildWaterAlerts(snap.Water)
 	} else {
-		if snapPath == "" {
+		if snapPath == "" && mayniladFeedFile == "" {
 			return fail("need -snapshot FILE or -maintenance-json FILE")
 		}
-		data, err := os.ReadFile(snapPath)
-		if err != nil {
-			return fail("%s", err.Error())
+		if snapPath != "" {
+			data, err := os.ReadFile(snapPath)
+			if err != nil {
+				return fail("%s", err.Error())
+			}
+			if err := json.Unmarshal(data, &snap); err != nil {
+				return fail("%s", err.Error())
+			}
 		}
-		if err := json.Unmarshal(data, &snap); err != nil {
-			return fail("%s", err.Error())
+		if mayniladFeedFile != "" {
+			now := time.Now()
+			if nowFlag != "" {
+				t, err := time.Parse(time.RFC3339, nowFlag)
+				if err != nil {
+					return fail("bad -now %q", nowFlag)
+				}
+				now = t
+			}
+			off, err := utilities.Fetch(context.Background(), utilities.FetchOptions{
+				Client:           &http.Client{Timeout: 60 * time.Second},
+				Now:              now,
+				MinDelay:         -1,
+				MayniladFeedFile: mayniladFeedFile,
+				Sections:         []string{"water"},
+				Sleep:            func(time.Duration) {},
+			})
+			if err != nil {
+				return fail("%s", err.Error())
+			}
+			if off.Water != nil {
+				snap.Water = off.Water
+			}
 		}
 		if len(snap.Alerts) == 0 {
 			snap.Alerts = utilities.BuildWaterAlerts(snap.Water)
 		}
 	}
+	_ = meralcoMSDir
 	if len(snap.Alerts) == 0 {
 		return fail("no water alerts")
 	}
@@ -269,6 +305,98 @@ func cmdUtilitiesRenderWater(snapPath, outDir, alertID, maintJSON, city string, 
 	}
 	checkSnap := &utilities.Snapshot{Alerts: []utilities.WaterAlert{alert}}
 	return writeUtilitiesRenderPrefixed(outDir, prefix, text, chart, utilities.CheckPost(text, checkSnap, "water"))
+}
+
+// cmdUtilitiesRenderPower renders one power alert offline.
+func cmdUtilitiesRenderPower(snapPath, outDir, alertID string, pastSample bool, meralcoMSDir, mayniladFeedFile, nowFlag string) int {
+	fail := func(format string, args ...any) int {
+		fmt.Fprintf(os.Stderr, "utilities render: error: "+format+"\n", args...)
+		return 1
+	}
+	var snap utilities.Snapshot
+	now := time.Now()
+	if nowFlag != "" {
+		t, err := time.Parse(time.RFC3339, nowFlag)
+		if err != nil {
+			return fail("bad -now %q", nowFlag)
+		}
+		now = t
+	}
+	if snapPath != "" {
+		data, err := os.ReadFile(snapPath)
+		if err != nil {
+			return fail("%s", err.Error())
+		}
+		if err := json.Unmarshal(data, &snap); err != nil {
+			return fail("%s", err.Error())
+		}
+	}
+	if meralcoMSDir != "" {
+		off, err := utilities.Fetch(context.Background(), utilities.FetchOptions{
+			Client:       &http.Client{Timeout: 60 * time.Second},
+			Now:          now,
+			MinDelay:     -1,
+			MeralcoMSDir: meralcoMSDir,
+			Sections:     []string{"power"},
+			Sleep:        func(time.Duration) {},
+		})
+		if err != nil {
+			return fail("%s", err.Error())
+		}
+		if off.Power != nil {
+			snap.Power = off.Power
+		}
+	}
+	if mayniladFeedFile != "" && snap.Water == nil {
+		off, err := utilities.Fetch(context.Background(), utilities.FetchOptions{
+			Client:           &http.Client{Timeout: 60 * time.Second},
+			Now:              now,
+			MinDelay:         -1,
+			MayniladFeedFile: mayniladFeedFile,
+			Sections:         []string{"water"},
+			Sleep:            func(time.Duration) {},
+		})
+		if err != nil {
+			return fail("%s", err.Error())
+		}
+		if off.Water != nil {
+			snap.Water = off.Water
+		}
+	}
+	if snap.Power == nil {
+		return fail("need -snapshot FILE with power section or -meralco-ms-dir DIR")
+	}
+	alerts := snap.PowerAlerts
+	if len(alerts) == 0 {
+		alerts = utilities.BuildPowerAlerts(snap.Power, now)
+	}
+	if len(alerts) == 0 {
+		return fail("no power alerts")
+	}
+	alert := alerts[0]
+	if alertID != "" {
+		found := false
+		for _, a := range alerts {
+			if a.ID == alertID {
+				alert, found = a, true
+				break
+			}
+		}
+		if !found {
+			return fail("unknown alert id %q", alertID)
+		}
+	}
+	text := utilities.RenderPowerAlertPost(alert, pastSample)
+	chart, err := fbchart.RenderPowerAlert(&alert, pastSample)
+	if err != nil {
+		return fail("%s", err.Error())
+	}
+	prefix := "power-" + alert.ID
+	if pastSample {
+		prefix = fmt.Sprintf("power-alert_PAST-SAMPLE_%s", alert.Start.Format("2006-01-02"))
+	}
+	checkSnap := &utilities.Snapshot{PowerAlerts: []utilities.PowerAlert{alert}}
+	return writeUtilitiesRenderPrefixed(outDir, prefix, text, chart, utilities.CheckPost(text, checkSnap, "power"))
 }
 
 // writeUtilitiesRender writes <kind>.txt/.png/.check.json.
