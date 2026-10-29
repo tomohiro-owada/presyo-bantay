@@ -15,7 +15,7 @@ import (
 // With pastSample a red banner tops the image.
 
 // powerDetalye is the chart source line (domain only).
-const powerDetalye = "Detalye: company.meralco.com.ph/maintenance-schedule"
+const powerDetalye = "Detalye: company.meralco.com.ph/news-and-advisories/maintenance-schedule"
 
 // Power chart type sizes (mirroring the water chart).
 const (
