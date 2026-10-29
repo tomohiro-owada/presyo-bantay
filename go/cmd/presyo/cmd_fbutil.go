@@ -18,13 +18,13 @@ import (
 
 // cmdFBUtil posts frozen household-utility pages (FB == site). Manual
 // mode posts one frozen page; -auto picks at most one due post per run
-// (priority water > fuel > bills) under the state flock.
+// (priority water > power > fuel > bills) under the state flock.
 func cmdFBUtil(argv []string) int {
 	fs := flag.NewFlagSet("fbutil", flag.ContinueOnError)
 	dbPath := fs.String("db", filepath.Join("data", "presyo.db"), "SQLite database path (opened read-only)")
 	sitePublic := fs.String("site-public", filepath.Join("site", "public"), "static site public directory")
 	autoMode := fs.Bool("auto", false, "decide which util post is due (at most one post per run)")
-	kindFlag := fs.String("kind", "", "post kind: fuel|bills|water (manual mode, required)")
+	kindFlag := fs.String("kind", "", "post kind: fuel|bills|water|power (manual mode, required)")
 	idFlag := fs.String("id", "", "post id (default: latest frozen of the kind)")
 	dryRun := fs.Bool("dry-run", false, "decide/render only; no network, token not needed, state untouched")
 	outDir := fs.String("out-dir", "", "output directory for dry-run copies")
@@ -41,11 +41,11 @@ func cmdFBUtil(argv []string) int {
 		return 1
 	}
 	if !*autoMode && *kindFlag == "" {
-		fmt.Fprintln(os.Stderr, "usage: presyo fbutil -db DB -site-public DIR [-auto] [-kind fuel|bills|water] [-id ID] [-dry-run] [-now RFC3339]")
+		fmt.Fprintln(os.Stderr, "usage: presyo fbutil -db DB -site-public DIR [-auto] [-kind fuel|bills|water|power] [-id ID] [-dry-run] [-now RFC3339]")
 		return 1
 	}
-	if *kindFlag != "" && *kindFlag != "fuel" && *kindFlag != "bills" && *kindFlag != "water" {
-		fmt.Fprintln(os.Stderr, "usage: presyo fbutil -db DB -site-public DIR [-auto] [-kind fuel|bills|water] [-id ID] [-dry-run] [-now RFC3339]")
+	if *kindFlag != "" && *kindFlag != "fuel" && *kindFlag != "bills" && *kindFlag != "water" && *kindFlag != "power" {
+		fmt.Fprintln(os.Stderr, "usage: presyo fbutil -db DB -site-public DIR [-auto] [-kind fuel|bills|water|power] [-id ID] [-dry-run] [-now RFC3339]")
 		return 1
 	}
 	presyoHome := os.Getenv("PRESYO_HOME")
@@ -138,13 +138,13 @@ func loadUtilFrozen(sitePublic, kind, id string) (*utilFrozen, error) {
 }
 
 // latestFrozen returns the latest frozen post id of a kind (fuel/bills
-// by id order; water by generated_at).
+// by id order; water/power by generated_at).
 func latestFrozen(sitePublic, kind string) (string, error) {
 	matches, err := filepath.Glob(filepath.Join(sitePublic, "u", kind, "*", "post.json"))
 	if err != nil || len(matches) == 0 {
 		return "", fmt.Errorf("no frozen %s pages (run utilpages first)", kind)
 	}
-	if kind == "water" {
+	if kind == "water" || kind == "power" {
 		best, bestGen := "", ""
 		for _, p := range matches {
 			data, err := os.ReadFile(p)
@@ -298,8 +298,8 @@ func fbutilPost(frozen *utilFrozen, opt fbutilOptions) int {
 	return 0
 }
 
-// fbutilAuto picks at most one due post (priority water > fuel >
-// bills) and posts it (or dry-runs it).
+// fbutilAuto picks at most one due post (priority water > power >
+// fuel > bills) and posts it (or dry-runs it).
 func fbutilAuto(opt fbutilOptions, manila time.Time) int {
 	skip := func(format string, args ...any) int {
 		fmt.Fprintf(os.Stderr, "fbutil: auto skip: "+format+"\n", args...)
@@ -383,19 +383,23 @@ func fbutilAuto(opt fbutilOptions, manila time.Time) int {
 	if frozen := fbutilDueWater(opt, manila, st, posted, postedToday, oldEnough); frozen != nil {
 		return fbutilAutoPost(opt, frozen, "water")
 	}
-	// Priority 2/3 need the DA-first gate: when the DB's latest price
+	// Priority 2: power alerts (DA-exempt like water).
+	if frozen := fbutilDuePower(opt, manila, posted, postedToday, oldEnough); frozen != nil {
+		return fbutilAutoPost(opt, frozen, "power")
+	}
+	// Priority 3/4 need the DA-first gate: when the DB's latest price
 	// date D is fresh (≤ 2 days) and some region still owes D, daily
 	// posts go first.
 	if next, d := fbutilDAPending(opt); next != "" {
 		_ = next
 		return skip("waiting for DA posts (date %s)", d)
 	}
-	// Priority 2: fuel.
+	// Priority 3: fuel.
 	if frozen, reason := fbutilDueFuel(opt, manila, posted, oldEnough); frozen != nil {
 		_ = reason
 		return fbutilAutoPost(opt, frozen, "fuel")
 	}
-	// Priority 3: bills.
+	// Priority 4: bills.
 	if frozen, _ := fbutilDueBills(opt, manila, posted, oldEnough); frozen != nil {
 		return fbutilAutoPost(opt, frozen, "bills")
 	}
@@ -592,6 +596,68 @@ func fbutilDueWater(opt fbutilOptions, manila time.Time, st *fbPostState, posted
 		// checked, so a feed alert is not re-posted after the same
 		// event was posted from X (and vice versa).
 		if fbutilWaterOverlapsPosted(opt, st, frozen, manila) {
+			continue
+		}
+		return frozen
+	}
+	return nil
+}
+
+// fbutilDuePower selects the earliest eligible frozen power alert:
+// check=pass, Start in [now+3h, now+72h], not already posted, at most
+// one util-power post per Manila day. Cross-source overlap with a
+// posted water window is NOT relevant for power.
+func fbutilDuePower(opt fbutilOptions, manila time.Time, posted func(string, string) bool, postedToday func(string) bool, oldEnough func(utilpages.PostDoc) bool) *utilFrozen {
+	matches, err := filepath.Glob(filepath.Join(opt.sitePublic, "u", "power", "*", "post.json"))
+	if err != nil || len(matches) == 0 {
+		return nil
+	}
+	type cand struct {
+		doc  utilpages.PostDoc
+		path string
+	}
+	var cands []cand
+	for _, p := range matches {
+		data, err := os.ReadFile(p)
+		if err != nil {
+			continue
+		}
+		var doc utilpages.PostDoc
+		if err := json.Unmarshal(data, &doc); err != nil {
+			continue
+		}
+		if doc.Check != "pass" || doc.Text == "" {
+			continue
+		}
+		cands = append(cands, cand{doc: doc, path: p})
+	}
+	// Earliest start first (unknown starts last).
+	sort.Slice(cands, func(i, j int) bool {
+		si, sj := cands[i].doc.Start, cands[j].doc.Start
+		if si == "" {
+			return false
+		}
+		if sj == "" {
+			return true
+		}
+		return si < sj
+	})
+	for _, c := range cands {
+		if posted("util-power", c.doc.AsOf) || postedToday("util-power") {
+			continue
+		}
+		if !oldEnough(c.doc) {
+			continue
+		}
+		start, serr := time.Parse(time.RFC3339, c.doc.Start)
+		if serr != nil {
+			continue
+		}
+		if start.Before(manila.Add(3*time.Hour)) || start.After(manila.Add(72*time.Hour)) {
+			continue
+		}
+		frozen, err := loadUtilFrozen(opt.sitePublic, "power", c.doc.AsOf)
+		if err != nil {
 			continue
 		}
 		return frozen
