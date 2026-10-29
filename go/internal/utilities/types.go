@@ -166,6 +166,7 @@ type Snapshot struct {
 	WaterRates       []WaterRate       `json:"water_rates,omitempty"`
 	Alerts           []WaterAlert      `json:"alerts,omitempty"`
 	Power            *PowerStatus      `json:"power,omitempty"`
+	PowerAlerts      []PowerAlert      `json:"power_alerts,omitempty"`
 	SectionFetchedAt map[string]string `json:"section_fetched_at,omitempty"`
 	Sources          []Source          `json:"sources"`
 	Errors           []string          `json:"errors"`

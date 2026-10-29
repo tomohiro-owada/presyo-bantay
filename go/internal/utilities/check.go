@@ -23,7 +23,7 @@ func CheckPost(text string, s *Snapshot, kind string) []string {
 	add := func(format string, args ...any) {
 		problems = append(problems, fmt.Sprintf(format, args...))
 	}
-	if kind != "fuel" && kind != "bills" && kind != "water" {
+	if kind != "fuel" && kind != "bills" && kind != "water" && kind != "power" {
 		return []string{"unknown kind " + strconv.Quote(kind)}
 	}
 	lines := strings.Split(text, "\n")
@@ -54,6 +54,9 @@ func CheckPost(text string, s *Snapshot, kind string) []string {
 
 	if kind == "water" {
 		return append(problems, checkWaterAlert(text, s)...)
+	}
+	if kind == "power" {
+		return append(problems, checkPowerAlert(text, s)...)
 	}
 
 	c := newChecker(s, kind)
@@ -708,6 +711,200 @@ func checkWaterAlert(text string, s *Snapshot) []string {
 		for _, m := range waterIntRe.FindAllString(area, -1) {
 			allowed[m] = true
 		}
+	}
+	for _, m := range waterIntRe.FindAllString(scrubbed, -1) {
+		if !allowed[m] {
+			add("number %q not in alert", m)
+		}
+	}
+	return problems
+}
+
+// checkPowerAlert verifies a power alert caption comes from
+// s.PowerAlerts[0]: barangays, roads, city and reason wording must
+// appear; dates/times must match the alert windows when parsed.
+func checkPowerAlert(text string, s *Snapshot) []string {
+	var problems []string
+	add := func(format string, args ...any) {
+		problems = append(problems, fmt.Sprintf(format, args...))
+	}
+	if len(s.PowerAlerts) == 0 {
+		return []string{"no power alert in snapshot"}
+	}
+	a := s.PowerAlerts[0]
+	for _, area := range a.Barangays {
+		if area == PowerAreasTL {
+			continue
+		}
+		if !strings.Contains(text, area) {
+			add("area %q missing", area)
+		}
+	}
+	areasTL, areasEN, areasJA := powerAreas(&a)
+	roads := shortRoads(a.Roads)
+	placeTL := areasTL
+	placeEN := areasEN
+	placeJA := areasJA
+	if len(roads) > 0 {
+		placeTL += " · " + strings.Join(roads, ", ")
+		placeEN += " · " + strings.Join(roads, ", ")
+		placeJA += "・" + strings.Join(roads, "、")
+	}
+	if !strings.Contains(text, "📍 "+placeTL) {
+		add("area list mismatch (TL)")
+	}
+	if !strings.Contains(text, "· "+placeEN+" ·") {
+		add("area list mismatch (EN)")
+	}
+	if !strings.Contains(text, "・"+placeJA+"・") {
+		add("area list mismatch (JA)")
+	}
+	for _, r := range roads {
+		if !strings.Contains(text, r) {
+			add("road %q missing", r)
+		}
+	}
+	if !strings.Contains(text, a.City) {
+		add("city %q missing", a.City)
+	}
+	for lang := 0; lang < 3; lang++ {
+		if w := PowerReason(a.ReasonKey, lang); !strings.Contains(text, w) {
+			add("reason %q missing", w)
+		}
+	}
+	if a.Start.IsZero() || a.End.IsZero() {
+		return problems
+	}
+	// Trend line: present with exact wording iff NthThisMonth >= 2.
+	if trendTL, trendEN, trendJA, ok := PowerTrendLines(&a); ok {
+		for _, want := range []string{trendTL, trendEN, trendJA} {
+			if !strings.Contains(text, want) {
+				add("trend %q missing", want)
+			}
+		}
+	} else if strings.Contains(text, "planadong brownout") || strings.Contains(text, "Planned brownout") || strings.Contains(text, "回目の計画停電") {
+		add("unexpected power trend line")
+	}
+	// Expected clock times: daily uses the nightly clock pairs, else
+	// every window start/end.
+	wantHM := map[[2]int]bool{}
+	if a.Daily {
+		for _, p := range powerClockPairs(&a) {
+			wantHM[[2]int{p[0], p[1]}] = true
+			wantHM[[2]int{p[2], p[3]}] = true
+		}
+	} else {
+		wins := a.Windows
+		if len(wins) == 0 {
+			wins = []TimeWindow{{Start: a.Start, End: a.End}}
+		}
+		for _, w := range wins {
+			wantHM[[2]int{w.Start.Hour(), w.Start.Minute()}] = true
+			wantHM[[2]int{w.End.Hour(), w.End.Minute()}] = true
+		}
+	}
+	allowedMD := map[[2]int]bool{
+		{int(a.Start.Month()), a.Start.Day()}: true,
+		{int(a.End.Month()), a.End.Day()}:     true,
+	}
+	wins := a.Windows
+	if len(wins) == 0 {
+		wins = []TimeWindow{{Start: a.Start, End: a.End}}
+	}
+	for _, w := range wins {
+		allowedMD[[2]int{int(w.Start.Month()), w.Start.Day()}] = true
+		allowedMD[[2]int{int(w.End.Month()), w.End.Day()}] = true
+	}
+	if a.Daily {
+		from, to := a.DailyFrom, a.DailyTo
+		if from == "" || to == "" {
+			if len(a.Windows) > 0 {
+				from = a.Windows[0].Start.In(manilaLoc).Format("2006-01-02")
+				to = a.Windows[len(a.Windows)-1].Start.In(manilaLoc).Format("2006-01-02")
+			}
+		}
+		if d1, ok1 := mustDate(from); ok1 {
+			if d2, ok2 := mustDate(to); ok2 && !d2.Before(d1) {
+				for d := d1; !d.After(d2); d = d.Add(24 * time.Hour) {
+					allowedMD[[2]int{int(d.Month()), d.Day()}] = true
+				}
+			}
+		}
+	}
+	scrubbed := waterURLRe.ReplaceAllString(text, " ")
+	scrubbed = waterMDRe.ReplaceAllStringFunc(scrubbed, func(m string) string {
+		sub := waterMDRe.FindStringSubmatch(m)
+		var mo, d int
+		fmt.Sscanf(sub[1], "%d", &mo)
+		fmt.Sscanf(sub[2], "%d", &d)
+		if allowedMD[[2]int{mo, d}] {
+			return " "
+		}
+		add("date %q not in alert window", m)
+		return " "
+	})
+	scrubbed = waterClockRe.ReplaceAllStringFunc(scrubbed, func(m string) string {
+		sub := waterClockRe.FindStringSubmatch(m)
+		var h, mi int
+		fmt.Sscanf(sub[1], "%d", &h)
+		fmt.Sscanf(sub[2], "%d", &mi)
+		if sub[3] != "" {
+			low := strings.ToLower(strings.ReplaceAll(sub[3], " ", ""))
+			if strings.HasPrefix(low, "p") {
+				if h != 12 {
+					h += 12
+				}
+			} else if h == 12 {
+				h = 0
+			}
+		}
+		if !wantHM[[2]int{h, mi}] {
+			add("time %q not in alert window", strings.Join(strings.Fields(m), " "))
+		}
+		return " "
+	})
+	allowed := map[string]bool{}
+	for _, n := range []int{a.Start.Day(), a.End.Day(), int(a.Start.Month()), int(a.End.Month()), a.Start.Year(), a.End.Year()} {
+		allowed[strconv.Itoa(n)] = true
+	}
+	if a.Daily {
+		for md := range allowedMD {
+			allowed[strconv.Itoa(md[0])] = true
+			allowed[strconv.Itoa(md[1])] = true
+		}
+	} else {
+		for _, w := range wins {
+			allowed[strconv.Itoa(w.Start.Day())] = true
+			allowed[strconv.Itoa(w.End.Day())] = true
+			allowed[strconv.Itoa(int(w.Start.Month()))] = true
+			allowed[strconv.Itoa(int(w.End.Month()))] = true
+			allowed[strconv.Itoa(w.Start.Year())] = true
+			allowed[strconv.Itoa(w.End.Year())] = true
+		}
+	}
+	if a.NthThisMonth >= 2 {
+		allowed[strconv.Itoa(a.NthThisMonth)] = true
+		if a.HistoryComplete {
+			allowed[strconv.Itoa(a.PrevMonthCount)] = true
+		}
+	}
+	for _, area := range a.Barangays {
+		for _, m := range waterIntRe.FindAllString(area, -1) {
+			allowed[m] = true
+		}
+	}
+	for _, r := range a.Roads {
+		for _, m := range waterIntRe.FindAllString(r, -1) {
+			allowed[m] = true
+		}
+	}
+	// The Details link carries the source URL (numbers inside the URL
+	// were scrubbed above, so no extra allowance needed).
+	if !strings.Contains(text, "Details: "+a.SourceURL) {
+		add("details link missing")
+	}
+	if !strings.Contains(text, "Source: Meralco maintenance schedule") {
+		add("source line missing")
 	}
 	for _, m := range waterIntRe.FindAllString(scrubbed, -1) {
 		if !allowed[m] {
