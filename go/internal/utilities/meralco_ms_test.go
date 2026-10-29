@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -487,8 +488,9 @@ func TestBuildPowerAlertsLasPinas(t *testing.T) {
 		if a.PrevMonthCount != 0 || a.HistoryComplete {
 			t.Fatalf("jun prev = %d complete = %v", a.PrevMonthCount, a.HistoryComplete)
 		}
-		// No extractable barangays in the Jun 6 area lines.
-		if len(a.Barangays) != 1 || a.Barangays[0] != PowerAreasTL {
+		// No barangay in the Jun 6 area lines: areas come from the
+		// title parenthetical ("Talon V" / "Talon I; And Talon V").
+		if g := strings.Join(a.Barangays, "|"); g != "Talon V" && g != "Talon I|Talon V" {
 			t.Fatalf("jun barangays = %q", a.Barangays)
 		}
 	}
@@ -907,5 +909,67 @@ func TestFetchPowerRequestCap(t *testing.T) {
 	}
 	if snap.Power == nil {
 		t.Fatal("no power section")
+	}
+}
+
+// TestMsTitleAreas covers the title/slug parenthetical fallback used
+// when an item has no barangay list in its area lines.
+func TestMsTitleAreas(t *testing.T) {
+	base := "https://company.meralco.com.ph/news-and-advisories/maintenance-schedule/"
+	cases := []struct {
+		name, title, url string
+		want             []string
+	}{
+		{"title single", "July 22 - 23, 2026 - Las Piñas City (Talon I)", base + "x", []string{"Talon I"}},
+		{"title roman and", "October 7, 2026 - Las Piñas City (Almanza I And Almanza Ii)", base + "x", []string{"Almanza I", "Almanza II"}},
+		{"title semicolon and", "June 6, 2026 - Las Piñas City (Talon I; And Talon V)", base + "x", []string{"Talon I", "Talon V"}},
+		{"title no parenthetical, slug", "July 22 - 23, 2026 - Las Piñas City", base + "july-22-23-2026-las-pinas-city-talon-i", []string{"Talon I"}},
+		{"slug dup suffix", "X", base + "july-22-23-2026-las-pinas-city-talon-i-0", []string{"Talon I"}},
+		{"slug two areas", "X", base + "june-6-2026-las-pinas-city-talon-i-and-talon-v", []string{"Talon I", "Talon V"}},
+		{"slug other city only", "September 29, 2026 - Las Piñas City; And Muntinlupa City", base + "september-29-2026-las-pinas-city-and-muntinlupa-city", nil},
+		{"nothing", "September 29, 2026 - Las Piñas City", base + "september-29-2026-las-pinas-city", nil},
+		{"other city parenthetical ignored", "October 29, 2026 - Muntinlupa City (Poblacion)", base + "october-29-2026-muntinlupa-city-poblacion", nil},
+	}
+	for _, c := range cases {
+		got := msTitleAreas(c.title, c.url)
+		if strings.Join(got, "|") != strings.Join(c.want, "|") {
+			t.Errorf("%s: got %q want %q", c.name, got, c.want)
+		}
+	}
+}
+
+// TestBuildPowerAlertsTitleAreaFallback: the Jul 22 fixture item has no
+// barangay in its area lines; the alert takes "Talon I" from the title.
+func TestBuildPowerAlertsTitleAreaFallback(t *testing.T) {
+	var items []PowerItem
+	for _, f := range []string{"city215_p0.html", "city215_p1.html", "city215_p2.html"} {
+		b, err := os.ReadFile(filepath.Join("testdata", "meralco_ms", f))
+		if err != nil {
+			t.Fatal(err)
+		}
+		pg, err := ParseMeralcoMaintenance(b)
+		if err != nil {
+			t.Fatal(err)
+		}
+		items = append(items, pg.Items...)
+	}
+	alerts := BuildPowerAlerts(&PowerStatus{Items: items}, time.Date(2026, 10, 20, 12, 0, 0, 0, manilaLoc))
+	var jul *PowerAlert
+	for i := range alerts {
+		if alerts[i].Start.Format("2006-01-02") == "2026-07-22" {
+			jul = &alerts[i]
+		}
+	}
+	if jul == nil {
+		t.Fatal("Jul 22 alert missing")
+	}
+	if len(jul.Barangays) != 1 || jul.Barangays[0] != "Talon I" {
+		t.Fatalf("jul barangays = %q", jul.Barangays)
+	}
+	// An item with neither list nor title area keeps the marker.
+	for _, a := range alerts {
+		if len(a.Barangays) == 0 {
+			t.Fatalf("empty barangays for %s", a.ID)
+		}
 	}
 }

@@ -1207,6 +1207,11 @@ func BuildPowerAlerts(p *PowerStatus, now time.Time) []PowerAlert {
 			}
 		}
 		if len(barangays) == 0 {
+			// No barangay list in the area lines: use the area name
+			// from the title (or slug) parenthetical.
+			barangays = msTitleAreas(c.item.Title, c.item.URL)
+		}
+		if len(barangays) == 0 {
 			barangays = []string{PowerAreasTL}
 		}
 		roadSeen := map[string]bool{}
@@ -1240,6 +1245,67 @@ func BuildPowerAlerts(p *PowerStatus, now time.Time) []PowerAlert {
 			PrevMonthCount:  prevCount,
 			HistoryComplete: complete,
 		})
+	}
+	return out
+}
+
+var (
+	msTitleLPRe     = regexp.MustCompile(`(?i)Las\s+Pi[nñ]as(?:\s+City)?\s*\(([^)]*)\)`)
+	msTitleAndRe    = regexp.MustCompile(`(?i)\s*;?\s*\band\b\s*`)
+	msSlugLPRe      = regexp.MustCompile(`(?i)las-pinas-city-(.+?)(?:-0)?$`)
+	msRomanWordRe   = regexp.MustCompile(`(?i)^(i|ii|iii|iv|v|vi|vii|viii|ix|x)$`)
+	msSlugAreaBadRe = regexp.MustCompile(`(?i)\b(city|cavite|laguna|bulacan|manila|muntinlupa|paranaque|bacoor)\b`)
+)
+
+// msAreaWords title-cases hyphen/space separated words, keeping Roman
+// numerals upper case ("talon-i" -> "Talon I", "Ii" -> "II").
+func msAreaWords(words []string) string {
+	out := make([]string, 0, len(words))
+	for _, w := range words {
+		if w == "" {
+			continue
+		}
+		if msRomanWordRe.MatchString(w) {
+			out = append(out, strings.ToUpper(w))
+			continue
+		}
+		r := []rune(strings.ToLower(w))
+		r[0] = []rune(strings.ToUpper(string(r[0])))[0]
+		out = append(out, string(r))
+	}
+	return strings.Join(out, " ")
+}
+
+// msTitleAreas returns the Las Piñas area names from the item title
+// parenthetical ("... - Las Piñas City (Talon I; And Talon V)") or,
+// when the title has none, from the URL slug
+// ("july-22-23-2026-las-pinas-city-talon-i"). Nil when nothing is
+// found (the caller then uses the "some barangays" marker).
+func msTitleAreas(title, url string) []string {
+	var raw string
+	if m := msTitleLPRe.FindStringSubmatch(title); m != nil {
+		raw = m[1]
+	} else {
+		slug := url
+		if i := strings.LastIndex(slug, "/"); i >= 0 {
+			slug = slug[i+1:]
+		}
+		m := msSlugLPRe.FindStringSubmatch(strings.TrimSpace(slug))
+		if m == nil {
+			return nil
+		}
+		raw = strings.ReplaceAll(m[1], "-", " ")
+	}
+	raw = msTitleAndRe.ReplaceAllString(raw, ",")
+	var out []string
+	seen := map[string]bool{}
+	for _, part := range strings.Split(raw, ",") {
+		name := msAreaWords(strings.Fields(strings.Trim(part, " .;:-")))
+		if name == "" || msSlugAreaBadRe.MatchString(name) || seen[name] {
+			continue
+		}
+		seen[name] = true
+		out = append(out, name)
 	}
 	return out
 }
