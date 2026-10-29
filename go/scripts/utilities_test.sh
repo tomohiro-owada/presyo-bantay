@@ -171,6 +171,30 @@ reset_calls
 if "$UTIL" >/dev/null 2>&1; then bad "run exited 0 despite fbutil failure"; else ok "run exits non-zero when fbutil fails"; fi
 unset FAKE_FBUTIL_RC
 
+# --- 7b. Maynilad feed inbox: fresh file is passed, stale warns, very old is ignored ---
+export MAYNILAD_FEED_INBOX="$PRESYO_HOME/inbox/maynilad_feed.xml"
+mkdir -p "$PRESYO_HOME/inbox"
+reset_calls
+"$UTIL" >/dev/null 2>&1 || true
+calls | grep -q -- "-maynilad-feed-file" \
+  && bad "feed file passed although absent" || ok "no feed inbox -> no -maynilad-feed-file"
+echo '<rss/>' >"$MAYNILAD_FEED_INBOX"
+reset_calls
+"$UTIL" >/dev/null 2>&1 || true
+calls | grep -q -- "-maynilad-feed-file $MAYNILAD_FEED_INBOX" \
+  && ok "fresh feed inbox passed" || bad "fresh feed not passed: $(calls)"
+touch -d '20 hours ago' "$MAYNILAD_FEED_INBOX"
+reset_calls
+"$UTIL" >/dev/null 2>&1 || true
+calls | grep -q -- "-maynilad-feed-file" && ok "20h-old feed still passed" || bad "20h feed not passed"
+grep -q "older than 12h" "$LOG" && ok "12h warning logged" || bad "no 12h warning"
+touch -d '5 days ago' "$MAYNILAD_FEED_INBOX"
+reset_calls
+"$UTIL" >/dev/null 2>&1 || true
+calls | grep -q -- "-maynilad-feed-file" && bad "5-day-old feed passed" || ok "5-day-old feed ignored"
+grep -q "older than 72h" "$LOG" && ok "72h warning logged" || bad "no 72h warning"
+rm -f "$MAYNILAD_FEED_INBOX"
+
 # --- 8. lock prevents overlap ---
 reset_calls
 flock -n "$LOCK" sleep 8 &

@@ -115,12 +115,29 @@ echo "utilities.sh: sections='$sections' (dow=$DOW dom=$DOM hour=$HOUR)"
 
 SNAP="$UDATA/snapshot.json"
 MAYNILAD_X_INBOX="${MAYNILAD_X_INBOX:-$PRESYO_HOME/inbox/maynilad_x.json}"
+# Raw Maynilad RSS pushed from a machine that can fetch it (the VPS is
+# challenged by the site). Used when present; a warning is logged when
+# it is older than 12 h, and it is ignored when older than 72 h.
+MAYNILAD_FEED_INBOX="${MAYNILAD_FEED_INBOX:-$PRESYO_HOME/inbox/maynilad_feed.xml}"
+feed_args=()
+if [ -f "$MAYNILAD_FEED_INBOX" ]; then
+  feed_mtime="$(stat -c %Y "$MAYNILAD_FEED_INBOX" 2>/dev/null || echo 0)"
+  feed_age=$(( $(date +%s) - feed_mtime ))
+  if [ "$feed_age" -gt 259200 ]; then
+    echo "warning: maynilad_feed.xml is older than 72h (age ${feed_age}s), ignoring it"
+  else
+    if [ "$feed_age" -gt 43200 ]; then
+      echo "warning: maynilad_feed.xml is older than 12h (age ${feed_age}s)"
+    fi
+    feed_args=(-maynilad-feed-file "$MAYNILAD_FEED_INBOX")
+  fi
+fi
 
 # --- 2. fetch (skipped when no section is due) ---
 if [ -z "$sections" ]; then
   echo "utilities.sh: no sections due, skipping fetch/utilpages/commit"
 else
-  if "$BIN" utilities fetch -sections "$sections" -cache "$UDATA/cache" -out "$SNAP" -maynilad-x "$MAYNILAD_X_INBOX"; then
+  if "$BIN" utilities fetch -sections "$sections" -cache "$UDATA/cache" -out "$SNAP" -maynilad-x "$MAYNILAD_X_INBOX" "${feed_args[@]+"${feed_args[@]}"}"; then
     fetch_rc=0
   else
     fetch_rc=$?
