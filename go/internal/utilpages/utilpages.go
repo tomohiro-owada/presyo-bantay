@@ -184,6 +184,11 @@ func Run(snap *utilities.Snapshot, cfg Config) error {
 	} else {
 		for _, a := range utilities.BuildPowerAlerts(snap.Power, now) {
 			a := a
+			// The snapshot keeps ~40 days of Las Piñas history for the
+			// monthly trend; only current/upcoming events get pages.
+			if !a.End.IsZero() && a.End.Before(now.Add(-24*time.Hour)) {
+				continue
+			}
 			text := utilities.RenderPowerAlertPost(a, false)
 			checkSnap := &utilities.Snapshot{PowerAlerts: []utilities.PowerAlert{a}}
 			if problems := utilities.CheckPost(text, checkSnap, "power"); len(problems) > 0 {

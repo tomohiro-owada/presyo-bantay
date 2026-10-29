@@ -68,8 +68,9 @@ func TestUtilpagesPowerWrites(t *testing.T) {
 	}
 	// Frozen power pages exist.
 	matches, _ := filepath.Glob(filepath.Join(site, "u", "power", "*", "post.json"))
-	if len(matches) != 2 {
-		t.Fatalf("power pages = %v, want 2", matches)
+	// Sep 29 ended before now-24h: history only feeds the trend, no page.
+	if len(matches) != 1 || !strings.Contains(matches[0], "e8535cbefb82") {
+		t.Fatalf("power pages = %v, want only the Oct 7 alert", matches)
 	}
 	for _, p := range matches {
 		data, err := os.ReadFile(p)
