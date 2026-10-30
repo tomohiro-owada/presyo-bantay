@@ -97,7 +97,7 @@ func TestFBUtilAutoTable(t *testing.T) {
 		wantFiles []string // basenames expected in out dir (nil = none)
 	}{
 		{
-			name: "outside window", now: "2026-10-20T11:00:00+08:00", dbDates: []string{"2026-10-19"},
+			name: "outside window", now: "2026-10-20T05:00:00+08:00", dbDates: []string{"2026-10-19"},
 		},
 		{
 			name: "sunday hold", now: "2026-10-25T17:00:00+08:00", dbDates: []string{"2026-10-19"},
@@ -113,7 +113,8 @@ func TestFBUtilAutoTable(t *testing.T) {
 			name: "da pending", now: "2026-10-20T13:00:00+08:00", dbDates: []string{"2026-10-19"},
 			state: []fbPostEntry{{Region: "south", AsOf: "2026-10-19", PostID: "p", PhotoID: "h", PostedAt: "2026-10-19T06:00:00+08:00"}},
 			setupSite: func(t *testing.T, e utilEnv) {
-				writeFrozenPost(t, e.site, "fuel", "2026-10-20", oldGen, nil)
+				// Age 7: fuel is not due, so the DA gate still skips.
+				writeFrozenPost(t, e.site, "fuel", "2026-10-13", oldGen, nil)
 			},
 		},
 		{
@@ -123,6 +124,16 @@ func TestFBUtilAutoTable(t *testing.T) {
 				writeAutoState(t, e.state, regionEntries(t, "2026-10-19", "2026-10-19T06:00:00+08:00", ""))
 			},
 			wantFiles: []string{"fuel.png", "fuel.txt"},
+		},
+		{
+			// Fuel keeps the routine window 12:00-19:00: at 08:00
+			// (inside the 05:30-20:00 water/power window) fuel is
+			// skipped and the run falls through to "nothing due".
+			name: "fuel outside routine window", now: "2026-10-20T08:00:00+08:00", dbDates: []string{"2026-10-19"},
+			setupSite: func(t *testing.T, e utilEnv) {
+				writeFrozenPost(t, e.site, "fuel", "2026-10-20", oldGen, nil)
+				writeAutoState(t, e.state, regionEntries(t, "2026-10-19", "2026-10-19T06:00:00+08:00", ""))
+			},
 		},
 		{
 			name: "fuel already posted skips to nothing", now: "2026-10-20T13:00:00+08:00", dbDates: []string{"2026-10-19"},

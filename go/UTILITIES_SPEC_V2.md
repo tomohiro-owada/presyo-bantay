@@ -173,7 +173,11 @@ advisory". Chart `RenderWaterAlert(a, pastSample)` 1080x1350, same style:
 title "Abiso sa tubig", big date/time window, areas list (wrap), reason,
 "Mag-ipon ng tubig", footer "Source: Maynilad advisory" / "Hindi opisyal na
 Maynilad page". CheckPost(kind "water") verifies dates/times/areas come
-from the alert.
+from the alert. An emergency X advisory with no parsable end time is kept
+open-ended (`OpenEnded`, `End` zero, `Start` = post `created_at`, due only
+within 24h of the post): the caption says "hanggang may abiso" /
+"until further notice" / "追って通知があるまで" instead of an end time,
+and the frozen `post.json` carries `open_ended` (omitempty).
 
 ### A6. CLI
 `presyo utilities render -kind fuel|bills|water ...`; for water:
@@ -205,25 +209,39 @@ privacy line, logo header). Writes:
 - `data/utilities.json` {latest fuel/bills/water ids+paths, generated_at}.
 - Day archive / top page: NOT modified in this prototype (note as TODO).
 
-### B2. `presyo fbutil -db DB -site-public DIR [-auto] [-kind fuel|bills|water] [-id ID] [-dry-run] [-state] [-env-file] [-disable-file] [-min-gap 2h] [-window-start 12:00] [-window-end 19:00] [-publish-delay 10m] [-graph-base] [-now RFC3339]`
+### B2. `presyo fbutil -db DB -site-public DIR [-auto] [-kind fuel|bills|water|power] [-id ID] [-dry-run] [-state] [-env-file] [-disable-file] [-min-gap 2h] [-gap-grace 5m] [-window-start 05:30] [-window-end 20:00] [-routine-window-start 12:00] [-routine-window-end 19:00] [-publish-delay 10m] [-bills-max-wait 24h] [-graph-base] [-now RFC3339]`
 Reuse fbpost/fbweekly helpers (state file, withStateLock, postPhoto, token
 redaction, env file). Posts ONLY frozen pages (FB == site); `-auto` requires
 the page's post.json generated_at to be ≥ publish-delay old (GitHub Pages
 deploy time). `-auto` decision (at most ONE post per run, priority water >
-fuel > bills), all under the state flock:
-- window [12:00, 19:00) Manila; Sunday 16:00–20:00 hold (skip all);
-  disable file; global min-gap over ALL entries (DA, weekly, util) ≥ 2h.
-- DA FIRST (fuel/bills only): if the DB's latest price date D is ≤ 2 days
-  old (same rule as fbpost) and not every region in regions.IDs() has a
-  state entry for D, skip ("waiting for DA posts"). Water alerts are exempt
-  from DA-first but obey window/gap/hold.
-- fuel: page u/fuel/<from>/ exists, Manila weekday is Tue or Wed, <from> is
-  within the last 2 days, no state entry {region:"util-fuel", as_of:<from>}.
+power > fuel > DA-first gate > bills, a stale bills page bypasses the
+gate), all under the state flock:
+- windows: water/power [05:30, 20:00) Manila (-window-start/end);
+  fuel/bills routine [12:00, 19:00) Manila
+  (-routine-window-start/end, evaluated only inside it, otherwise
+  skipped to "nothing due"); Sunday 16:00–20:00 hold (skip all);
+  disable file; global min-gap over ALL entries (DA, weekly, util) ≥ 2h
+  minus -gap-grace.
+- DA FIRST (fuel only; water/power exempt; bills bypass when the frozen
+  page is ≥ -bills-max-wait old): if the DB's latest price date D is ≤ 2
+  days old (same rule as fbpost) and not every region in regions.IDs()
+  has a state entry for D, skip ("waiting for DA posts"). Water and power
+  alerts are exempt from DA-first but obey the main window/gap/hold.
+- fuel: page u/fuel/<from>/ exists (latest page only, id =
+  effective_from date), <from> is 0–6 days old, no state entry
+  {region:"util-fuel", as_of:<from>}; any weekday; only when the
+  Manila time of day is inside the routine window.
 - bills: page u/bills/<M>/ exists for current Manila month M, no entry
-  {region:"util-bills", as_of:M}.
-- water: page u/water/<id>/ exists, the alert start is between now+3h and
-  now+72h (or emergency not yet ended), no entry {region:"util-water",
-  as_of:<id>}, and no util-water entry posted on the same Manila day.
+  {region:"util-bills", as_of:M}; only when the Manila time of day is
+  inside the routine window (including the starvation bypass).
+- water: page u/water/<id>/ exists, the alert has not yet ended and its
+  start is within 72h ahead (open-ended emergencies while posted within
+  the last 24h), no entry {region:"util-water", as_of:<id>}, and no
+  util-water entry posted on the same Manila day; main window only.
+- power: page u/power/<id>/ exists, check=pass, the alert has not yet
+  ended and its start is within 72h ahead, no entry
+  {region:"util-power", as_of:<id>}, and no util-power entry posted on
+  the same Manila day; main window only.
 - `-dry-run` never posts, never writes state, never needs a token; prints
   the decision and writes the frozen text/png copy to an out dir.
 Existing `fbpost -auto` / `fbweekly -auto` behaviour must stay unchanged

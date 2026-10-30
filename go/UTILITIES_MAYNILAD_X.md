@@ -49,7 +49,12 @@ read tools and pushes a normalized v1 JSON file to
 - `WaterStatus.Advisories` carries `XAdvisory` rows (no barangay list;
   alerts use per-language `XAreasTL`/`XAreasEN`/`XAreasJA` labels). The `water` section stamps fresh whenever
   the inbox loads OK (even with zero advisories, so old alerts
-  disappear). The FCDA fetch still uses the website (still blocked).
+  disappear). An emergency post with no parsable end time is kept with
+  `End` zero and `OpenEnded` true (`Start` = post `created_at`, due
+  only within 24h of the post); scheduled posts without a parseable
+  window stay dropped. Open-ended alerts post once (state dedupe by
+  post id) with an "until further notice" caption ("hanggang may
+  abiso" / "追って通知があるまで"). The FCDA fetch still uses the website (still blocked).
 - Weekly schedules: the feed (`{MayniladBase}/feed/`, `MayniladFeed: true`
   by default) is now the primary source for weekly rows; the legacy
   WP-REST maintenance fetch stays off by default (`MayniladSite: false`).

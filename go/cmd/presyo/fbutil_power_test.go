@@ -46,10 +46,13 @@ func TestFBUtilPowerAutoTable(t *testing.T) {
 			},
 		},
 		{
-			name: "too soon under 3h", now: "2026-10-20T13:00:00+08:00", dbDates: []string{"2026-10-19"},
+			// Short notice (starts in 1h) is due: the old 3h lead
+			// is gone, only not-yet-ended and within 72h matter.
+			name: "short notice due", now: "2026-10-20T13:00:00+08:00", dbDates: []string{"2026-10-19"},
 			setupSite: func(t *testing.T, e utilEnv) {
 				writePowerFrozen(t, e.site, "pow1", oldGen, "2026-10-20T14:00:00+08:00", "2026-10-20T18:00:00+08:00")
 			},
+			wantFiles: []string{"power.png", "power.txt"},
 		},
 		{
 			name: "too far over 72h", now: "2026-10-20T13:00:00+08:00", dbDates: []string{"2026-10-19"},

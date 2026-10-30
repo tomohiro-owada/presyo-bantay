@@ -188,14 +188,20 @@ with no rows) and `research/maintenance/meralco_maintenance_schedule.html`.
   `Water.Nearby`. A layout alarm is NOT shown publicly beyond "no data right now"; it is in the
   snapshot/logs only. Keep GA4/OG/canonical/lang-toggle/privacy line style. `data/utilities.json`
   gets the latest power ids (additive keys only).
-- `fbutil`: accept `-kind power`; `-auto` priority water > power > fuel > bills (still ONE post per
-  run); power due when a frozen page exists, check=pass, alert Start in [now+3h, now+72h], no
-  state entry {region:"util-power", as_of:id}, and no util-power entry posted on the same Manila
-  day; same window [12:00,19:00) Manila, Sunday 16:00-20:00 hold, disable file, global 2h min-gap,
-  publish-delay, DA-first (power exempt like water). No posting when the snapshot has a layout
-  alarm (frozen pages are simply not generated then). Tests (table-driven, `-now`, temp state,
-  httptest Graph): priority order, 2h gap, one power/day, already posted, too soon (<3h), too far
-  (>72h), cross-source overlap with a posted water window is NOT relevant for power.
+- `fbutil`: accept `-kind power`; `-auto` priority water > power > fuel >
+  DA-first gate > bills (a bills page older than -bills-max-wait
+  bypasses the gate; still ONE post per run); power due when a frozen
+  page exists, check=pass, the alert has not yet ended and its start is
+  within 72h ahead, no state entry {region:"util-power", as_of:id},
+  and no util-power entry posted on the same Manila day; water/power
+  window [05:30,20:00) Manila, fuel/bills routine window [12:00,19:00)
+  Manila, Sunday 16:00-20:00 hold, disable file, global 2h
+  min-gap minus gap-grace, publish-delay, DA-first (power exempt like
+  water). No posting when the snapshot has a layout alarm (frozen pages
+  are simply not generated then). Tests (table-driven, `-now`, temp
+  state, httptest Graph): priority order, 2h gap, one power/day, already
+  posted, short notice (starts in 1h) due, too far (>72h), ended not due,
+  cross-source overlap with a posted water window is NOT relevant for power.
 - `scripts/utilities.sh`: section `power` when the Manila hour is divisible by 6 (06/12/18) and
   always include `water` as today (the feed fetch happens inside `water`); keep everything else.
   Update `scripts/utilities_test.sh`. `deploy.sh` unchanged except nothing needs adding (no new

@@ -54,7 +54,10 @@ type XInbox struct {
 
 // XAdvisory is one parsed water-interruption window from an X post.
 // Barangay names are NOT in the text, so alerts from X carry no
-// barangay list (see XAreasTL).
+// barangay list (see XAreasTL). An emergency advisory whose text has
+// no parsable end time is kept with End zero and OpenEnded true
+// (Start = post created_at); scheduled advisories without a
+// parseable window stay dropped.
 type XAdvisory struct {
 	PostID     string    `json:"post_id"`
 	PostURL    string    `json:"post_url"`
@@ -65,6 +68,7 @@ type XAdvisory struct {
 	End        time.Time `json:"end"`
 	WindowText string    `json:"window_text"`
 	ReasonKey  string    `json:"reason_key"`
+	OpenEnded  bool      `json:"open_ended,omitempty"`
 }
 
 // LoadXInbox reads a v1 inbox file (strict JSON, version==1).
@@ -172,9 +176,38 @@ func xKind(lower string) string {
 	return "scheduled"
 }
 
+// xRestorationMarkers are resolution/restoration phrases. The
+// open-ended emergency branch must not fire on such posts.
+var xRestorationMarkers = []string{
+	"restored",
+	"has resumed",
+	"have resumed",
+	"back to normal",
+	"normal na",
+	"naibalik",
+	"bumalik na",
+	"tapos na",
+	"lifted",
+	"balik-normal",
+}
+
+// xIsRestoration reports whether lower-cased text looks like a
+// resolution/restoration notice rather than an active interruption.
+func xIsRestoration(lower string) bool {
+	for _, k := range xRestorationMarkers {
+		if strings.Contains(lower, k) {
+			return true
+		}
+	}
+	return false
+}
+
 // ParseXAdvisories filters an X inbox for city (accent-insensitive),
 // keeping only interruption advisories with a parsed window posted
-// within the last 14 days of now. Dedupes by post id, then by
+// within the last 14 days of now, plus emergency advisories with no
+// parsable end time (kept open-ended, Start = post created_at, due
+// only within 24h of the post). Scheduled advisories without a
+// parseable window stay dropped. Dedupes by post id, then by
 // (kind, start, end) keeping the earliest post. Skips posts whose End
 // is before now.
 func ParseXAdvisories(in *XInbox, city string, now time.Time) []XAdvisory {
@@ -211,6 +244,41 @@ func ParseXAdvisories(in *XInbox, city string, now time.Time) []XAdvisory {
 		}
 		s, e, wtext, ok := xParseWindow(p.Text)
 		if !ok {
+			// No parsable window: keep only open-ended
+			// emergencies (Start = post created_at, End zero),
+			// and only while posted within the last 24h.
+			// Resolution/restoration posts never yield an
+			// open-ended advisory.
+			if kind := xKind(lower); kind != "emergency" {
+				continue
+			}
+			if xIsRestoration(lower) {
+				continue
+			}
+			if nowManila.Sub(posted) > 24*time.Hour {
+				continue
+			}
+			k := key{"emergency", posted.Format(time.RFC3339), ""}
+			adv := XAdvisory{
+				PostID:     p.ID,
+				PostURL:    p.URL,
+				PostedAt:   p.CreatedAt,
+				Kind:       "emergency",
+				City:       city,
+				Start:      posted,
+				WindowText: wtext,
+				ReasonKey:  reasonKeyOf(p.Text),
+				OpenEnded:  true,
+			}
+			if adv.PostURL == "" {
+				adv.PostURL = "https://x.com/maynilad/status/" + p.ID
+			}
+			if prev, dup := best[k]; dup {
+				if !adv.PostedAt.Before(prev.PostedAt) {
+					continue
+				}
+			}
+			best[k] = adv
 			continue
 		}
 		kind := xKind(lower)

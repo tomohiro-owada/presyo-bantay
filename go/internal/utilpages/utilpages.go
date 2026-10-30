@@ -36,6 +36,9 @@ type PostDoc struct {
 	Start     string `json:"start,omitempty"`
 	End       string `json:"end,omitempty"`
 	AlertKind string `json:"alert_kind,omitempty"`
+	// OpenEnded marks an emergency water alert with no known end
+	// time ("until further notice" caption).
+	OpenEnded bool `json:"open_ended,omitempty"`
 }
 
 // UtilEntry is one latest entry in utilities.json.
@@ -170,6 +173,9 @@ func Run(snap *utilities.Snapshot, cfg Config) error {
 		}
 		if !a.End.IsZero() {
 			doc.End = a.End.Format(time.RFC3339)
+		}
+		if a.OpenEnded {
+			doc.OpenEnded = true
 		}
 		doc.AlertKind = a.Kind
 		if err := freezePost(cfg, frozenPost{kind: "water", id: a.ID, text: text, img: img, doc: doc}); err != nil {

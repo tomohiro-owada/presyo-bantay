@@ -28,6 +28,9 @@ type WaterAlert struct {
 	WindowText string    `json:"window_text"`
 	ReasonKey  string    `json:"reason_key"`
 	SourceURL  string    `json:"source_url"`
+	// OpenEnded marks an emergency advisory with no known end time:
+	// captions say "until further notice" instead of an end time.
+	OpenEnded bool `json:"open_ended,omitempty"`
 	// Daily marks a one-alert-per-row nightly repeat; Windows holds
 	// the per-night windows, DailyFrom/To the start-date range.
 	Daily     bool         `json:"daily,omitempty"`
@@ -78,12 +81,21 @@ func AlertReason(key string, lang int) string {
 
 // AlertWindowTL returns the big chart window lines: two TL lines when
 // parsed ("Miy Ago 26, 10:00 PM" / "hanggang Huw Ago 27, 1:00 PM"),
-// else the raw window text as one line (caller wraps it).
+// an open-ended pair ("Miy Okt 16, 9:51 AM" / "hanggang may abiso")
+// when the end is unknown, else the raw window text as one line
+// (caller wraps it).
 func AlertWindowTL(a *WaterAlert) []string {
-	if a == nil || a.Start.IsZero() || a.End.IsZero() {
-		if a == nil {
-			return nil
+	if a == nil {
+		return nil
+	}
+	if a.OpenEnded && !a.Start.IsZero() {
+		s := a.Start
+		return []string{
+			fmt.Sprintf("%s %s %d, %s", tlWeekday[s.Weekday()], tlShort[s.Month()], s.Day(), fmt12(s)),
+			"hanggang may abiso",
 		}
+	}
+	if a.Start.IsZero() || a.End.IsZero() {
 		return []string{a.WindowText}
 	}
 	s, e := a.Start, a.End
@@ -404,6 +416,7 @@ func BuildWaterAlerts(w *WaterStatus) []WaterAlert {
 			WindowText: adv.WindowText,
 			ReasonKey:  adv.ReasonKey,
 			SourceURL:  adv.PostURL,
+			OpenEnded:  adv.OpenEnded,
 		})
 	}
 	out = append(out, xAlerts...)
@@ -603,7 +616,7 @@ func RenderWaterAlertPost(a WaterAlert, pastSample bool) string {
 	}
 	cityJA := jaCity(a.City)
 	trendTL, trendEN, trendJA, hasTrend := waterTrendLines(&a)
-	if a.Start.IsZero() || a.End.IsZero() {
+	if a.Start.IsZero() || (a.End.IsZero() && !a.OpenEnded) {
 		fmt.Fprintf(&tl, "💧 Walang tubig sa ilang bahagi ng %s\n📅 %s\n📍 %s\n🔧 Dahilan: %s\nMag-ipon ng tubig bago magsimula.\n",
 			a.City, a.WindowText, areasTL, reason[0])
 		fmt.Fprintf(&en, "🇬🇧 Water interruption in parts of %s\n%s · %s · Reason: %s. Store water beforehand.\n",
@@ -626,6 +639,26 @@ func RenderWaterAlertPost(a WaterAlert, pastSample bool) string {
 		}
 		fmt.Fprintf(&ja, "🇯🇵 %sの一部で断水\n毎晩%s、%s・%s・理由：%s。事前に水の確保を。\n",
 			cityJA, clockJA, rangeJA, areasJA, reason[2])
+		if hasTrend {
+			fmt.Fprintf(&ja, "%s\n", trendJA)
+		}
+	} else if a.OpenEnded {
+		// Emergency with no known end time: the end reads
+		// "until further notice" in all three languages.
+		s := a.Start
+		fmt.Fprintf(&tl, "💧 Walang tubig sa ilang bahagi ng %s\n📅 %s %s %d, %s hanggang may abiso\n📍 %s\n🔧 Dahilan: %s\n",
+			a.City, tlWeekday[s.Weekday()], tlShort[s.Month()], s.Day(), fmt12(s), areasTL, reason[0])
+		if hasTrend {
+			fmt.Fprintf(&tl, "%s\n", trendTL)
+		}
+		fmt.Fprintf(&tl, "Mag-ipon ng tubig bago magsimula.\n")
+		fmt.Fprintf(&en, "🇬🇧 Water interruption in parts of %s\n%s %s %d, %s, until further notice · %s · Reason: %s. Store water beforehand.\n",
+			a.City, enWeekday[s.Weekday()], enShort[s.Month()], s.Day(), fmt12(s), areasEN, reason[1])
+		if hasTrend {
+			fmt.Fprintf(&en, "%s\n", trendEN)
+		}
+		fmt.Fprintf(&ja, "🇯🇵 %sの一部で断水\n%d/%d（%s）%02d:%02d〜追って通知があるまで・%s・理由：%s。事前に水の確保を。\n",
+			cityJA, int(s.Month()), s.Day(), jaWeekday[s.Weekday()], s.Hour(), s.Minute(), areasJA, reason[2])
 		if hasTrend {
 			fmt.Fprintf(&ja, "%s\n", trendJA)
 		}

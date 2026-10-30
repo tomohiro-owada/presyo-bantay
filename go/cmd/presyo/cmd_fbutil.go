@@ -32,9 +32,13 @@ func cmdFBUtil(argv []string) int {
 	envFile := fs.String("env-file", "", "env file with PRESYO_FB_PAGE_ID/PRESYO_FB_PAGE_TOKEN (default $PRESYO_HOME/.config/presyo/fb.env)")
 	disableFile := fs.String("disable-file", "", "skip posting when this file exists (default $PRESYO_HOME/.config/presyo/fbpost.disabled)")
 	minGap := fs.Duration("min-gap", 2*time.Hour, "auto: skip when the last successful post is newer than this")
-	windowStart := fs.String("window-start", "12:00", "auto posting window start HH:MM Asia/Manila")
-	windowEnd := fs.String("window-end", "19:00", "auto posting window end HH:MM Asia/Manila (exclusive)")
+	gapGrace := fs.Duration("gap-grace", 5*time.Minute, "auto: min-gap skips only when since < min-gap - grace")
+	windowStart := fs.String("window-start", "05:30", "auto posting window start HH:MM Asia/Manila")
+	windowEnd := fs.String("window-end", "20:00", "auto posting window end HH:MM Asia/Manila (exclusive)")
+	routineWindowStart := fs.String("routine-window-start", "12:00", "auto routine posting window start HH:MM Asia/Manila (fuel/bills only)")
+	routineWindowEnd := fs.String("routine-window-end", "19:00", "auto routine posting window end HH:MM Asia/Manila (exclusive, fuel/bills only)")
 	publishDelay := fs.Duration("publish-delay", 10*time.Minute, "auto: frozen pages newer than this are not yet deployed")
+	billsMaxWait := fs.Duration("bills-max-wait", 24*time.Hour, "auto: bills bypass the DA-first gate when the frozen page is at least this old")
 	graphBase := fs.String("graph-base", "https://graph.facebook.com/v21.0", "Graph API base URL (tests use httptest)")
 	nowFlag := fs.String("now", "", "RFC3339 now override (tests)")
 	if err := fs.Parse(argv); err != nil {
@@ -69,8 +73,9 @@ func cmdFBUtil(argv []string) int {
 		dbPath: *dbPath, sitePublic: *sitePublic, autoMode: *autoMode,
 		kind: *kindFlag, id: *idFlag, dryRun: *dryRun, outDir: *outDir,
 		statePath: stPath, envFile: *envFile, disableFile: *disableFile,
-		minGap: *minGap, windowStart: *windowStart, windowEnd: *windowEnd,
-		publishDelay: *publishDelay, graphBase: *graphBase,
+		minGap: *minGap, gapGrace: *gapGrace, windowStart: *windowStart, windowEnd: *windowEnd,
+		routineWindowStart: *routineWindowStart, routineWindowEnd: *routineWindowEnd,
+		publishDelay: *publishDelay, billsMaxWait: *billsMaxWait, graphBase: *graphBase,
 		presyoHome: presyoHome, now: now,
 	}
 	run := func() int { return fbutilRun(opt) }
@@ -81,23 +86,27 @@ func cmdFBUtil(argv []string) int {
 }
 
 type fbutilOptions struct {
-	dbPath       string
-	sitePublic   string
-	autoMode     bool
-	kind         string
-	id           string
-	dryRun       bool
-	outDir       string
-	statePath    string
-	envFile      string
-	disableFile  string
-	minGap       time.Duration
-	windowStart  string
-	windowEnd    string
-	publishDelay time.Duration
-	graphBase    string
-	presyoHome   string
-	now          time.Time
+	dbPath             string
+	sitePublic         string
+	autoMode           bool
+	kind               string
+	id                 string
+	dryRun             bool
+	outDir             string
+	statePath          string
+	envFile            string
+	disableFile        string
+	minGap             time.Duration
+	gapGrace           time.Duration
+	windowStart        string
+	windowEnd          string
+	routineWindowStart string
+	routineWindowEnd   string
+	publishDelay       time.Duration
+	billsMaxWait       time.Duration
+	graphBase          string
+	presyoHome         string
+	now                time.Time
 }
 
 // utilFrozen is one frozen page (FB == site).
@@ -346,7 +355,7 @@ func fbutilAuto(opt fbutilOptions, manila time.Time) int {
 			}
 		}
 	}
-	if !latest.IsZero() && manila.Sub(latest) < opt.minGap {
+	if !latest.IsZero() && manila.Sub(latest) < opt.minGap-opt.gapGrace {
 		return skip("last post %s ago (< %s)", manila.Sub(latest).Truncate(time.Second), opt.minGap)
 	}
 	posted := func(region, asOf string) bool {
@@ -379,29 +388,61 @@ func fbutilAuto(opt fbutilOptions, manila time.Time) int {
 		return manila.Sub(gen) >= opt.publishDelay
 	}
 
-	// Priority 1: water alerts.
+	// Priority 1: water alerts (main window only).
 	if frozen := fbutilDueWater(opt, manila, st, posted, postedToday, oldEnough); frozen != nil {
 		return fbutilAutoPost(opt, frozen, "water")
 	}
-	// Priority 2: power alerts (DA-exempt like water).
+	// Priority 2: power alerts (DA-exempt like water, main window only).
 	if frozen := fbutilDuePower(opt, manila, posted, postedToday, oldEnough); frozen != nil {
 		return fbutilAutoPost(opt, frozen, "power")
 	}
-	// Priority 3/4 need the DA-first gate: when the DB's latest price
-	// date D is fresh (≤ 2 days) and some region still owes D, daily
-	// posts go first.
-	if next, d := fbutilDAPending(opt); next != "" {
-		_ = next
-		return skip("waiting for DA posts (date %s)", d)
+	// Priority 3: fuel and bills only inside the routine window
+	// [routine-window-start, routine-window-end) Manila; outside it
+	// they are not evaluated and the run falls through to
+	// "nothing due". Water and power above are unaffected.
+	rStartStr, rEndStr := opt.routineWindowStart, opt.routineWindowEnd
+	if rStartStr == "" {
+		rStartStr = "12:00"
 	}
-	// Priority 3: fuel.
-	if frozen, reason := fbutilDueFuel(opt, manila, posted, oldEnough); frozen != nil {
-		_ = reason
-		return fbutilAutoPost(opt, frozen, "fuel")
+	if rEndStr == "" {
+		rEndStr = "19:00"
 	}
-	// Priority 4: bills.
-	if frozen, _ := fbutilDueBills(opt, manila, posted, oldEnough); frozen != nil {
-		return fbutilAutoPost(opt, frozen, "bills")
+	rStart, err := parseHHMM(rStartStr)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "fbutil: error: %s\n", err.Error())
+		return 1
+	}
+	rEnd, err := parseHHMM(rEndStr)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "fbutil: error: %s\n", err.Error())
+		return 1
+	}
+	if rStart <= tod && tod < rEnd {
+		// Fuel, evaluated before the DA-first gate.
+		fuelFrozen, _ := fbutilDueFuel(opt, manila, posted, oldEnough)
+		if fuelFrozen != nil {
+			return fbutilAutoPost(opt, fuelFrozen, "fuel")
+		}
+		// Bills are evaluated before the gate for the starvation guard.
+		billsFrozen, _ := fbutilDueBills(opt, manila, posted, oldEnough)
+		// DA-first gate: when the DB's latest price date D is fresh
+		// (≤ 2 days) and some region still owes D, daily posts go first.
+		// A stale bills page (older than -bills-max-wait) bypasses the
+		// gate so bills are not starved by a stalled DA queue.
+		if next, d := fbutilDAPending(opt); next != "" {
+			_ = next
+			if billsFrozen != nil {
+				if gen, err := time.Parse(time.RFC3339, billsFrozen.doc.GeneratedAt); err == nil {
+					if manila.Sub(gen) >= opt.billsMaxWait {
+						return fbutilAutoPost(opt, billsFrozen, "bills")
+					}
+				}
+			}
+			return skip("waiting for DA posts (date %s)", d)
+		}
+		if billsFrozen != nil {
+			return fbutilAutoPost(opt, billsFrozen, "bills")
+		}
 	}
 	return skip("nothing due")
 }
@@ -471,23 +512,25 @@ func fbutilDAPending(opt fbutilOptions) (string, string) {
 	return "", ""
 }
 
-// fbutilDueFuel selects the latest frozen fuel page when due.
+// fbutilDueFuel selects the latest frozen fuel page when due: the
+// page id is the effective_from date, unposted, 0 <= age <= 6 days,
+// check=pass, old enough (publish-delay). Latest page only, any
+// weekday.
 func fbutilDueFuel(opt fbutilOptions, manila time.Time, posted func(string, string) bool, oldEnough func(utilpages.PostDoc) bool) (*utilFrozen, string) {
 	id, err := latestFrozen(opt.sitePublic, "fuel")
 	if err != nil {
-		return nil, ""
-	}
-	// Tue/Wed only.
-	if wd := manila.Weekday(); wd != time.Tuesday && wd != time.Wednesday {
 		return nil, ""
 	}
 	from, err := time.Parse("2006-01-02", id)
 	if err != nil {
 		return nil, ""
 	}
-	today := time.Date(manila.Year(), manila.Month(), manila.Day(), 0, 0, 0, 0, manilaZone)
+	today, err := time.Parse("2006-01-02", manila.Format("2006-01-02"))
+	if err != nil {
+		return nil, ""
+	}
 	age := int(today.Sub(from).Hours() / 24)
-	if age < 0 || age > 2 {
+	if age < 0 || age > 6 {
 		return nil, ""
 	}
 	if posted("util-fuel", id) {
@@ -574,11 +617,21 @@ func fbutilDueWater(opt fbutilOptions, manila time.Time, st *fbPostState, posted
 		end, _ := time.Parse(time.RFC3339, c.doc.End)
 		due := false
 		if serr == nil {
-			if !start.Before(manila.Add(3*time.Hour)) && !start.After(manila.Add(72*time.Hour)) {
-				due = true
-			}
-			// Emergency not yet ended.
-			if !due && c.doc.AlertKind == "emergency" && !end.IsZero() && end.After(manila) {
+			if c.doc.OpenEnded && c.doc.AlertKind == "emergency" {
+				// Open-ended emergency (no known end): due while
+				// posted within the last 24h, using the frozen
+				// created time (GeneratedAt or Start).
+				created := start
+				if gen, gerr := time.Parse(time.RFC3339, c.doc.GeneratedAt); gerr == nil {
+					created = gen
+				}
+				if !manila.After(created.Add(24 * time.Hour)) {
+					due = true
+				}
+			} else if !end.IsZero() && end.After(manila) && !start.After(manila.Add(72*time.Hour)) {
+				// Not yet ended and starting within 72h:
+				// short-notice (under 3h away) and
+				// already-started-but-not-ended alerts post.
 				due = true
 			}
 		}
@@ -604,9 +657,9 @@ func fbutilDueWater(opt fbutilOptions, manila time.Time, st *fbPostState, posted
 }
 
 // fbutilDuePower selects the earliest eligible frozen power alert:
-// check=pass, Start in [now+3h, now+72h], not already posted, at most
-// one util-power post per Manila day. Cross-source overlap with a
-// posted water window is NOT relevant for power.
+// check=pass, not yet ended, Start within 72h, not already posted,
+// at most one util-power post per Manila day. Cross-source overlap
+// with a posted water window is NOT relevant for power.
 func fbutilDuePower(opt fbutilOptions, manila time.Time, posted func(string, string) bool, postedToday func(string) bool, oldEnough func(utilpages.PostDoc) bool) *utilFrozen {
 	matches, err := filepath.Glob(filepath.Join(opt.sitePublic, "u", "power", "*", "post.json"))
 	if err != nil || len(matches) == 0 {
@@ -653,7 +706,11 @@ func fbutilDuePower(opt fbutilOptions, manila time.Time, posted func(string, str
 		if serr != nil {
 			continue
 		}
-		if start.Before(manila.Add(3*time.Hour)) || start.After(manila.Add(72*time.Hour)) {
+		end, _ := time.Parse(time.RFC3339, c.doc.End)
+		if end.IsZero() || !end.After(manila) {
+			continue
+		}
+		if start.After(manila.Add(72 * time.Hour)) {
 			continue
 		}
 		frozen, err := loadUtilFrozen(opt.sitePublic, "power", c.doc.AsOf)

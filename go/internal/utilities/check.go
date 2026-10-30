@@ -614,6 +614,30 @@ func checkWaterAlert(text string, s *Snapshot) []string {
 			add("reason %q missing", w)
 		}
 	}
+	if a.OpenEnded {
+		// No end time is known: the caption must carry the
+		// "until further notice" wording instead of an end time,
+		// pinned to the exact start so a tampered start fails.
+		s := a.Start
+		wantTL := fmt.Sprintf("%s %s %d, %s hanggang may abiso", tlWeekday[s.Weekday()], tlShort[s.Month()], s.Day(), fmt12(s))
+		wantEN := fmt.Sprintf("%s %s %d, %s, until further notice", enWeekday[s.Weekday()], enShort[s.Month()], s.Day(), fmt12(s))
+		wantJA := fmt.Sprintf("%d/%d（%s）%02d:%02d〜追って通知があるまで", int(s.Month()), s.Day(), jaWeekday[s.Weekday()], s.Hour(), s.Minute())
+		for _, want := range []string{wantTL, wantEN, wantJA} {
+			if !strings.Contains(text, want) {
+				add("open-ended window %q missing", want)
+			}
+		}
+		if trendTL, trendEN, trendJA, ok := waterTrendLines(&a); ok {
+			for _, want := range []string{trendTL, trendEN, trendJA} {
+				if !strings.Contains(text, want) {
+					add("trend %q missing", want)
+				}
+			}
+		} else if strings.Contains(text, "📊 Ika-") || strings.Contains(text, "water interruption in") || strings.Contains(text, "回目の断水") {
+			add("unexpected water trend line")
+		}
+		return problems
+	}
 	if a.Start.IsZero() || a.End.IsZero() {
 		return problems
 	}
