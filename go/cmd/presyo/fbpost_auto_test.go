@@ -140,9 +140,14 @@ func TestAutoWindowEdges(t *testing.T) {
 
 func TestAutoSwitchNewerDate(t *testing.T) {
 	e := setupAuto(t, []string{"2026-10-23", "2026-10-24"})
-	// South was posted for the older date only; the newer date takes over.
+	// Every region but south was posted for the older date only; the
+	// newer date takes over, and south (no state entry, most overdue)
+	// sorts first.
 	writeAutoState(t, e.state, []fbPostEntry{
-		{Region: "south", AsOf: "2026-10-23", PostID: "p1", PhotoID: "h1", PostedAt: "2026-10-23T07:00:00+08:00"},
+		{Region: "manila", AsOf: "2026-10-23", PostID: "p1", PhotoID: "h1", PostedAt: "2026-10-23T07:00:00+08:00"},
+		{Region: "qc", AsOf: "2026-10-23", PostID: "p2", PhotoID: "h2", PostedAt: "2026-10-23T07:00:00+08:00"},
+		{Region: "north", AsOf: "2026-10-23", PostID: "p3", PhotoID: "h3", PostedAt: "2026-10-23T07:00:00+08:00"},
+		{Region: "east", AsOf: "2026-10-23", PostID: "p4", PhotoID: "h4", PostedAt: "2026-10-23T07:00:00+08:00"},
 	})
 	if code := run(e.autoArgs("-now", "2026-10-25T07:00:00+08:00")); code != 0 {
 		t.Fatalf("exit = %d", code)

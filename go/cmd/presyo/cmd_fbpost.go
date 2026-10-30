@@ -13,6 +13,7 @@ import (
 	"net/textproto"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -139,6 +140,7 @@ func cmdFBPost(argv []string) int {
 	windowStart := fs.String("window-start", "05:30", "auto posting window start HH:MM Asia/Manila")
 	windowEnd := fs.String("window-end", "20:00", "auto posting window end HH:MM Asia/Manila (exclusive)")
 	minGap := fs.Duration("min-gap", 2*time.Hour, "auto: skip when the last successful post is newer than this")
+	gapGrace := fs.Duration("gap-grace", 5*time.Minute, "auto: min-gap skips only when since < min-gap - grace")
 	nowFlag := fs.String("now", "", "RFC3339 now override (tests)")
 	if err := fs.Parse(argv); err != nil {
 		return 1
@@ -172,7 +174,7 @@ func cmdFBPost(argv []string) int {
 			dryRun: *dryRun, statePath: stPath, envFile: *envFile,
 			maxAge: *maxAge, disableFile: *disableFile, graphBase: *graphBase,
 			useLLM: *useLLM, autoMode: *autoMode, windowStart: *windowStart,
-			windowEnd: *windowEnd, minGap: *minGap, nowFlag: *nowFlag,
+			windowEnd: *windowEnd, minGap: *minGap, gapGrace: *gapGrace, nowFlag: *nowFlag,
 			presyoHome: presyoHome,
 		})
 	}
@@ -200,30 +202,47 @@ type fbpostParams struct {
 	windowStart string
 	windowEnd   string
 	minGap      time.Duration
+	gapGrace    time.Duration
 	nowFlag     string
 	presyoHome  string
 }
 
 func fbpostBody(db *sql.DB, p fbpostParams) int {
-	regionID := p.regionID
-	dateFlag := p.dateFlag
-
-	// -auto: decide which region is due (at most one post per run).
+	// -auto: decide which regions are due (at most one post per run).
+	// Candidates are tried most-overdue first; the first candidate
+	// that passes the checker wins, a checker failure (rc 3) moves on
+	// to the next candidate.
 	if p.autoMode {
-		next, asOf, ok := autoSelect(db, autoOptions{
+		cands, asOf, ok := autoSelect(db, autoOptions{
 			nowFlag: p.nowFlag, windowStart: p.windowStart,
-			windowEnd: p.windowEnd, minGap: p.minGap,
+			windowEnd: p.windowEnd, minGap: p.minGap, gapGrace: p.gapGrace,
 			statePath: p.statePath, presyoHome: p.presyoHome,
 		})
 		if !ok {
 			return 0 // skip reason already logged
 		}
-		if next == "" {
+		if len(cands) == 0 {
 			return 0
 		}
-		regionID = next
-		dateFlag = asOf
+		for _, r := range cands {
+			if rc := fbpostRegion(db, p, r, asOf); rc == 3 {
+				fmt.Fprintf(os.Stderr, "fbpost: auto: region=%s check failed, trying next candidate\n", r)
+				continue
+			} else {
+				return rc
+			}
+		}
+		return 3 // every candidate failed the checker
 	}
+	return fbpostRegion(db, p, p.regionID, p.dateFlag)
+}
+
+// fbpostForceCheckFail, when non-nil, forces the region check to fail
+// for the named region. Tests use it to exercise the -auto
+// head-of-line skip when there is no other way to force a failure.
+var fbpostForceCheckFail func(regionID string) bool
+
+func fbpostRegion(db *sql.DB, p fbpostParams, regionID, dateFlag string) int {
 
 	// 1. Region signals.
 	sig, err := signals.ComputeRegion(db, regionID, signals.RegionOptions{AsOf: dateFlag})
@@ -238,9 +257,17 @@ func fbpostBody(db *sql.DB, p fbpostParams) int {
 		fmt.Fprintf(os.Stderr, "fbpost: error: bad as-of %q\n", sig.AsOf)
 		return 1
 	}
-	today := time.Now().In(manilaZone).Truncate(24 * time.Hour)
-	_ = today
+	// Staleness uses -now when given (tests pin the clock); otherwise
+	// wall-clock Manila time.
 	nowManila := time.Now().In(manilaZone)
+	if p.nowFlag != "" {
+		t, err := time.Parse(time.RFC3339, p.nowFlag)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "fbpost: error: bad -now %q\n", p.nowFlag)
+			return 1
+		}
+		nowManila = t.In(manilaZone)
+	}
 	todayDate := time.Date(nowManila.Year(), nowManila.Month(), nowManila.Day(), 0, 0, 0, 0, manilaZone)
 	ageDays := int(todayDate.Sub(asOfT).Hours() / 24)
 	if ageDays > p.maxAge {
@@ -314,6 +341,9 @@ func fbpostBody(db *sql.DB, p fbpostParams) int {
 	if err := os.WriteFile(checkPath, append(checkData, '\n'), 0o644); err != nil {
 		fmt.Fprintf(os.Stderr, "fbpost: error: %s\n", err.Error())
 		return 1
+	}
+	if fbpostForceCheckFail != nil && fbpostForceCheckFail(regionID) {
+		rep.Status = fbregion.StatusFail
 	}
 	if rep.Status != fbregion.StatusPass {
 		fmt.Fprintf(os.Stderr, "fbpost: check %s (flagged=%d lint=%d), no post\n",
@@ -478,6 +508,7 @@ type autoOptions struct {
 	windowStart string
 	windowEnd   string
 	minGap      time.Duration
+	gapGrace    time.Duration
 	statePath   string
 	presyoHome  string
 }
@@ -494,21 +525,26 @@ func parseHHMM(s string) (int, error) {
 	return h*60 + m, nil
 }
 
-// autoSelect implements `fbpost -auto`: it picks the next due region for
-// the latest data date D. It returns ("", "", false) with a logged reason
-// when nothing should be posted, or (region, D, true) when the caller
-// should run the normal single-region flow once.
-func autoSelect(db *sql.DB, opt autoOptions) (string, string, bool) {
-	skip := func(format string, args ...any) (string, string, bool) {
+// autoSelect implements `fbpost -auto`: it picks the ordered due
+// candidate regions for the latest data date D. It returns
+// (nil, "", false) with a logged reason when nothing should be posted,
+// or (candidates, D, true) with most-overdue first when the caller
+// should run the normal single-region flow once per candidate until
+// one passes. Candidates are regions with no state entry for
+// (region, D), ordered most-overdue first: the key is that region's
+// latest state as-of date (YYYY-MM-DD only, known region ids only;
+// none sorts first as "") ascending, ties keeping regions.IDs() order.
+func autoSelect(db *sql.DB, opt autoOptions) ([]string, string, bool) {
+	skip := func(format string, args ...any) ([]string, string, bool) {
 		fmt.Fprintf(os.Stderr, "fbpost: auto skip: "+format+"\n", args...)
-		return "", "", false
+		return nil, "", false
 	}
 	now := time.Now()
 	if opt.nowFlag != "" {
 		t, err := time.Parse(time.RFC3339, opt.nowFlag)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "fbpost: error: bad -now %q\n", opt.nowFlag)
-			return "", "", false
+			return nil, "", false
 		}
 		now = t
 	}
@@ -520,7 +556,7 @@ func autoSelect(db *sql.DB, opt autoOptions) (string, string, bool) {
 	var d sql.NullString
 	if err := db.QueryRow("SELECT MAX(date) FROM prices").Scan(&d); err != nil {
 		fmt.Fprintf(os.Stderr, "fbpost: error: %s\n", err.Error())
-		return "", "", false
+		return nil, "", false
 	}
 	if !d.Valid {
 		return skip("no price dates in DB")
@@ -529,7 +565,7 @@ func autoSelect(db *sql.DB, opt autoOptions) (string, string, bool) {
 	dT, err := time.Parse("2006-01-02", D)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "fbpost: error: bad data date %q\n", D)
-		return "", "", false
+		return nil, "", false
 	}
 	today := time.Date(manila.Year(), manila.Month(), manila.Day(), 0, 0, 0, 0, manilaZone)
 	if int(today.Sub(dT).Hours()/24) > 2 {
@@ -540,12 +576,12 @@ func autoSelect(db *sql.DB, opt autoOptions) (string, string, bool) {
 	start, err := parseHHMM(opt.windowStart)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "fbpost: error: %s\n", err.Error())
-		return "", "", false
+		return nil, "", false
 	}
 	end, err := parseHHMM(opt.windowEnd)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "fbpost: error: %s\n", err.Error())
-		return "", "", false
+		return nil, "", false
 	}
 	tod := manila.Hour()*60 + manila.Minute()
 	if !(start <= tod && tod < end) {
@@ -560,7 +596,7 @@ func autoSelect(db *sql.DB, opt autoOptions) (string, string, bool) {
 	st, err := loadFBState(stPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "fbpost: error: %s\n", err.Error())
-		return "", "", false
+		return nil, "", false
 	}
 	posted := map[string]bool{}
 	var latest time.Time
@@ -594,24 +630,49 @@ func autoSelect(db *sql.DB, opt autoOptions) (string, string, bool) {
 			}
 		}
 	}
-	next := ""
+	// Candidates: regions with no state entry for (region, D),
+	// ordered most-overdue first by the region's latest state
+	// as-of (YYYY-MM-DD only; none sorts first as ""), ties
+	// keeping regions.IDs() order.
+	known := map[string]bool{}
 	for _, id := range regions.IDs() {
-		if !posted[id] {
-			next = id
-			break
+		known[id] = true
+	}
+	latestAsOf := map[string]string{}
+	for _, p := range st.Posts {
+		if !known[p.Region] {
+			continue
+		}
+		if _, err := time.Parse("2006-01-02", p.AsOf); err != nil {
+			continue
+		}
+		if p.AsOf > latestAsOf[p.Region] {
+			latestAsOf[p.Region] = p.AsOf
 		}
 	}
-	if next == "" {
+	var cands []string
+	for _, id := range regions.IDs() {
+		if !posted[id] {
+			cands = append(cands, id)
+		}
+	}
+	sort.SliceStable(cands, func(i, j int) bool {
+		return latestAsOf[cands[i]] < latestAsOf[cands[j]]
+	})
+	fmt.Fprintf(os.Stderr, "fbpost: auto candidates=%s as-of=%s\n", strings.Join(cands, ","), D)
+	if len(cands) == 0 {
 		return skip("all regions already posted for %s", D)
 	}
 
-	// Spacing: at most one post per minGap, no exceptions.
-	if !latest.IsZero() && manila.Sub(latest) < opt.minGap {
+	// Spacing: at most one post per minGap, no exceptions. Posted_at
+	// is written after the upload, so a cron run at exactly +minGap
+	// sees since=minGap-ε: the grace keeps it from skipping.
+	if !latest.IsZero() && manila.Sub(latest) < opt.minGap-opt.gapGrace {
 		return skip("last post %s ago (< %s)", manila.Sub(latest).Truncate(time.Second), opt.minGap)
 	}
 
-	fmt.Fprintf(os.Stderr, "fbpost: auto selected region=%s as-of=%s\n", next, D)
-	return next, D, true
+	fmt.Fprintf(os.Stderr, "fbpost: auto selected region=%s as-of=%s\n", cands[0], D)
+	return cands, D, true
 }
 
 // graphError extracts the Graph API error message/code.

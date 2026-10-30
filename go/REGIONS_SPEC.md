@@ -248,11 +248,17 @@ region is due, at most ONE post per run:
   log skip, exit 0.
 - Posting window: only between 05:30 and 20:00 Asia/Manila (flags
   -window-start 05:30 -window-end 20:00); outside -> log, exit 0.
-- Order: south, manila, qc, north, east. Next region = first region not yet
-  posted for date D in the state file. If all 5 posted for D -> exit 0.
-- Spacing: if the last successful post (any region/date) was less than 2h
-  ago (flag -min-gap 2h) -> exit 0. Exception: none (South for a new date
-  also waits for the gap; that's fine).
+- Order: candidates are regions with no state entry for D, most-overdue
+  first (the key is the region's latest state as-of; no entry sorts
+  first; ties keep south, manila, qc, north, east order). If all 5
+  posted for D -> exit 0.
+- Spacing: if the last successful post (any region/date) was less than
+  2h ago (flag -min-gap 2h) minus -gap-grace (default 5m) -> exit 0.
+  Exception: none (South for a new date also waits for the gap; that's
+  fine).
+- A checker failure (exit 3) for the first candidate tries the next
+  candidate in the same run; all failed -> exit 3. Still at most ONE
+  successful post per run.
 - If a newer date arrives while an older date's regions are unfinished,
   just switch to the newer date (older date's remaining regions are
   dropped).
