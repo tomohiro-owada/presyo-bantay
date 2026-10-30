@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Household-utilities job (UTILITIES_SPEC_V2.md section B3).
 #
-# Runs on the VPS as user presyo from cron, hourly at :20.
+# Runs on the ingest host (non-root) from cron, hourly at :20.
 # Single pass, never loops:
 #   1. decide fetch sections by Manila time,
 #   2. `$BIN utilities fetch -sections …` (PDF cache under data/utilities),
@@ -143,7 +143,7 @@ echo "utilities.sh: sections='$sections' (dow=$DOW dom=$DOM hour=$HOUR)"
 SNAP="$UDATA/snapshot.json"
 MAYNILAD_X_INBOX="${MAYNILAD_X_INBOX:-$PRESYO_HOME/inbox/maynilad_x.json}"
 MERALCO_X_INBOX="${MERALCO_X_INBOX:-$PRESYO_HOME/inbox/meralco_x.json}"
-# Raw Maynilad RSS pushed from a machine that can fetch it (the VPS is
+# Raw Maynilad RSS pushed from a machine that can fetch it (the ingest host is
 # challenged by the site). Used when present; a warning is logged when
 # it is older than 12 h, and it is ignored when older than 72 h.
 MAYNILAD_FEED_INBOX="${MAYNILAD_FEED_INBOX:-$PRESYO_HOME/inbox/maynilad_feed.xml}"

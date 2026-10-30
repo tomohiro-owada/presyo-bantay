@@ -153,7 +153,7 @@ uPlot for charts: small bundle, no frameworks, no web fonts; the only
 external script loaded at runtime is the GA4 gtag.js snippet (measurement ID
 G-VL047YCMK8, same property as abalol.xyz), included on the top page and all
 daily report pages). Chart data (`site/public/data/`, output of
-`presyo export`, ~3 MB compact JSON) is committed to git: the VPS exports
+`presyo export`, ~3 MB compact JSON) is committed to git: the ingest server exports
 and pushes it daily, and both local builds and GitHub Pages build straight
 from it.
 
@@ -189,7 +189,7 @@ In the repo, go to Settings > Pages > Source and select "GitHub Actions".
 plain Node (`cd site && npm ci && npm run build`) from the committed
 `site/public/data/` and deploys it with `actions/deploy-pages`. It runs on
 push to `main` touching `site/**`, `data/json/**` or the workflow itself,
-plus manual `workflow_dispatch`. No Python, no DB: the VPS already exported
+plus manual `workflow_dispatch`. No Python, no DB: the ingest server already exported
 and committed the site data.
 
 ## Weekly summary
@@ -254,22 +254,15 @@ failed` summary, and appends both to `data/backfill/backfill.log`
 
 ## After the historical backfill finishes
 
-The backfill runs on this box (writing `data/json/*.json` plus the local
-`data/presyo.db`). The VPS cron keeps running meanwhile: it only ingests
-dates newer than its DB, while the backfill fills older dates into the box's
-own DB, so they never touch the same file. Pause cron only for the merge:
-
-1. On the VPS, pause cron (keep a backup to resume later):
-   `crontab -l > ~/crontab.bak && crontab -r`
-2. Copy the backfilled snapshots from this box to the VPS repo, e.g.
-   `scp data/json/*.json <VPS_HOST>:repo/data/json/` (or a staging dir).
-3. On the VPS, load them into the authoritative DB (idempotent upsert):
-   `presyo ingest-json -db $HOME/data/presyo.db <dir>`
-   (alternatively `sqlite3` with `ATTACH` + `INSERT OR IGNORE`; note the VPS has
-   no `sqlite3` CLI installed and installing it needs root, so prefer `ingest-json`).
-4. Run `$HOME/bin/daily.sh` once on the VPS so it exports the full
-   site data and pushes one `data: YYYY-MM-DD` commit.
-5. On the VPS, resume cron: `crontab ~/crontab.bak`.
+The backfill runs on a separate machine (writing `data/json/*.json` plus a
+local `data/presyo.db`). The scheduled ingest keeps running meanwhile: it only
+ingests dates newer than its own DB, while the backfill fills older dates into
+the other DB, so they never touch the same file. To merge, pause the scheduled
+job briefly, copy the backfilled snapshots to the ingest host, load them with
+`presyo ingest-json -db <authoritative-db> <dir>` (an idempotent upsert), run
+`scripts/daily.sh` once so it exports the full site data and pushes one
+`data: YYYY-MM-DD` commit, then resume the schedule. Host-specific commands
+are kept in private ops notes, not in this repository.
 
 ## Telegram posting
 
@@ -332,24 +325,18 @@ slightly (e.g. `La Huerta Market/Parañaque`, `Bicutan Market`).
 Tests use only the saved fixtures in `tests/fixtures/` (no network; HTTP is
 mocked in fetch and FX tests).
 
-## Daily automation (VPS)
+## Daily automation
 
-Ingest runs on the VPS (user `presyo`, non-root, Ubuntu x86_64,
-TZ <SERVER_TZ>), which is the ONLY writer of data. Layout:
-`$HOME/bin/presyo` (Go binary), `$HOME/bin/daily.sh`,
-`$HOME/data/presyo.db` (authoritative DB, NOT in git),
-`$HOME/data/raw` (PDF cache), `$HOME/logs`,
-`$HOME/repo` (git clone of this repo over SSH via the
-`git@<DEPLOY_KEY_HOST>:tomohiro-owada/presyo-bantay.git` remote, using a deploy
-key scoped to this repo only).
+Ingest runs on a single non-root server job, which is the ONLY writer of
+data. `$PRESYO_HOME` (default `$HOME`) holds the Go binary, the scripts, the
+authoritative DB (NOT in git), the PDF cache, logs and a clone of this
+repository that pushes the exported data.
+Host names, accounts, paths and the exact crontab are intentionally not
+documented here (private ops notes).
 
-Cron (07:15 and 23:15 server-TZ = 06:15 / 22:15 Manila, catching the DA evening
-posts):
-
-```cron
-<CRON_LINE_REMOVED>
-<CRON_LINE_REMOVED>
-```
+The job runs twice a day, shortly after the DA evening posts and the
+morning refresh (about 06:15 and 22:15 Asia/Manila), and calls
+`scripts/daily.sh`.
 
 `daily.sh` (see `go/scripts/daily.sh`, covered by
 `go/scripts/daily_test.sh`): rotates `logs/daily.log` past 5 MB, takes a
@@ -366,12 +353,12 @@ failed, but always pushes whatever succeeded. It never adds
 
 `data/presyo.db` is NOT committed: it is a ~20-25 MB binary blob rewritten
 daily, and git history keeps every old copy forever, so tracking it would
-bloat the repo. The authoritative DB lives on the VPS; what IS committed is
+bloat the repo. The authoritative DB lives on the ingest server; what IS committed is
 the exported site data (`site/public/data/`, ~3 MB compact JSON) plus the
 daily snapshots (`data/json/*.json`), which GitHub Pages builds from.
 
-Ship binary + script updates with `cd go && ./deploy.sh` (`DRY_RUN=1` to
-preview; it never touches crontab itself).
+Ship binary + script updates with `cd go && VPS_HOST=<ssh-host> ./deploy.sh`
+(`DRY_RUN=1` to preview; it never touches crontab itself; see `go/README.md`).
 
 ## Weekly automation
 
@@ -413,6 +400,6 @@ MIT — see `LICENSE`. Copyright 2026 Presyo Bantay contributors.
 
 ## 日本語概要
 
-Presyo Bantay（プレショ・バンタイ）は、フィリピン農業省（DA）が公表する日次価格モニタリング PDF を収集・解析し、ラス・ピニャス周辺の小売価格を JSON として記録する非営利の市民ツールです。最新の `Price-Monitoring` PDF を取得し、主要4市場（New Las Piñas、Alabang、La Huerta、Bicutan）のコメ・バングス・卵などの価格を抽出します。レイアウト変化を検出する sanity check と、VPS 上で cron（日本時間 07:15／23:15＝マニラ時間 06:15／22:15）により毎日実行される Go バイナリ＋daily.sh パイプラインを備えています。SQLite の DB（`data/presyo.db`）はリポジトリ肥大化を避けるため git 管理外とし、VPS 上の正本と、コミットされる JSON スナップショット（`data/json/`）＋サイト用データ（`site/public/data/`）で運用します。ライセンスは MIT です。
+Presyo Bantay（プレショ・バンタイ）は、フィリピン農業省（DA）が公表する日次価格モニタリング PDF を収集・解析し、ラス・ピニャス周辺の小売価格を JSON として記録する非営利の市民ツールです。最新の `Price-Monitoring` PDF を取得し、主要4市場（New Las Piñas、Alabang、La Huerta、Bicutan）のコメ・バングス・卵などの価格を抽出します。レイアウト変化を検出する sanity check と、サーバー上で定期実行（マニラ時間 06:15／22:15 頃）される Go バイナリ＋daily.sh パイプラインを備えています。SQLite の DB（`data/presyo.db`）はリポジトリ肥大化を避けるため git 管理外とし、サーバー上の正本と、コミットされる JSON スナップショット（`data/json/`）＋サイト用データ（`site/public/data/`）で運用します。ライセンスは MIT です。
 
 第2週の追加機能：スナップショットを SQLite（`data/presyo.db`）に取り込む `ingest`、価格推移を表示する `trend`、週次タガログ語サマリーを作成する `summarize`（HTML／MarkdownV2 対応、数値検証つきの任意 LLM 言い換えフックあり）、Telegram チャンネルへ投稿する `post-telegram`、毎週日曜 08:00（マニラ時間）にサマリーを投稿する `weekly.yml` ワークフローを追加しました。公開用ウェブサイト（`site/`、Vite + 素の TypeScript + uPlot、Taglish／英語切替つき）は `make site` で `site/dist` にビルドします。デプロイ先（Cloudflare Pages／GitHub Pages）は検討中です。過去の `Price-Monitoring` PDF を丁寧に一括取得する `backfill`（順次取得・間隔確保・再開可能・`data/backfill/state.json` に進捗記録）もあります。Telegram のセットアップは BotFather でボットを作成し、チャンネルの管理者に登録して、トークンとチャット ID を GitHub Secrets（`TELEGRAM_BOT_TOKEN`、`TELEGRAM_CHAT_ID`）に保存します。トークンをリポジトリにコミットしてはいけません。テストは `tests/fixtures/synthetic/` の合成データのみを使い、ネットワークには一切接続しません。

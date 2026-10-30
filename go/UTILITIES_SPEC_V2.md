@@ -268,10 +268,8 @@ logs/utilities.log, respects fbpost.disabled for the FB step):
 5. `$BIN fbutil -db $DB -site-public $REPO/site/public -auto` unless
    disabled; PRESYO_UTIL_DRY_RUN=1 adds -dry-run.
 `scripts/utilities_test.sh` with a fake BIN/git like the other *_test.sh.
-`deploy.sh`: also install utilities.sh and print the new commented cron line
-(VPS TZ server-TZ = Manila+1h):
-`#FBUTIL 20 7-20 * * * $HOME/bin/utilities.sh   # hourly :20, 06:20-19:20 Manila`
-(deploy.sh must still never touch crontab.) Do NOT run deploy.sh.
+`deploy.sh`: also install utilities.sh (hourly at :20, 06:20-19:20 Manila; the
+exact crontab is kept in private ops notes). deploy.sh must still never touch crontab. Do NOT run deploy.sh.
 Also make `daily.sh` add `site/public/u` and `site/public/data/utilities.json`
 to its commit paths only if they exist (update daily_test.sh).
 

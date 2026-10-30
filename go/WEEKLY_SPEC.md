@@ -137,8 +137,8 @@ handling/redaction and Graph photo upload as fbpost (reuse the code).
 - `scripts/daily.sh`: after daypages, run `$BIN weekpages -db $DB
   -site-public $REPO/site/public` unless PRESYO_WEEKPAGES=0; record
   weekpages_rc; commit `site/public/w` too. Update daily_test.sh.
-- deploy.sh: print the new commented cron lines (VPS TZ is server-TZ = Manila+1h):
-  `#FBWEEKLY 5 19,20 * * 0 $HOME/bin/weekly.sh   # Sun 18:05 & 19:05 Manila`
+- deploy.sh: install weekly.sh (Sundays 18:05 and 19:05 Manila; the exact
+  crontab is kept in private ops notes).
 
 ## 8. Tests / verification
 Unit tests for signals (fixture DB or in-memory data), text, checker,

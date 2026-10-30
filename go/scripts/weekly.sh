@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Weekly Facebook report job (WEEKLY_SPEC.md section 7).
 #
-# Runs on the VPS as user presyo from cron on Sundays ~18:00 Manila.
+# Runs on the ingest host (non-root) from cron on Sundays ~18:00 Manila.
 # Single pass, never loops: run `presyo fbweekly -auto` once (it enforces
 # Sunday/window/reportable/state/gap/disabled itself) — unless
 # $PRESYO_HOME/.config/presyo/fbpost.disabled exists.

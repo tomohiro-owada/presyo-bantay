@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Watch job for regional Facebook posts (REGIONS_SPEC.md section 9).
 #
-# Runs on the VPS as user presyo from cron. Single pass, never loops:
+# Runs on the ingest host (non-root) from cron. Single pass, never loops:
 # ask `presyo newdata` whether the DA listing has a report date newer than
 # the DB; if so, run daily.sh once (it has its own lock; the 06:15/22:15
 # daily runs stay as a safety net). Then run `presyo fbpost -auto` on EVERY

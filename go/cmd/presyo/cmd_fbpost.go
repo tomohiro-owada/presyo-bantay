@@ -150,10 +150,7 @@ func cmdFBPost(argv []string) int {
 		fmt.Fprintln(os.Stderr, "   or: presyo fbpost -db DB -auto [-dry-run] [-now RFC3339] [-window-start HH:MM] [-window-end HH:MM] [-min-gap 2h]")
 		return 1
 	}
-	presyoHome := os.Getenv("PRESYO_HOME")
-	if presyoHome == "" {
-		presyoHome = "$HOME"
-	}
+	presyoHome := defaultPresyoHome()
 
 	db, err := openReadOnly(*dbPath)
 	if err != nil {

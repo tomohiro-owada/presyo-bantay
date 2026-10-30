@@ -62,10 +62,7 @@ func cmdFBWeekly(argv []string) int {
 	if err := fs.Parse(argv); err != nil {
 		return 1
 	}
-	presyoHome := os.Getenv("PRESYO_HOME")
-	if presyoHome == "" {
-		presyoHome = "$HOME"
-	}
+	presyoHome := defaultPresyoHome()
 
 	now := time.Now()
 	if *nowFlag != "" {

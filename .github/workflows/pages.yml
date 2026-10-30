@@ -33,11 +33,11 @@ jobs:
       - uses: actions/configure-pages@v5
 
       # Site data is committed (site/public/data from `presyo export` on the
-      # VPS); this workflow only builds, never ingests or touches a DB.
+      # ingest server); this workflow only builds, never ingests or touches a DB.
       - name: Build static site
         run: |
           if [ ! -f site/public/data/meta.json ]; then
-            echo "error: site/public/data/meta.json is missing (run presyo export on the VPS first)" >&2
+            echo "error: site/public/data/meta.json is missing (run presyo export on the ingest server first)" >&2
             exit 1
           fi
           cd site && npm ci && npm run build

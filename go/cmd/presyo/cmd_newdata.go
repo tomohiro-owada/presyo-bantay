@@ -117,10 +117,7 @@ func cmdNewdata(argv []string) int {
 	if err := fs.Parse(argv); err != nil {
 		return 1
 	}
-	presyoHome := os.Getenv("PRESYO_HOME")
-	if presyoHome == "" {
-		presyoHome = "$HOME"
-	}
+	presyoHome := defaultPresyoHome()
 	stPath := *statePath
 	if stPath == "" {
 		stPath = filepath.Join(presyoHome, "state", "newdata.json")

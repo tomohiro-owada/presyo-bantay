@@ -53,10 +53,7 @@ func cmdFBUtil(argv []string) int {
 		fmt.Fprintln(os.Stderr, "usage: presyo fbutil -db DB -site-public DIR [-auto] [-kind fuel|bills|water|power] [-id ID] [-dry-run] [-now RFC3339]")
 		return 1
 	}
-	presyoHome := os.Getenv("PRESYO_HOME")
-	if presyoHome == "" {
-		presyoHome = "$HOME"
-	}
+	presyoHome := defaultPresyoHome()
 	now := time.Now()
 	if *nowFlag != "" {
 		t, err := time.Parse(time.RFC3339, *nowFlag)

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Daily ingest/export/push job for the presyo VPS.
+# Daily ingest/export/push job for the ingest host.
 #
-# Runs on the VPS as user presyo from cron. The VPS is the ONLY writer of
+# Runs on the ingest host (non-root) from cron. The ingest host is the ONLY writer of
 # data: ingest PDFs -> SQLite -> export site JSON -> commit + push.
 #
 # Layout (all overridable via env for tests):

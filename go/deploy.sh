@@ -4,7 +4,13 @@
 # Usage:
 #   ./deploy.sh              # test, build, upload, atomically swap, verify
 #   DRY_RUN=1 ./deploy.sh    # print every command without running anything
-#   VPS_HOST=my-vps ./deploy.sh   # override the ssh config host (default: <VPS_HOST>)
+#   VPS_HOST=<ssh-host> ./deploy.sh   # REQUIRED: ssh config host/alias (never hard-coded)
+#
+# Target config: VPS_HOST (ssh host/alias, required except with DRY_RUN=1)
+# and REMOTE_DIR (default: the remote home directory) come from the
+# environment or from an untracked `go/.deploy.env` (git-ignored) holding
+# plain `VPS_HOST=...` / `REMOTE_DIR=...` lines. No host, user, IP or path of
+# any server is stored in this repository.
 #
 # What it does:
 #   1. runs `go test ./...` (fails the deploy on red tests),
@@ -15,15 +21,27 @@
 #      `mv`s it over $REMOTE_DIR/bin/presyo,
 #   5. copies scripts/daily.sh and scripts/watch.sh to $REMOTE_DIR/bin/
 #      (chmod 755),
-#   6. prints the remote `presyo version`, then the suggested crontab lines.
+#   6. prints the remote `presyo version`.
 #
 # This script NEVER touches crontab and NEVER runs as root.
 set -euo pipefail
 
-VPS_HOST="${VPS_HOST:-<VPS_HOST>}"
-REMOTE_DIR="${REMOTE_DIR:-$HOME}"
-REMOTE_BIN="${REMOTE_DIR}/bin/presyo"
+DEPLOY_ENV="$(dirname "$0")/.deploy.env"
+if [ -f "$DEPLOY_ENV" ]; then
+  # shellcheck disable=SC1090
+  . "$DEPLOY_ENV"
+fi
 DRY_RUN="${DRY_RUN:-0}"
+if [ -z "${VPS_HOST:-}" ]; then
+  if [ "${DRY_RUN}" = "1" ]; then
+    VPS_HOST="<vps-host>"
+  else
+    echo "error: VPS_HOST is not set (ssh host/alias); export it or put it in go/.deploy.env" >&2
+    exit 1
+  fi
+fi
+REMOTE_DIR="${REMOTE_DIR:-.}"
+REMOTE_BIN="${REMOTE_DIR}/bin/presyo"
 
 if [ "$(id -u)" = "0" ]; then
   echo "error: do not run deploy.sh as root" >&2
@@ -72,14 +90,4 @@ run scp scripts/utilities.sh "${VPS_HOST}:${REMOTE_DIR}/bin/utilities.sh"
 run ssh "${VPS_HOST}" "chmod 755 ${REMOTE_DIR}/bin/utilities.sh"
 run ssh "${VPS_HOST}" "${REMOTE_BIN} version"
 
-cat <<'EOF'
-deploy done. This script never touches crontab; the orchestrator installs
-the schedule COMMENTED OUT (enable with
-`crontab -l | sed 's/^#FBPOST //' | crontab`):
-
-<CRON_LINE_REMOVED>
-<CRON_LINE_REMOVED>
-<CRON_LINE_REMOVED>
-<CRON_LINE_REMOVED>
-<CRON_LINE_REMOVED>
-EOF
+echo "deploy done. This script never touches crontab (see your private ops notes for the schedule)."

@@ -204,11 +204,7 @@ returns 1 and does not write state; request has multipart fields and token
 not in URL/logs; dry-run makes no HTTP request.
 
 ## 7. Cron (do NOT install; orchestrator does it, commented out)
-Document in go/README.md the 5 lines (VPS TZ = server-TZ = Manila+1h):
-```
-# FBPOST 0 8 * * *  . $HOME/.config/presyo/fb.env; $HOME/bin/presyo fbpost -db $HOME/data/presyo.db -region south  >> $HOME/logs/fbpost.log 2>&1
-# ... 0 11 manila, 0 14 qc, 0 17 north, 0 20 east
-```
+One post per region and day at 08:00 south, 11:00 manila, 14:00 qc, 17:00 north, 20:00 east (Manila time); the exact crontab lives in private ops notes.
 (the binary reads the env file itself; sourcing is not required — keep the
 lines simple: no secret on the command line).
 
@@ -281,11 +277,6 @@ checker/tests accordingly (checker must flag nested "(" / "（" and
 heading ") (" / "）（" double groups; tests render all 5 regions and assert
 no text line or PNG "(<short>)" label nests).
 
-(d) Cron lines (VPS TZ = server-TZ = Manila+1h), to be installed COMMENTED OUT
-by the orchestrator; document in go/README.md:
-```
-<CRON_LINE_REMOVED>
-<CRON_LINE_REMOVED>
-<CRON_LINE_REMOVED>
-```
-Enable = `crontab -l | sed 's/^#FBPOST //' | crontab -`.
+(d) Schedule (Manila time; the exact crontab is kept in private ops notes and
+installed commented out): `watch.sh` every 15 min 05:00-08:59, hourly
+09:00-22:00 and once at 23:00.

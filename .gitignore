@@ -23,3 +23,8 @@ summary.html
 # local-only prototype samples and screenshots (never published)
 prototype/
 screenshots/
+
+# Local deploy target (host alias etc.); never commit server info.
+go/.deploy.env
+.deploy.env
+go/.server-info-pattern

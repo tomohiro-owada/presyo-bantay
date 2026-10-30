@@ -46,7 +46,7 @@ a page widget; not a sanctioned data source).
    (expect ~1–2/month). Site page always; FB only after the user confirms the
    Maynilad terms question.
 
-## 3. Fetch schedule (VPS cron is server-TZ = Manila+1h; one new `utilities.sh`)
+## 3. Fetch schedule (Manila time; one new `utilities.sh`)
 - Fuel: Tue 09:00–Wed 20:00 Manila, hourly conditional fetch of the DOE
   oil-monitor page (1 request; PDF only when a new title appears).
 - Meralco: daily 1 request to the news listing, days 5–20 of the month.

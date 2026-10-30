@@ -289,15 +289,9 @@ original is never embedded).
   logged (scrubbed from error text) and never appears in the URL.
   Exit codes: `0` ok/skip, `1` error, `3` check failed (no post).
 
-Suggested crontab on the VPS (TZ <SERVER_TZ> = UTC+9 — do NOT install here,
-the orchestrator does; install COMMENTED OUT, enable with
-`crontab -l | sed 's/^#FBPOST //' | crontab -`):
-
-```
-<CRON_LINE_REMOVED>
-<CRON_LINE_REMOVED>
-<CRON_LINE_REMOVED>
-```
+Schedule (Asia/Manila; the exact crontab lives in private ops notes, not here;
+install it commented out and enable deliberately): `scripts/watch.sh` every
+15 min 05:00–08:59, hourly 09:00–22:00 and once at 23:00.
 
 `scripts/watch.sh` (single pass, never loops; its own flock, log
 `$PRESYO_HOME/logs/watch.log`): `presyo newdata` (exit 0 = a report date
@@ -456,12 +450,10 @@ Every post, image and site page shows the trend vs the previous period.
   count), emergency power when `End` is after now or `OpenEnded`
   within 24 h of `GeneratedAt` (no 72 h rule), tried before planned,
   capped at 3 per day, with >=50% window-overlap dedupe vs posted
-  power pages. Suggested cron (VPS
-  TZ server-TZ = Manila+1h; install commented out, `deploy.sh` never edits
-  crontab):
-  ```
-<CRON_LINE_REMOVED>
-  ```
+  power pages. Schedule (Manila time, exact
+  crontab kept in private ops notes; `deploy.sh` never edits crontab):
+  `scripts/utilities.sh` hourly at :20 from 06:20 to 19:20, plus
+  `scripts/utilities.sh --meralcox-only` at :10 and :40 from 05:10 to 20:10.
   `scripts/utilities.sh` runs fetch (hourly fuel+pump on Tue/Wed,
   daily otherwise; meralco days 5–20; LPG days 1–15; water + meralcox
   every hour with the feed inside water, FCDA every 3rd hour, power
@@ -493,14 +485,16 @@ Every post, image and site page shows the trend vs the previous period.
 
 ## Deploy
 
-`deploy.sh` builds the static binary and ships it plus `scripts/daily.sh`
-to the VPS; it never touches crontab and never runs as root:
+`deploy.sh` builds the static binary and ships it plus the job scripts
+to the server; it never touches crontab and never runs as root. The target
+is NOT hard-coded: set `VPS_HOST` (an ssh host/alias) in the environment or in
+an untracked `go/.deploy.env` (git-ignored, `VPS_HOST=...`; optionally
+`REMOTE_DIR=...`, default the remote home directory):
 
 ```sh
 cd go
-./deploy.sh              # go test ./... first, then build + upload + verify
-DRY_RUN=1 ./deploy.sh    # print every command without running anything
-VPS_HOST=my-vps ./deploy.sh   # override the ssh host (default: <VPS_HOST>)
+VPS_HOST=<ssh-host> ./deploy.sh           # go test ./... first, then build + upload + verify
+DRY_RUN=1 VPS_HOST=<ssh-host> ./deploy.sh # print every command without running anything
 ```
 
 Build (same flags the script uses; `main.version` is stamped from
@@ -512,20 +506,11 @@ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath \
   -o bin/presyo ./cmd/presyo
 ```
 
-The script checks `ssh <VPS_HOST> uname -m` is `x86_64`, copies the binary
-to `<VPS_HOST>:$HOME/bin/presyo.new`, atomically `mv`s it to
-`$HOME/bin/presyo`, copies `scripts/daily.sh`, `scripts/watch.sh`
-and `scripts/weekly.sh` to `$HOME/bin/` (chmod 755), then prints
-the remote `presyo version`.
-
-Suggested crontab on the VPS for the daily safety net (TZ <SERVER_TZ> =
-UTC+9; 07:15 and 23:15 server-TZ = 06:15 and 22:15 Manila time — install with
-`crontab -e`; `deploy.sh` never edits crontab itself):
-
-```
-<CRON_LINE_REMOVED>
-<CRON_LINE_REMOVED>
-```
+The script checks the remote is `x86_64`, uploads the binary atomically
+(`presyo.new` then `mv`), copies the four job scripts (`daily.sh`,
+`watch.sh`, `weekly.sh`, `utilities.sh`) with mode 755, then prints the
+remote `presyo version`. Cron lines are not printed or installed; the daily
+safety net runs `scripts/daily.sh` at about 06:15 and 22:15 Manila time.
 
 `scripts/daily.sh` is the daily job: log rotation, `flock`, pull, `presyo
 ingest` / `fx` / `export`, then commit + push `data/json` and
