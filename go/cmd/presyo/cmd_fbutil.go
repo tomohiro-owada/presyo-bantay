@@ -33,6 +33,7 @@ func cmdFBUtil(argv []string) int {
 	disableFile := fs.String("disable-file", "", "skip posting when this file exists (default $PRESYO_HOME/.config/presyo/fbpost.disabled)")
 	minGap := fs.Duration("min-gap", 2*time.Hour, "auto: skip when the last successful post is newer than this")
 	gapGrace := fs.Duration("gap-grace", 5*time.Minute, "auto: min-gap skips only when since < min-gap - grace")
+	emergencyGap := fs.Duration("emergency-gap", 30*time.Minute, "auto: urgent alerts skip when the last successful post is newer than this")
 	windowStart := fs.String("window-start", "05:30", "auto posting window start HH:MM Asia/Manila")
 	windowEnd := fs.String("window-end", "20:00", "auto posting window end HH:MM Asia/Manila (exclusive)")
 	routineWindowStart := fs.String("routine-window-start", "12:00", "auto routine posting window start HH:MM Asia/Manila (fuel/bills only)")
@@ -73,7 +74,7 @@ func cmdFBUtil(argv []string) int {
 		dbPath: *dbPath, sitePublic: *sitePublic, autoMode: *autoMode,
 		kind: *kindFlag, id: *idFlag, dryRun: *dryRun, outDir: *outDir,
 		statePath: stPath, envFile: *envFile, disableFile: *disableFile,
-		minGap: *minGap, gapGrace: *gapGrace, windowStart: *windowStart, windowEnd: *windowEnd,
+		minGap: *minGap, gapGrace: *gapGrace, emergencyGap: *emergencyGap, windowStart: *windowStart, windowEnd: *windowEnd,
 		routineWindowStart: *routineWindowStart, routineWindowEnd: *routineWindowEnd,
 		publishDelay: *publishDelay, billsMaxWait: *billsMaxWait, graphBase: *graphBase,
 		presyoHome: presyoHome, now: now,
@@ -98,6 +99,7 @@ type fbutilOptions struct {
 	disableFile        string
 	minGap             time.Duration
 	gapGrace           time.Duration
+	emergencyGap       time.Duration
 	windowStart        string
 	windowEnd          string
 	routineWindowStart string
@@ -330,10 +332,6 @@ func fbutilAuto(opt fbutilOptions, manila time.Time) int {
 		return skip("outside posting window %s-%s (now %02d:%02d Manila)",
 			opt.windowStart, opt.windowEnd, manila.Hour(), manila.Minute())
 	}
-	// Sunday hold 16:00-20:00 for the weekly post.
-	if manila.Weekday() == time.Sunday && tod >= 16*60 && tod < 20*60 {
-		return skip("holding for weekly post (Sunday 16:00-20:00 Manila)")
-	}
 	disPath := opt.disableFile
 	if disPath == "" {
 		disPath = filepath.Join(opt.presyoHome, ".config", "presyo", "fbpost.disabled")
@@ -346,7 +344,8 @@ func fbutilAuto(opt fbutilOptions, manila time.Time) int {
 		fmt.Fprintf(os.Stderr, "fbutil: error: %s\n", err.Error())
 		return 1
 	}
-	// Global min-gap over ALL entries (DA, weekly, util).
+	// Global min-gap over ALL entries (DA, weekly, util). Urgent
+	// alerts bypass the full gap but keep a short one.
 	var latest time.Time
 	for _, p := range st.Posts {
 		if t, err := time.Parse(time.RFC3339, p.PostedAt); err == nil {
@@ -355,8 +354,15 @@ func fbutilAuto(opt fbutilOptions, manila time.Time) int {
 			}
 		}
 	}
-	if !latest.IsZero() && manila.Sub(latest) < opt.minGap-opt.gapGrace {
-		return skip("last post %s ago (< %s)", manila.Sub(latest).Truncate(time.Second), opt.minGap)
+	emergencyOnlyGap := false
+	if !latest.IsZero() {
+		sinceLast := manila.Sub(latest)
+		if sinceLast < opt.emergencyGap-opt.gapGrace {
+			return skip("last post %s ago (< %s)", sinceLast.Truncate(time.Second), opt.emergencyGap)
+		}
+		if sinceLast < opt.minGap-opt.gapGrace {
+			emergencyOnlyGap = true
+		}
 	}
 	posted := func(region, asOf string) bool {
 		for _, p := range st.Posts {
@@ -370,6 +376,11 @@ func fbutilAuto(opt fbutilOptions, manila time.Time) int {
 		today := manila.Format("2006-01-02")
 		for _, p := range st.Posts {
 			if p.Region != region {
+				continue
+			}
+			// Emergency power posts (x- ids) never block a planned
+			// post and never count toward the planned one-per-day.
+			if region == "util-power" && strings.HasPrefix(p.AsOf, "x-") {
 				continue
 			}
 			if t, err := time.Parse(time.RFC3339, p.PostedAt); err == nil {
@@ -388,12 +399,39 @@ func fbutilAuto(opt fbutilOptions, manila time.Time) int {
 		return manila.Sub(gen) >= opt.publishDelay
 	}
 
+	// Sunday hold 16:00-20:00 for the weekly post. Emergency alerts
+	// bypass the hold; ordinary items still hold.
+	isHold := manila.Weekday() == time.Sunday && tod >= 16*60 && tod < 20*60
+	if isHold {
+		// Priority 1: water emergencies only.
+		if frozen := fbutilDueWater(opt, manila, st, posted, postedToday, oldEnough, true); frozen != nil {
+			return fbutilAutoPost(opt, frozen, "water")
+		}
+		// Priority 2: power emergencies only.
+		if frozen := fbutilDuePower(opt, manila, st, posted, postedToday, oldEnough, true); frozen != nil {
+			return fbutilAutoPost(opt, frozen, "power")
+		}
+		return skip("holding for weekly post (Sunday 16:00-20:00 Manila)")
+	}
+	if emergencyOnlyGap {
+		// Only emergency candidates may be posted; everything else
+		// keeps the existing min-gap skip message.
+		if frozen := fbutilDueWater(opt, manila, st, posted, postedToday, oldEnough, true); frozen != nil {
+			return fbutilAutoPost(opt, frozen, "water")
+		}
+		if frozen := fbutilDuePower(opt, manila, st, posted, postedToday, oldEnough, true); frozen != nil {
+			return fbutilAutoPost(opt, frozen, "power")
+		}
+		return skip("last post %s ago (< %s)", manila.Sub(latest).Truncate(time.Second), opt.minGap)
+	}
+
 	// Priority 1: water alerts (main window only).
-	if frozen := fbutilDueWater(opt, manila, st, posted, postedToday, oldEnough); frozen != nil {
+	if frozen := fbutilDueWater(opt, manila, st, posted, postedToday, oldEnough, false); frozen != nil {
 		return fbutilAutoPost(opt, frozen, "water")
 	}
-	// Priority 2: power alerts (DA-exempt like water, main window only).
-	if frozen := fbutilDuePower(opt, manila, posted, postedToday, oldEnough); frozen != nil {
+	// Priority 2: power alerts (DA-exempt like water, main window only;
+	// emergency first inside fbutilDuePower).
+	if frozen := fbutilDuePower(opt, manila, st, posted, postedToday, oldEnough, false); frozen != nil {
 		return fbutilAutoPost(opt, frozen, "power")
 	}
 	// Priority 3: fuel and bills only inside the routine window
@@ -571,7 +609,9 @@ func fbutilDueBills(opt fbutilOptions, manila time.Time, posted func(string, str
 }
 
 // fbutilDueWater selects the earliest eligible frozen water alert.
-func fbutilDueWater(opt fbutilOptions, manila time.Time, st *fbPostState, posted func(string, string) bool, postedToday func(string) bool, oldEnough func(utilpages.PostDoc) bool) *utilFrozen {
+// When emergencyOnly is true, only AlertKind "emergency" alerts are
+// considered (gap and Sunday-hold bypass).
+func fbutilDueWater(opt fbutilOptions, manila time.Time, st *fbPostState, posted func(string, string) bool, postedToday func(string) bool, oldEnough func(utilpages.PostDoc) bool, emergencyOnly bool) *utilFrozen {
 	matches, err := filepath.Glob(filepath.Join(opt.sitePublic, "u", "water", "*", "post.json"))
 	if err != nil || len(matches) == 0 {
 		return nil
@@ -607,6 +647,9 @@ func fbutilDueWater(opt fbutilOptions, manila time.Time, st *fbPostState, posted
 		return si < sj
 	})
 	for _, c := range cands {
+		if emergencyOnly && c.doc.AlertKind != "emergency" {
+			continue
+		}
 		if posted("util-water", c.doc.AsOf) || postedToday("util-water") {
 			continue
 		}
@@ -656,11 +699,20 @@ func fbutilDueWater(opt fbutilOptions, manila time.Time, st *fbPostState, posted
 	return nil
 }
 
-// fbutilDuePower selects the earliest eligible frozen power alert:
-// check=pass, not yet ended, Start within 72h, not already posted,
-// at most one util-power post per Manila day. Cross-source overlap
-// with a posted water window is NOT relevant for power.
-func fbutilDuePower(opt fbutilOptions, manila time.Time, posted func(string, string) bool, postedToday func(string) bool, oldEnough func(utilpages.PostDoc) bool) *utilFrozen {
+// fbutilDuePower selects the earliest eligible frozen power alert.
+// Planned pages (AlertKind != "emergency") keep exactly the old rules:
+// check=pass, not yet ended, Start within 72h, not already posted, at
+// most one util-power post per Manila day (emergency x- ids never
+// count; see postedToday). Emergency pages (AlertKind == "emergency")
+// are tried first (earliest Start first): due when End is set and
+// after now, or OpenEnded and now <= GeneratedAt+24h (no 72h rule),
+// capped at 3 emergency posts per Manila day, exempt from the planned
+// one-per-day rule. Both kinds dedupe against posted windows
+// (>=50% overlap): emergencies against any posted util-power entry,
+// planned against posted emergency entries. Cross-source overlap with
+// a posted water window is NOT relevant for power. When emergencyOnly
+// is true, planned pages are never considered (gap/Sunday-hold).
+func fbutilDuePower(opt fbutilOptions, manila time.Time, st *fbPostState, posted func(string, string) bool, postedToday func(string) bool, oldEnough func(utilpages.PostDoc) bool, emergencyOnly bool) *utilFrozen {
 	matches, err := filepath.Glob(filepath.Join(opt.sitePublic, "u", "power", "*", "post.json"))
 	if err != nil || len(matches) == 0 {
 		return nil
@@ -669,7 +721,7 @@ func fbutilDuePower(opt fbutilOptions, manila time.Time, posted func(string, str
 		doc  utilpages.PostDoc
 		path string
 	}
-	var cands []cand
+	var emergencies, planned []cand
 	for _, p := range matches {
 		data, err := os.ReadFile(p)
 		if err != nil {
@@ -682,11 +734,14 @@ func fbutilDuePower(opt fbutilOptions, manila time.Time, posted func(string, str
 		if doc.Check != "pass" || doc.Text == "" {
 			continue
 		}
-		cands = append(cands, cand{doc: doc, path: p})
+		if doc.AlertKind == "emergency" {
+			emergencies = append(emergencies, cand{doc: doc, path: p})
+		} else {
+			planned = append(planned, cand{doc: doc, path: p})
+		}
 	}
-	// Earliest start first (unknown starts last).
-	sort.Slice(cands, func(i, j int) bool {
-		si, sj := cands[i].doc.Start, cands[j].doc.Start
+	byStart := func(a, b cand) bool {
+		si, sj := a.doc.Start, b.doc.Start
 		if si == "" {
 			return false
 		}
@@ -694,8 +749,60 @@ func fbutilDuePower(opt fbutilOptions, manila time.Time, posted func(string, str
 			return true
 		}
 		return si < sj
-	})
-	for _, c := range cands {
+	}
+	sort.Slice(emergencies, func(i, j int) bool { return byStart(emergencies[i], emergencies[j]) })
+	sort.Slice(planned, func(i, j int) bool { return byStart(planned[i], planned[j]) })
+
+	// Emergency cap: at most 3 emergency (x- AsOf) util-power posts
+	// per Manila day.
+	emergencyCountToday := 0
+	today := manila.Format("2006-01-02")
+	for _, p := range st.Posts {
+		if p.Region != "util-power" || !strings.HasPrefix(p.AsOf, "x-") {
+			continue
+		}
+		if t, err := time.Parse(time.RFC3339, p.PostedAt); err == nil {
+			if t.In(manilaZone).Format("2006-01-02") == today {
+				emergencyCountToday++
+			}
+		}
+	}
+	if emergencyCountToday < 3 {
+		for _, c := range emergencies {
+			if posted("util-power", c.doc.AsOf) {
+				continue
+			}
+			if !oldEnough(c.doc) {
+				continue
+			}
+			end, _ := time.Parse(time.RFC3339, c.doc.End)
+			due := false
+			if !end.IsZero() && end.After(manila) {
+				due = true
+			} else if c.doc.OpenEnded {
+				if gen, gerr := time.Parse(time.RFC3339, c.doc.GeneratedAt); gerr == nil {
+					if !manila.After(gen.Add(24 * time.Hour)) {
+						due = true
+					}
+				}
+			}
+			if !due {
+				continue
+			}
+			frozen, err := loadUtilFrozen(opt.sitePublic, "power", c.doc.AsOf)
+			if err != nil {
+				continue
+			}
+			if fbutilPowerOverlapsPosted(opt, st, frozen, false) {
+				continue
+			}
+			return frozen
+		}
+	}
+	if emergencyOnly {
+		return nil
+	}
+	for _, c := range planned {
 		if posted("util-power", c.doc.AsOf) || postedToday("util-power") {
 			continue
 		}
@@ -717,9 +824,76 @@ func fbutilDuePower(opt fbutilOptions, manila time.Time, posted func(string, str
 		if err != nil {
 			continue
 		}
+		if fbutilPowerOverlapsPosted(opt, st, frozen, true) {
+			continue
+		}
 		return frozen
 	}
 	return nil
+}
+
+// fbutilPowerWindow resolves a power doc window for overlap tests:
+// Start plus End, or GeneratedAt+24h when OpenEnded. ok=false when
+// the window cannot be compared.
+func fbutilPowerWindow(doc utilpages.PostDoc) (time.Time, time.Time, bool) {
+	start, serr := time.Parse(time.RFC3339, doc.Start)
+	if serr != nil {
+		return time.Time{}, time.Time{}, false
+	}
+	if end, _ := time.Parse(time.RFC3339, doc.End); !end.IsZero() {
+		if !start.Before(end) {
+			return time.Time{}, time.Time{}, false
+		}
+		return start, end, true
+	}
+	if doc.OpenEnded {
+		if gen, gerr := time.Parse(time.RFC3339, doc.GeneratedAt); gerr == nil {
+			end := gen.Add(24 * time.Hour)
+			if !start.Before(end) {
+				return time.Time{}, time.Time{}, false
+			}
+			return start, end, true
+		}
+	}
+	return time.Time{}, time.Time{}, false
+}
+
+// fbutilPowerOverlapsPosted reports whether frozen's power window
+// overlaps (>=50% of the shorter window) any already-posted
+// util-power entry, reading posted windows from the posted ids'
+// frozen post.json Start/End (OpenEnded uses GeneratedAt+24h).
+// When emergencyOnlyPosted is true, only posted emergency (x- AsOf)
+// entries are checked (planned symmetry); otherwise all posted
+// util-power entries are checked.
+func fbutilPowerOverlapsPosted(opt fbutilOptions, st *fbPostState, frozen *utilFrozen, emergencyOnlyPosted bool) bool {
+	candStart, candEnd, ok := fbutilPowerWindow(frozen.doc)
+	if !ok {
+		return false
+	}
+	for _, p := range st.Posts {
+		if p.Region != "util-power" || p.AsOf == frozen.id {
+			continue
+		}
+		if emergencyOnlyPosted && !strings.HasPrefix(p.AsOf, "x-") {
+			continue
+		}
+		docData, err := os.ReadFile(frozenDocPath(opt.sitePublic, "power", p.AsOf))
+		if err != nil {
+			continue
+		}
+		var doc utilpages.PostDoc
+		if err := json.Unmarshal(docData, &doc); err != nil {
+			continue
+		}
+		ps, pe, ok := fbutilPowerWindow(doc)
+		if !ok {
+			continue
+		}
+		if utilities.WindowsOverlap50(candStart, candEnd, ps, pe) {
+			return true
+		}
+	}
+	return false
 }
 
 // fbutilWaterOverlapsPosted reports whether frozen's window overlaps

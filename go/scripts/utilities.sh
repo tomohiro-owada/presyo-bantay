@@ -102,7 +102,9 @@ fi
 # water: every hour (the feed fetch happens inside water); fcda: hours
 # divisible by 3 on days 10-20 only (still the website fetch).
 # power: Manila hours divisible by 6 (06/12/18).
+# meralcox: every hour (the @meralco X inbox, like water).
 add_section water
+add_section meralcox
 if [ "$((HOUR % 3))" -eq 0 ]; then
   if [ "$DOM" -ge 10 ] && [ "$DOM" -le 20 ]; then
     add_section fcda
@@ -115,6 +117,7 @@ echo "utilities.sh: sections='$sections' (dow=$DOW dom=$DOM hour=$HOUR)"
 
 SNAP="$UDATA/snapshot.json"
 MAYNILAD_X_INBOX="${MAYNILAD_X_INBOX:-$PRESYO_HOME/inbox/maynilad_x.json}"
+MERALCO_X_INBOX="${MERALCO_X_INBOX:-$PRESYO_HOME/inbox/meralco_x.json}"
 # Raw Maynilad RSS pushed from a machine that can fetch it (the VPS is
 # challenged by the site). Used when present; a warning is logged when
 # it is older than 12 h, and it is ignored when older than 72 h.
@@ -137,7 +140,7 @@ fi
 if [ -z "$sections" ]; then
   echo "utilities.sh: no sections due, skipping fetch/utilpages/commit"
 else
-  if "$BIN" utilities fetch -sections "$sections" -cache "$UDATA/cache" -out "$SNAP" -maynilad-x "$MAYNILAD_X_INBOX" "${feed_args[@]+"${feed_args[@]}"}"; then
+  if "$BIN" utilities fetch -sections "$sections" -cache "$UDATA/cache" -out "$SNAP" -maynilad-x "$MAYNILAD_X_INBOX" -meralco-x "$MERALCO_X_INBOX" "${feed_args[@]+"${feed_args[@]}"}"; then
     fetch_rc=0
   else
     fetch_rc=$?

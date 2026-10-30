@@ -395,7 +395,7 @@ post them with the same state/gap machinery as the daily/weekly posts.
 Every post, image and site page shows the trend vs the previous period.
 
 ```sh
-./bin/presyo utilities fetch -cache /tmp/ucache -out /tmp/snapshot.json [-city "Las Piñas"] [-max-oil 6] [-sections fuel,pump,lpg,meralco,power,water,fcda]
+./bin/presyo utilities fetch -cache /tmp/ucache -out /tmp/snapshot.json [-city "Las Piñas"] [-max-oil 6] [-sections fuel,pump,lpg,meralco,power,water,fcda,meralcox]
 ./bin/presyo utilities render -snapshot /tmp/snapshot.json -kind fuel|bills|water|power -out-dir /tmp/uout [-alert-id ID] [-maintenance-json FILE -city C -past-sample] [-meralco-ms-dir DIR -maynilad-feed-file FILE -now RFC3339]
 ./bin/presyo utilpages -snapshot /tmp/snapshot.json -site-public ../site/public [-force] [-base-url URL] [-now RFC3339]
 ./bin/presyo fbutil -db /tmp/presyo-snap.db -site-public ../site/public -auto [-dry-run] [-now RFC3339]
@@ -436,31 +436,40 @@ Every post, image and site page shows the trend vs the previous period.
   right now").
 - `fbutil` posts frozen pages only (FB == site), sharing the fbpost
   state file, flock, uploader and token handling. `-auto` posts at
-  most ONE per run, priority water > power > fuel > DA-first gate >
-  bills (a bills page older than `-bills-max-wait`, default 24 h,
-  bypasses the gate): water/power window 05:30–20:00 Manila,
-  fuel/bills routine window 12:00–19:00 Manila
-  (`-routine-window-start`/`-routine-window-end`), Sunday 16:00–20:00
-  hold for the weekly post, global 2 h min-gap (minus `-gap-grace`,
-  default 5 m) over every entry, `-publish-delay` (default 10 m)
-  for the GitHub Pages deploy lag. DA first: fuel waits until the
-  DB's latest price date has all 5 regions posted (water and power are
-  exempt); fuel posts any weekday while its page is 0–6 days old,
-  bills once per current month, water when not yet ended and its
-  start is within 72 h ahead (open-ended emergencies while posted
-  within the last 24 h) at most one per day, power when not yet ended
-  and its start is within 72 h ahead at most one per day. Suggested cron (VPS
+  most ONE per run, priority water > power emergency > power planned
+  > fuel > DA-first gate > bills (a bills page older than
+  `-bills-max-wait`, default 24 h, bypasses the gate):
+  water/power window 05:30–20:00 Manila, fuel/bills routine window
+  12:00–19:00 Manila (`-routine-window-start`/`-routine-window-end`),
+  Sunday 16:00–20:00 hold gates only non-emergency candidates
+  (water `emergency` and power `emergency` bypass it), global 2 h
+  min-gap (minus `-gap-grace`, default 5 m) over every entry with a
+  short `-emergency-gap` (default 30 m, same grace) that urgent
+  alerts bypass, `-publish-delay` (default 10 m) for the GitHub Pages
+  deploy lag. DA first: fuel waits until the DB's latest price date
+  has all 5 regions posted (water and power are exempt); fuel posts
+  any weekday while its page is 0–6 days old, bills once per current
+  month, water when not yet ended and its start is within 72 h ahead
+  (open-ended emergencies while posted within the last 24 h) at most
+  one per day, planned power when not yet ended and its start is
+  within 72 h ahead at most one per day (emergency `x-` posts never
+  count), emergency power when `End` is after now or `OpenEnded`
+  within 24 h of `GeneratedAt` (no 72 h rule), tried before planned,
+  capped at 3 per day, with >=50% window-overlap dedupe vs posted
+  power pages. Suggested cron (VPS
   TZ server-TZ = Manila+1h; install commented out, `deploy.sh` never edits
   crontab):
   ```
 <CRON_LINE_REMOVED>
   ```
   `scripts/utilities.sh` runs fetch (hourly fuel+pump on Tue/Wed,
-  daily otherwise; meralco days 5–20; LPG days 1–15; water every hour
-  with the feed inside it, FCDA every 3rd hour, power on Manila hours
-  divisible by 6) → `utilpages` → commits `site/public/u` and
-  `site/public/data/utilities.json` → `fbutil -auto` (dry-run with
-  `PRESYO_UTIL_DRY_RUN=1`).
+  daily otherwise; meralco days 5–20; LPG days 1–15; water + meralcox
+  every hour with the feed inside water, FCDA every 3rd hour, power
+  on Manila hours divisible by 6) → `utilpages` → commits
+  `site/public/u` and `site/public/data/utilities.json` → `fbutil
+  -auto` (dry-run with `PRESYO_UTIL_DRY_RUN=1`). Emergency power
+  comes from the @meralco X inbox (`-meralco-x`, section `meralcox`,
+  see `UTILITIES_MERALCO_X.md`).
 - Water wording policy: interruption posts use OUR OWN short wording
   (`ReasonKey`: maintenance ng pasilidad / pipe network maintenance /
   pipe repair / limited supply / generic Maynilad work) plus a link
@@ -472,7 +481,9 @@ Every post, image and site page shows the trend vs the previous period.
   Maynilad advisories + FCDA notices, Maynilad weekly-schedule RSS
   feed (`{MayniladBase}/feed/`, primary for weekly rows) and the
   Meralco maintenance-schedule pages (`{MeralcoCompanyBase}/news-and-
-  advisories/maintenance-schedule`, section `power`). Every number in
+  advisories/maintenance-schedule`, section `power`) plus the @meralco
+  X emergency inbox (section `meralcox`, see
+  `UTILITIES_MERALCO_X.md`). Every number in
   text/charts comes from parsed data or a documented derivation (10×
   fuel amounts, LPG month-on-month diff, 200 kWh impact, pump deltas,
   family totals, water/power Nth-this-month trends); a missing

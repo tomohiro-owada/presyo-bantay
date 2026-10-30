@@ -94,10 +94,12 @@ export UTIL_DOW=2 UTIL_DOM=12 UTIL_HOUR=6 UTIL_TODAY=2026-10-27
 reset_calls
 rev_before="$(origin_rev)"
 if ! "$UTIL"; then bad "utilities.sh exited non-zero on Tue"; else ok "Tue run exit 0"; fi
-[ "$(fetch_sections)" = "fetch -sections fuel,pump,meralco,lpg,water,fcda,power" ] \
+[ "$(fetch_sections)" = "fetch -sections fuel,pump,meralco,lpg,water,meralcox,fcda,power" ] \
   && ok "Tue 06:00 sections = all due + power" || bad "Tue sections: $(fetch_sections)"
 calls | grep -q -- "-maynilad-x $PRESYO_HOME/inbox/maynilad_x.json" \
   && ok "Tue fetch passes default -maynilad-x" || bad "missing default -maynilad-x: $(calls)"
+calls | grep -q -- "-meralco-x $PRESYO_HOME/inbox/meralco_x.json" \
+  && ok "Tue fetch passes default -meralco-x" || bad "missing default -meralco-x: $(calls)"
 calls | grep -q "utilpages -snapshot $UDATA/snapshot.json -site-public $REPO/site/public" \
   && ok "utilpages runs with snapshot + site-public" || bad "utilpages call: $(calls)"
 calls | grep -q "fbutil -db $DB -site-public $REPO/site/public -auto$" \
@@ -112,16 +114,18 @@ export UTIL_DOW=4 UTIL_DOM=12 UTIL_HOUR=8 UTIL_TODAY=2026-10-29
 rm -rf "$UDATA/stamps"
 reset_calls
 if ! "$UTIL"; then bad "Thu 08:00 run failed"; else ok "Thu 08:00 exit 0"; fi
-[ "$(fetch_sections)" = "fetch -sections meralco,lpg,water" ] \
-  && ok "Thu 08:00 sections = meralco,lpg,water" || bad "sections: $(fetch_sections)"
+[ "$(fetch_sections)" = "fetch -sections meralco,lpg,water,meralcox" ] \
+  && ok "Thu 08:00 sections = meralco,lpg,water,meralcox" || bad "sections: $(fetch_sections)"
 calls | grep -q -- "-maynilad-x " \
   && ok "fetch passes -maynilad-x" || bad "missing -maynilad-x: $(calls)"
+calls | grep -q -- "-meralco-x " \
+  && ok "fetch passes -meralco-x" || bad "missing -meralco-x: $(calls)"
 
 # --- 3. second run same day: stamps suppress dailies, hourly water still runs ---
 reset_calls
 if ! "$UTIL"; then bad "second run failed"; else ok "second run exit 0"; fi
-[ "$(fetch_sections)" = "fetch -sections water" ] \
-  && ok "second run fetches water only" || bad "sections: $(fetch_sections)"
+[ "$(fetch_sections)" = "fetch -sections water,meralcox" ] \
+  && ok "second run fetches water+meralcox only" || bad "sections: $(fetch_sections)"
 calls | grep -q "fbutil .* -auto" \
   && ok "fbutil still runs with water-only fetch" || bad "fbutil missing: $(calls)"
 
@@ -130,21 +134,21 @@ rm -rf "$UDATA/stamps"
 export UTIL_HOUR=10
 reset_calls
 if ! "$UTIL"; then bad "Thu 10:00 run failed"; else ok "Thu 10:00 exit 0"; fi
-[ "$(fetch_sections)" = "fetch -sections fuel,pump,meralco,lpg,water" ] \
-  && ok "Thu 10:00 sections include fuel,pump,water" || bad "sections: $(fetch_sections)"
+[ "$(fetch_sections)" = "fetch -sections fuel,pump,meralco,lpg,water,meralcox" ] \
+  && ok "Thu 10:00 sections include fuel,pump,water,meralcox" || bad "sections: $(fetch_sections)"
 
 # --- 4b. power at hours divisible by 6, water always included ---
 rm -rf "$UDATA/stamps"
 export UTIL_DOW=4 UTIL_DOM=12 UTIL_HOUR=12 UTIL_TODAY=2026-10-29
 reset_calls
 if ! "$UTIL"; then bad "12:00 run failed"; else ok "12:00 exit 0"; fi
-[ "$(fetch_sections)" = "fetch -sections fuel,pump,meralco,lpg,water,fcda,power" ] \
-  && ok "12:00 sections include power + water" || bad "12:00 sections: $(fetch_sections)"
+[ "$(fetch_sections)" = "fetch -sections fuel,pump,meralco,lpg,water,meralcox,fcda,power" ] \
+  && ok "12:00 sections include power + water + meralcox" || bad "12:00 sections: $(fetch_sections)"
 export UTIL_HOUR=13
 reset_calls
 if ! "$UTIL"; then bad "13:00 run failed"; else ok "13:00 exit 0"; fi
-[ "$(fetch_sections)" = "fetch -sections water" ] \
-  && ok "13:00 sections exclude power, keep water" || bad "13:00 sections: $(fetch_sections)"
+[ "$(fetch_sections)" = "fetch -sections water,meralcox" ] \
+  && ok "13:00 sections exclude power, keep water+meralcox" || bad "13:00 sections: $(fetch_sections)"
 
 # --- 5. disabled file skips fbutil only ---
 mkdir -p "$PRESYO_HOME/.config/presyo"
@@ -194,6 +198,24 @@ reset_calls
 calls | grep -q -- "-maynilad-feed-file" && bad "5-day-old feed passed" || ok "5-day-old feed ignored"
 grep -q "older than 72h" "$LOG" && ok "72h warning logged" || bad "no 72h warning"
 rm -f "$MAYNILAD_FEED_INBOX"
+unset MAYNILAD_FEED_INBOX
+
+# --- 7c. Meralco X inbox: missing file behaves as before, present file still passes the flag ---
+export MERALCO_X_INBOX="$PRESYO_HOME/inbox/meralco_x.json"
+rm -f "$MERALCO_X_INBOX"
+reset_calls
+if ! "$UTIL" >/dev/null 2>&1; then bad "missing meralco_x run failed"; else ok "missing meralco_x run exit 0"; fi
+calls | grep -q -- "-meralco-x $MERALCO_X_INBOX" \
+  && ok "missing meralco_x still passes -meralco-x" || bad "missing -meralco-x: $(calls)"
+[ "$(fetch_sections)" = "fetch -sections water,meralcox" ] \
+  && ok "missing meralco_x still fetches meralcox" || bad "sections without inbox: $(fetch_sections)"
+echo '{"version":1,"account":"meralco","account_id":"15371662","fetched_at":"2026-10-29T13:00:00+08:00","posts":[]}' >"$MERALCO_X_INBOX"
+reset_calls
+if ! "$UTIL" >/dev/null 2>&1; then bad "present meralco_x run failed"; else ok "present meralco_x run exit 0"; fi
+calls | grep -q -- "-meralco-x $MERALCO_X_INBOX" \
+  && ok "present meralco_x passes -meralco-x" || bad "present -meralco-x missing: $(calls)"
+rm -f "$MERALCO_X_INBOX"
+unset MERALCO_X_INBOX
 
 # --- 8. lock prevents overlap ---
 reset_calls

@@ -213,6 +213,23 @@ with no rows) and `research/maintenance/meralco_maintenance_schedule.html`.
   UTILITIES_MAYNILAD_X.md current (the feed is now the primary source for weekly schedules).
   Update `testdata/SOURCES.md`.
 
+## D. Emergency power from @meralco X (stage 3)
+
+Emergency line-trouble posts from @meralco (id 15371662, inbox
+`~/inbox/meralco_x.json`, section `meralcox`, see
+`UTILITIES_MERALCO_X.md`) freeze as `u/power/x-<postid>/post.json`
+with `AlertKind` `emergency` (`Start` = occurred time, `End` =
+`Start`+ETR with `EstimatedEnd`, or `OpenEnded` with no ETR).
+`fbutil -auto`: emergencies tried before planned (earliest `Start`
+first), due when `End` after now or `OpenEnded` within 24h of
+`GeneratedAt` (no 72h rule), exempt from the planned one-per-day
+(`postedToday` ignores `x-`) but capped at 3/day, with >=50%
+window-overlap dedupe vs posted power pages (open-ended uses
+`GeneratedAt+24h`). `-emergency-gap` (default 30m, same grace)
+bypasses the 2h gap for emergencies only; the Sunday 16:00-20:00
+hold gates only non-emergency candidates. `scripts/utilities.sh`
+passes `-meralco-x` and runs `meralcox` every hour (like `water`).
+
 ## D. Tests (fixtures only)
 Parser tests with exact expectations taken from the fixtures (list them in the test names):
 feed p3 (post 2026-08-21: Las Piñas Almanza Uno, Pilar, Talon Uno, Talon Dos, Talon Singko,
