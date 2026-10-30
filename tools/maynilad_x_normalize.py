@@ -9,8 +9,12 @@ v1 inbox: {"version":1,"account":"maynilad","account_id":"2992779308",
  "fetched_at":"<RFC3339 with offset>",
  "posts":[{"id","created_at","text","url","lang","images","has_video"}]}
 
+Also used for @meralco (same v1 format): --account meralco --account-id
+15371662 --originals-only (drops replies/retweets: customer-support replies
+carry private @handles and are never outage alerts).
+
 Rules: prefer note_tweet.text, canonical url
-https://x.com/maynilad/status/<id>, images from includes.media (photo url,
+https://x.com/<account>/status/<id>, images from includes.media (photo url,
 video preview_image_url with has_video true), union with merge file by id
 (new wins), newest first, drop posts older than 21 days, cap 300,
 fetched_at = now (Asia/Manila offset) unless --fetched-at given.
@@ -25,6 +29,22 @@ from datetime import datetime, timedelta, timezone
 MANILA = timezone(timedelta(hours=8))
 ACCOUNT = "maynilad"
 ACCOUNT_ID = "2992779308"
+ORIGINALS_ONLY = False
+
+
+def status_url(pid):
+    return "https://x.com/%s/status/%s" % (ACCOUNT, pid)
+
+
+def is_reply_or_retweet(p):
+    """True for replies, retweets and quote-less @-leading posts."""
+    if p.get("in_reply_to_user_id"):
+        return True
+    for ref in p.get("referenced_tweets") or []:
+        if isinstance(ref, dict) and ref.get("type") in ("replied_to", "retweeted"):
+            return True
+    text = p.get("text")
+    return isinstance(text, str) and text.lstrip().startswith(("@", "RT @"))
 
 
 # A long post without note_tweet that ends in a t.co link is how X renders
@@ -72,6 +92,8 @@ def normalize_raw(obj):
         pid = str(p.get("id") or "")
         if not pid:
             continue
+        if ORIGINALS_ONLY and is_reply_or_retweet(p):
+            continue
         created = p.get("created_at") or ""
         try:
             dt = parse_time(created)
@@ -100,7 +122,7 @@ def normalize_raw(obj):
             "id": pid,
             "created_at": dt.astimezone(MANILA).isoformat(),
             "text": text,
-            "url": "https://x.com/maynilad/status/%s" % pid,
+            "url": status_url(pid),
             "lang": p.get("lang") or "",
             "images": images,
             "has_video": has_video,
@@ -127,14 +149,14 @@ def normalize_inbox(obj):
             "id": pid,
             "created_at": dt.astimezone(MANILA).isoformat(),
             "text": p.get("text") or "",
-            "url": p.get("url") or ("https://x.com/maynilad/status/%s" % pid),
+            "url": p.get("url") or status_url(pid),
             "lang": p.get("lang") or "",
             "images": list(p.get("images") or []),
             "has_video": bool(p.get("has_video")),
         })
     # Canonicalize urls.
     for post in posts:
-        post["url"] = "https://x.com/maynilad/status/%s" % post["id"]
+        post["url"] = status_url(post["id"])
     return posts
 
 
@@ -200,11 +222,18 @@ def load_merge(path):
 
 
 def main(argv=None):
+    global ACCOUNT, ACCOUNT_ID, ORIGINALS_ONLY
     ap = argparse.ArgumentParser(description="Normalize Maynilad X posts to v1 inbox JSON.")
     ap.add_argument("input", help="raw X tool response JSON or v1 inbox JSON")
     ap.add_argument("--merge-from", default=None, help="existing inbox to merge (missing/empty/invalid = no merge)")
     ap.add_argument("--fetched-at", default=None, help="override fetched_at (RFC3339)")
+    ap.add_argument("--account", default=ACCOUNT, help="X handle (default maynilad)")
+    ap.add_argument("--account-id", default=ACCOUNT_ID, help="X user id (default Maynilad's)")
+    ap.add_argument("--originals-only", action="store_true", help="drop replies and retweets")
     args = ap.parse_args(argv)
+    ACCOUNT = args.account.lstrip("@")
+    ACCOUNT_ID = str(args.account_id)
+    ORIGINALS_ONLY = args.originals_only
 
     try:
         with open(args.input, "r", encoding="utf-8") as fh:

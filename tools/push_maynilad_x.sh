@@ -41,6 +41,9 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 NORMALIZER="$SCRIPT_DIR/maynilad_x_normalize.py"
+# NORMALIZER_ARGS: extra normalizer flags (set by push_meralco_x.sh; unquoted
+# on purpose, flags only, no spaces inside a value).
+NORMALIZER_ARGS="${NORMALIZER_ARGS:-}"
 REMOTE_PATH="${PRESYO_INBOX_PATH:-inbox/maynilad_x.json}"
 REMOTE_DIR="$(dirname "$REMOTE_PATH")"
 REMOTE_BASE="$(basename "$REMOTE_PATH")"
@@ -53,7 +56,7 @@ REMOTE_COPY="$TMPDIR/remote.json"
 NORMALIZED="$TMPDIR/normalized.json"
 
 if [ "$DRY_RUN" -eq 1 ]; then
-  python3 "$NORMALIZER" "$INPUT" > "$NORMALIZED"
+  python3 "$NORMALIZER" "$INPUT" $NORMALIZER_ARGS > "$NORMALIZED"
   python3 -m json.tool "$NORMALIZED" >/dev/null
   COUNT="$(python3 -c 'import json;print(len(json.load(open("'"$NORMALIZED"'"))["posts"]))')"
   NEWEST="$(python3 -c 'import json;d=json.load(open("'"$NORMALIZED"'"));print(max(p["created_at"] for p in d["posts"]) if d["posts"] else "-")')"
@@ -70,7 +73,7 @@ fi
 # Fetch the current remote inbox (missing file is OK -> empty merge).
 ssh "$PRESYO_VPS_HOST" "cat $REMOTE_PATH 2>/dev/null" > "$REMOTE_COPY" || true
 
-python3 "$NORMALIZER" "$INPUT" --merge-from "$REMOTE_COPY" > "$NORMALIZED"
+python3 "$NORMALIZER" "$INPUT" $NORMALIZER_ARGS --merge-from "$REMOTE_COPY" > "$NORMALIZED"
 python3 -m json.tool "$NORMALIZED" >/dev/null
 
 COUNT="$(python3 -c 'import json;print(len(json.load(open("'"$NORMALIZED"'"))["posts"]))')"
