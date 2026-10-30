@@ -29,6 +29,7 @@ var powerReasonWords = map[string][3]string{
 	PowerReasonFacility:    {"pagkakabit ng pasilidad", "facility installation", "設備の設置"},
 	PowerReasonTrimming:    {"pagputol ng sanga", "tree trimming", "樹木の伐採"},
 	PowerReasonMaintenance: {"maintenance ng Meralco", "Meralco maintenance", "Meralco作業"},
+	PowerReasonEmergency:   {"biglaang aberya sa linya", "emergency line trouble", "緊急の送電線トラブル"},
 }
 
 // shortRoadName abbreviates a road suffix for the caption line

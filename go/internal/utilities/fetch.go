@@ -92,10 +92,13 @@ type FetchOptions struct {
 	// MeralcoMSBase rewrites the maintenance-schedule base (tests
 	// serve fixtures via httptest); empty means MeralcoBase.
 	MeralcoMSBase string
+	// MeralcoXInbox is the path to the normalized @meralco X inbox
+	// JSON for the meralcox section (empty disables the source).
+	MeralcoXInbox string
 }
 
 // FetchSections are the valid -sections names.
-var FetchSections = []string{"fuel", "pump", "lpg", "meralco", "power", "water", "fcda"}
+var FetchSections = []string{"fuel", "pump", "lpg", "meralco", "power", "water", "fcda", "meralcox"}
 
 // fetcher carries Fetch's running state.
 type fetcher struct {
@@ -120,6 +123,7 @@ type fetcher struct {
 	ms       bool
 	msDir    string
 	msBase   string
+	mxInbox  string
 
 	lastHost map[string]time.Time
 	requests int
@@ -156,6 +160,7 @@ func Fetch(ctx context.Context, opts FetchOptions) (*Snapshot, error) {
 		ms:       opts.MeralcoMS,
 		msDir:    opts.MeralcoMSDir,
 		msBase:   opts.MeralcoMSBase,
+		mxInbox:  opts.MeralcoXInbox,
 		lastHost: map[string]time.Time{},
 		snap: &Snapshot{
 			Sources: []Source{},
@@ -236,6 +241,9 @@ func Fetch(ctx context.Context, opts FetchOptions) (*Snapshot, error) {
 	}
 	if f.sections["fcda"] {
 		f.fetchFCDA(ctx)
+	}
+	if f.sections["meralcox"] {
+		f.fetchMeralcoX()
 	}
 	return f.snap, nil
 }

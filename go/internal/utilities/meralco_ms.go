@@ -88,13 +88,18 @@ type MeralcoMSPage struct {
 	Items []PowerItem
 }
 
-// PowerAlert is one postable Las Piñas planned-interruption alert.
+// PowerAlert is one postable Las Piñas interruption alert: planned
+// (Kind "") from the maintenance schedule, or emergency (Kind
+// "emergency") from @meralco X line-trouble posts.
 type PowerAlert struct {
 	ID              string       `json:"id"`
+	Kind            string       `json:"kind,omitempty"`
 	City            string       `json:"city"`
 	Start           time.Time    `json:"start"`
 	End             time.Time    `json:"end"`
 	Windows         []TimeWindow `json:"windows,omitempty"`
+	OpenEnded       bool         `json:"open_ended,omitempty"`
+	EstimatedEnd    bool         `json:"estimated_end,omitempty"`
 	Daily           bool         `json:"daily,omitempty"`
 	DailyFrom       string       `json:"daily_from,omitempty"`
 	DailyTo         string       `json:"daily_to,omitempty"`
@@ -124,6 +129,7 @@ const (
 	PowerReasonFacility    = "facility"
 	PowerReasonTrimming    = "trimming"
 	PowerReasonMaintenance = "maintenance"
+	PowerReasonEmergency   = "emergency"
 )
 
 // powerReasonKeyOf maps a raw REASON phrase to our wording key

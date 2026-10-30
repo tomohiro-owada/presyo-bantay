@@ -614,6 +614,39 @@ func (f *fetcher) fetchFCDA(ctx context.Context) {
 	}
 }
 
+// fetchMeralcoX runs the Fetch section "meralcox" (@meralco X inbox,
+// offline local file read). Missing file is silent (no failure, no
+// section); malformed or wrong-account files fail with the base name
+// only (never the full path); stale inboxes warn.
+func (f *fetcher) fetchMeralcoX() {
+	if f.mxInbox == "" {
+		return
+	}
+	inboxLabel := filepath.Base(f.mxInbox)
+	in, err := LoadXInbox(f.mxInbox)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return
+		}
+		f.fail("meralcox %s: %v", inboxLabel, sanitizeInboxErr(err, f.mxInbox, inboxLabel))
+		return
+	}
+	if err := CheckMeralcoXInbox(in); err != nil {
+		f.fail("meralcox %s: %v", inboxLabel, sanitizeInboxErr(err, f.mxInbox, inboxLabel))
+		return
+	}
+	if staleXInbox(in.FetchedAt, f.now) {
+		f.warn("meralcox %s: stale inbox (fetched_at %s)", inboxLabel, in.FetchedAt.Format(time.RFC3339))
+	}
+	events := ParseMeralcoXEvents(in, f.now)
+	if events == nil {
+		events = []MeralcoXEvent{}
+	}
+	f.source("meralcox", MeralcoXAccountURL, 200, len(events), nil, time.Now(), nil)
+	f.snap.MeralcoX = &MeralcoXStatus{CheckedAt: f.now.In(manilaLoc).Format(time.RFC3339), Events: events}
+	f.stampSection("meralcox")
+}
+
 // Empty reports whether nothing was parsed at all.
 func (s *Snapshot) Empty() bool {
 	return len(s.Fuel.Adjustments) == 0 && len(s.Fuel.NCRPump) == 0 &&
@@ -623,13 +656,14 @@ func (s *Snapshot) Empty() bool {
 // sectionSourcePrefixes maps sections to their Source.Name prefixes,
 // so a merge can drop stale entries of re-fetched sections.
 var sectionSourcePrefixes = map[string][]string{
-	"fuel":    {"doe-oil-monitor"},
-	"pump":    {"doe-ncr-pump"},
-	"lpg":     {"doe-ncr-lpg"},
-	"meralco": {"meralco-"},
-	"power":   {"meralco-ms"},
-	"water":   {"maynilad-scheduled", "maynilad-emergency", "maynilad-rotational", "maynilad-maintenance", "maynilad-x", "maynilad-feed"},
-	"fcda":    {"maynilad-fcda"},
+	"fuel":     {"doe-oil-monitor"},
+	"pump":     {"doe-ncr-pump"},
+	"lpg":      {"doe-ncr-lpg"},
+	"meralco":  {"meralco-news", "meralco-release"},
+	"power":    {"meralco-ms"},
+	"water":    {"maynilad-scheduled", "maynilad-emergency", "maynilad-rotational", "maynilad-maintenance", "maynilad-x", "maynilad-feed"},
+	"fcda":     {"maynilad-fcda"},
+	"meralcox": {"meralcox"},
 }
 
 // freshSection reports whether fresh carries records for section.
@@ -649,6 +683,8 @@ func freshSection(fresh *Snapshot, section string) bool {
 		return fresh.Water != nil
 	case "fcda":
 		return len(fresh.WaterRates) > 0
+	case "meralcox":
+		return fresh.MeralcoX != nil
 	}
 	return false
 }
@@ -708,6 +744,8 @@ func MergeSnapshots(base, fresh *Snapshot, sections []string) *Snapshot {
 			out.Water = fresh.Water
 		case "fcda":
 			out.WaterRates = fresh.WaterRates
+		case "meralcox":
+			out.MeralcoX = fresh.MeralcoX
 		}
 		if ts, ok := freshStamps[s]; ok {
 			out.SectionFetchedAt[s] = ts
