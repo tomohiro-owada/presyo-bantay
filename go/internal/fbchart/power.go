@@ -17,6 +17,9 @@ import (
 // powerDetalye is the chart source line (domain only).
 const powerDetalye = "Detalye: company.meralco.com.ph/news-and-advisories/maintenance-schedule"
 
+// powerDetalyeEmergency is the chart source line for emergency alerts.
+const powerDetalyeEmergency = "Detalye: x.com/meralco"
+
 // Power chart type sizes (mirroring the water chart).
 const (
 	powerWindowSize = 44.0
@@ -68,6 +71,7 @@ func RenderPowerAlert(a *utilities.PowerAlert, pastSample bool) (*image.RGBA, er
 	if a == nil || len(a.Barangays) == 0 {
 		return nil, fmt.Errorf("fbchart: no power alert")
 	}
+	emergency := a.Kind == "emergency"
 	dst := image.NewRGBA(image.Rect(0, 0, W, H))
 	fillRect(dst, 0, 0, W, H, cream)
 	dy := 0
@@ -78,7 +82,11 @@ func RenderPowerAlert(a *utilities.PowerAlert, pastSample bool) (*image.RGBA, er
 		dy = 90
 	}
 	utilHeaderAt(dst, dy)
-	utilTitleAt(dst, "Abiso sa kuryente", a.City, dy)
+	title := "Abiso sa kuryente"
+	if emergency {
+		title = "Biglaang brownout"
+	}
+	utilTitleAt(dst, title, a.City, dy)
 
 	const padX = 30
 	cardW := W - 2*marginL - 2*padX
@@ -105,10 +113,10 @@ func RenderPowerAlert(a *utilities.PowerAlert, pastSample bool) (*image.RGBA, er
 	}
 	als, asz := wrapLines(areasText, Medium, powerAreasSize, powerAreasMin, cardW, maxAreaLines)
 
-	// Roads (~30 px, up to 2 lines).
+	// Roads (~30 px, up to 2 lines; emergency has none).
 	var rls []string
 	rsz := powerReasonSize
-	if len(a.Roads) > 0 {
+	if !emergency && len(a.Roads) > 0 {
 		rls, rsz = wrapLines(strings.Join(a.Roads, ", "), Medium, 30, 20, cardW, 2)
 	}
 
@@ -117,10 +125,10 @@ func RenderPowerAlert(a *utilities.PowerAlert, pastSample bool) (*image.RGBA, er
 	rs := cfitSize(rl, Medium, powerReasonSize, powerReasonMin, cardW)
 	rl = cellipsize(rl, Medium, rs, cardW)
 
-	// Trend line (~28 px, TL only on the chart).
+	// Trend line (~28 px, TL only on the chart; emergency has none).
 	var tls []string
 	tsz := powerTrendSize
-	hasTrend := a.NthThisMonth >= 1 && !a.Start.IsZero()
+	hasTrend := !emergency && a.NthThisMonth >= 1 && !a.Start.IsZero()
 	if hasTrend {
 		if ttl, _, _, ok := utilities.PowerTrendLines(a); ok {
 			tls, tsz = wrapLines(ttl, Medium, powerTrendSize, powerTrendMin, cardW, 2)
@@ -190,10 +198,16 @@ func RenderPowerAlert(a *utilities.PowerAlert, pastSample bool) (*image.RGBA, er
 	powerAdvicePill(dst, marginL+padX, y)
 	y += 64 + 20 + pad
 	// Detalye line.
-	ds := cfitSize(powerDetalye, Medium, powerDetSize, 18, cardW)
-	cdraw(dst, cellipsize(powerDetalye, Medium, ds, cardW), Medium, ds, mutCol, marginL+padX, y+int(ds*0.85+0.5))
+	detalye := powerDetalye
+	footSrc := "Source: Meralco maintenance schedule"
+	if emergency {
+		detalye = powerDetalyeEmergency
+		footSrc = "Source: Meralco on X (@meralco)"
+	}
+	ds := cfitSize(detalye, Medium, powerDetSize, 18, cardW)
+	cdraw(dst, cellipsize(detalye, Medium, ds, cardW), Medium, ds, mutCol, marginL+padX, y+int(ds*0.85+0.5))
 
-	utilFooter(dst, "Source: Meralco maintenance schedule", "Hindi opisyal na Meralco page")
+	utilFooter(dst, footSrc, "Hindi opisyal na Meralco page")
 	_ = draw.Draw
 	return dst, nil
 }

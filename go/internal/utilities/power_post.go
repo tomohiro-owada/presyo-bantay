@@ -320,12 +320,101 @@ func powerAreas(a *PowerAlert) (tl, en, ja string) {
 	return tl, en, ja
 }
 
+// powerEmergencyLineTL returns the exact TL 📅 line for an emergency
+// alert (with emoji), shared by the renderer and the checker.
+func powerEmergencyLineTL(a *PowerAlert) string {
+	s := a.Start.In(manilaLoc)
+	if a.OpenEnded || a.End.IsZero() {
+		return fmt.Sprintf("📅 %s %s %d, %s hanggang may abiso", tlWeekday[s.Weekday()], tlShort[s.Month()], s.Day(), fmt12(s))
+	}
+	e := a.End.In(manilaLoc)
+	end := fmt12(e)
+	if e.Format("2006-01-02") != s.Format("2006-01-02") {
+		end = fmt.Sprintf("%s %s %d, %s", tlWeekday[e.Weekday()], tlShort[e.Month()], e.Day(), fmt12(e))
+	}
+	return fmt.Sprintf("📅 %s %s %d, %s · tinatayang maibabalik %s", tlWeekday[s.Weekday()], tlShort[s.Month()], s.Day(), fmt12(s), end)
+}
+
+// powerEmergencyDateEN returns the EN date portion (without areas) for
+// an emergency alert, shared by the renderer and the checker.
+func powerEmergencyDateEN(a *PowerAlert) string {
+	s := a.Start.In(manilaLoc)
+	if a.OpenEnded || a.End.IsZero() {
+		return fmt.Sprintf("%s %s %d, %s, until further notice", enWeekday[s.Weekday()], enShort[s.Month()], s.Day(), fmt12(s))
+	}
+	e := a.End.In(manilaLoc)
+	end := fmt12(e)
+	if e.Format("2006-01-02") != s.Format("2006-01-02") {
+		end = fmt.Sprintf("%s %s %d, %s", enWeekday[e.Weekday()], enShort[e.Month()], e.Day(), fmt12(e))
+	}
+	return fmt.Sprintf("%s %s %d, %s, est. restoration %s", enWeekday[s.Weekday()], enShort[s.Month()], s.Day(), fmt12(s), end)
+}
+
+// powerEmergencyLineEN returns the exact EN content line (date · areas
+// · reason), shared by the renderer and the checker.
+func powerEmergencyLineEN(a *PowerAlert) string {
+	_, areasEN, _ := powerAreas(a)
+	reason := PowerReason(a.ReasonKey, 1)
+	return fmt.Sprintf("%s · %s · Reason: %s", powerEmergencyDateEN(a), areasEN, reason)
+}
+
+// powerEmergencyDateJA returns the JA date portion for an emergency
+// alert, shared by the renderer and the checker.
+func powerEmergencyDateJA(a *PowerAlert) string {
+	s := a.Start.In(manilaLoc)
+	hm := func(t time.Time) string { return fmt.Sprintf("%02d:%02d", t.Hour(), t.Minute()) }
+	start := fmt.Sprintf("%d/%d（%s）%s", int(s.Month()), s.Day(), jaWeekday[s.Weekday()], hm(s))
+	if a.OpenEnded || a.End.IsZero() {
+		return start + "〜追って通知があるまで"
+	}
+	e := a.End.In(manilaLoc)
+	end := hm(e)
+	if e.Format("2006-01-02") != s.Format("2006-01-02") {
+		end = fmt.Sprintf("%d/%d（%s）%s", int(e.Month()), e.Day(), jaWeekday[e.Weekday()], hm(e))
+	}
+	return start + "〜復旧見込み" + end
+}
+
+// powerEmergencyLineJA returns the exact JA content line
+// (date・areas・reason), shared by the renderer and the checker.
+func powerEmergencyLineJA(a *PowerAlert) string {
+	_, _, areasJA := powerAreas(a)
+	reason := PowerReason(a.ReasonKey, 2)
+	return fmt.Sprintf("%s・%s・理由：%s", powerEmergencyDateJA(a), areasJA, reason)
+}
+
+// renderPowerEmergencyPost renders the emergency caption (Kind
+// "emergency"): trilingual, no roads, no trend.
+func renderPowerEmergencyPost(a PowerAlert, pastSample bool) string {
+	var tl, en, ja strings.Builder
+	if pastSample {
+		for _, b := range []*strings.Builder{&tl, &en, &ja} {
+			fmt.Fprintln(b, "⚠️ SAMPLE — lumang datos / past data, hindi kasalukuyang abiso")
+		}
+	}
+	areasTL, _, _ := powerAreas(&a)
+	reasonTL := PowerReason(a.ReasonKey, 0)
+	cityJA := jaCity(a.City)
+	fmt.Fprintf(&tl, "⚡ Biglaang brownout sa ilang bahagi ng %s\n%s\n📍 %s\n🔧 Dahilan: %s\nIhanda ang gadgets at flashlight.\n",
+		a.City, powerEmergencyLineTL(&a), areasTL, reasonTL)
+	fmt.Fprintf(&en, "🇬🇧 Emergency power outage in parts of %s\n%s\nCharge gadgets and prepare flashlights.\n",
+		a.City, powerEmergencyLineEN(&a))
+	fmt.Fprintf(&ja, "🇯🇵 %sの一部で緊急停電\n%s\n端末の充電と懐中電灯の準備を。\n",
+		cityJA, powerEmergencyLineJA(&a))
+	details := "Details: " + a.SourceURL
+	footer := details + "\nSource: Meralco on X (@meralco) · Hindi opisyal na Meralco page"
+	return joinAlertBlocks(tl.String(), en.String(), ja.String(), footer)
+}
+
 // RenderPowerAlertPost renders the short trilingual power caption. When
 // pastSample is true the first line marks it as old sample data.
 // Daily alerts say "bawat gabi"/"every night"/"毎晩" with the nightly
 // clock window and the date range, and alerts with NthThisMonth >= 1
 // carry the monthly trend line.
 func RenderPowerAlertPost(a PowerAlert, pastSample bool) string {
+	if a.Kind == "emergency" {
+		return renderPowerEmergencyPost(a, pastSample)
+	}
 	var tl, en, ja strings.Builder
 	if pastSample {
 		for _, b := range []*strings.Builder{&tl, &en, &ja} {

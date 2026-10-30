@@ -279,6 +279,15 @@ func pumpTable(snap *utilities.Snapshot) (nowRange, prevRange string, rows []Pum
 	return nowRange, prevRange, rows
 }
 
+// powerNearbyItems is the nil-safe accessor for the maintenance-schedule
+// items behind the nearby-cities site list.
+func powerNearbyItems(p *utilities.PowerStatus) []utilities.PowerItem {
+	if p == nil {
+		return nil
+	}
+	return p.Items
+}
+
 // AlertLink is one water-alert link row.
 type AlertLink struct {
 	Path   string
@@ -502,21 +511,35 @@ func Rebuild(snap *utilities.Snapshot, sitePublic, base, gen string) error {
 		}
 	}
 	// Power section: Las Piñas planned interruptions now+upcoming, each
-	// with the official link and the trend; "none, checked <time>"
-	// otherwise (a layout alarm shows only "no data right now" publicly).
-	if snap.Power != nil {
+	// with the official link and the trend, plus live @meralco X
+	// emergency alerts; "none, checked <time>" otherwise (a layout
+	// alarm shows only "no data right now" publicly). The section
+	// stays visible when emergencies exist even if Power is nil, so a
+	// frozen x- emergency page keeps its index link; the x- id is only
+	// ever used as a path/label fallback, never parsed as a date
+	// (postPage/postLinkLabel use Start/End).
+	nowManila, _ := time.Parse(time.RFC3339, gen)
+	nowManila = nowManila.In(time.FixedZone("Asia/Manila", 8*3600))
+	plannedPower := utilities.BuildPowerAlerts(snap.Power, nowManila)
+	var curEmerg []utilities.PowerAlert
+	for _, a := range utilities.BuildMeralcoXAlerts(snap.MeralcoX, plannedPower, nowManila) {
+		if !a.End.IsZero() && a.End.Before(nowManila.Add(-24*time.Hour)) {
+			continue
+		}
+		curEmerg = append(curEmerg, a)
+	}
+	if snap.Power != nil || len(curEmerg) > 0 {
 		v.HasPower = true
-		if snap.Power.LayoutAlarm != "" {
+		if snap.Power != nil && snap.Power.LayoutAlarm != "" {
 			ctl, _, _ := utilities.ShortDay(snap.Power.CheckedAt)
 			if ctl == "" {
 				ctl = gen[:10]
 			}
 			v.NoPower = "Walang datos sa ngayon — tiningnan " + ctl
 		} else {
-			nowManila, _ := time.Parse(time.RFC3339, gen)
-			today := nowManila.In(time.FixedZone("Asia/Manila", 8*3600)).Format("2006-01-02")
-			horizon21 := nowManila.In(time.FixedZone("Asia/Manila", 8*3600)).Add(21 * 24 * time.Hour).Format("2006-01-02")
-			for _, a := range utilities.BuildPowerAlerts(snap.Power, nowManila) {
+			today := nowManila.Format("2006-01-02")
+			horizon21 := nowManila.Add(21 * 24 * time.Hour).Format("2006-01-02")
+			for _, a := range plannedPower {
 				if a.End.Format("2006-01-02") < today {
 					continue
 				}
@@ -547,16 +570,37 @@ func Rebuild(snap *utilities.Snapshot, sitePublic, base, gen string) error {
 					SourceURL: a.SourceURL,
 				})
 			}
-			if len(v.PowerAlerts) == 0 {
+			if len(v.PowerAlerts) == 0 && snap.Power != nil {
 				ctl, _, _ := utilities.ShortDay(snap.Power.CheckedAt)
 				if ctl == "" {
 					ctl = today
 				}
 				v.NoPower = "Walang naka-schedule na brownout — tiningnan " + ctl
 			}
+			// Live emergency rows (no trend line; source is the X post).
+			for _, a := range curEmerg {
+				a := a
+				areas := strings.Join(a.Barangays, ", ")
+				window := ""
+				if text := utilities.RenderPowerAlertPost(a, false); text != "" {
+					for _, ln := range strings.Split(text, "\n") {
+						if strings.HasPrefix(ln, "📅 ") {
+							window = strings.TrimPrefix(ln, "📅 ")
+							break
+						}
+					}
+				}
+				v.PowerAlerts = append(v.PowerAlerts, PowerAlertLink{
+					Path:      "power/" + a.ID + "/",
+					Areas:     areas,
+					Window:    window,
+					Reason:    utilities.PowerReason(a.ReasonKey, 0),
+					SourceURL: a.SourceURL,
+				})
+			}
 			// Nearby Parañaque/Muntinlupa/Bacoor items for the next 14 days.
-			horizon14 := nowManila.In(time.FixedZone("Asia/Manila", 8*3600)).Add(14 * 24 * time.Hour).Format("2006-01-02")
-			for _, it := range snap.Power.Items {
+			horizon14 := nowManila.Add(14 * 24 * time.Hour).Format("2006-01-02")
+			for _, it := range powerNearbyItems(snap.Power) {
 				if it.DateFrom == "" || it.DateTo == "" {
 					continue
 				}

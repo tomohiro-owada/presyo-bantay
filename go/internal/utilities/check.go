@@ -744,6 +744,129 @@ func checkWaterAlert(text string, s *Snapshot) []string {
 	return problems
 }
 
+// checkPowerEmergency verifies an emergency power caption comes from
+// s.PowerAlerts[0] (Kind "emergency"): city, reason wording in all
+// three languages, areas marker lines, the exact TL/EN/JA lines built
+// by the shared renderer helpers, the Details link and the X source
+// line, with no other numbers/dates/times and no road/trend lines.
+func checkPowerEmergency(text string, a PowerAlert) []string {
+	var problems []string
+	add := func(format string, args ...any) {
+		problems = append(problems, fmt.Sprintf(format, args...))
+	}
+	if a.City == "" {
+		add("city missing")
+	} else if !strings.Contains(text, a.City) {
+		add("city %q missing", a.City)
+	}
+	for lang := 0; lang < 3; lang++ {
+		if w := PowerReason(a.ReasonKey, lang); !strings.Contains(text, w) {
+			add("reason %q missing", w)
+		}
+	}
+	areasTL, areasEN, areasJA := powerAreas(&a)
+	if !strings.Contains(text, "📍 "+areasTL) {
+		add("area list mismatch (TL)")
+	}
+	if !strings.Contains(text, "· "+areasEN+" ·") {
+		add("area list mismatch (EN)")
+	}
+	if !strings.Contains(text, "・"+areasJA+"・") {
+		add("area list mismatch (JA)")
+	}
+	if want := powerEmergencyLineTL(&a); !strings.Contains(text, want) {
+		add("emergency window %q missing", want)
+	}
+	if want := powerEmergencyLineEN(&a); !strings.Contains(text, want) {
+		add("emergency window %q missing", want)
+	}
+	if want := powerEmergencyLineJA(&a); !strings.Contains(text, want) {
+		add("emergency window %q missing", want)
+	}
+	if !strings.Contains(text, "Details: "+a.SourceURL) {
+		add("details link missing")
+	}
+	if !strings.Contains(text, "Source: Meralco on X (@meralco)") {
+		add("source line missing")
+	}
+	if strings.Contains(text, "planadong brownout") || strings.Contains(text, "planned brownout in") || strings.Contains(text, "計画停電") {
+		add("unexpected power trend line")
+	}
+	if strings.Contains(text, "📊") {
+		add("unexpected power trend line")
+	}
+	if strings.Contains(text, "bawat gabi") || strings.Contains(text, "every night") || strings.Contains(text, "毎晩") {
+		add("unexpected daily line")
+	}
+	for _, bad := range []string{"Road", " Rd", "Drive", "Avenue", "Street", "Highway", "Boulevard"} {
+		if strings.Contains(text, bad) {
+			add("unexpected road line")
+			break
+		}
+	}
+	s := a.Start.In(manilaLoc)
+	wantHM := map[[2]int]bool{{s.Hour(), s.Minute()}: true}
+	allowedMD := map[[2]int]bool{{int(s.Month()), s.Day()}: true}
+	if !a.OpenEnded && !a.End.IsZero() {
+		e := a.End.In(manilaLoc)
+		wantHM[[2]int{e.Hour(), e.Minute()}] = true
+		allowedMD[[2]int{int(e.Month()), e.Day()}] = true
+	}
+	scrubbed := waterURLRe.ReplaceAllString(text, " ")
+	scrubbed = waterMDRe.ReplaceAllStringFunc(scrubbed, func(m string) string {
+		sub := waterMDRe.FindStringSubmatch(m)
+		var mo, d int
+		fmt.Sscanf(sub[1], "%d", &mo)
+		fmt.Sscanf(sub[2], "%d", &d)
+		if allowedMD[[2]int{mo, d}] {
+			return " "
+		}
+		add("date %q not in alert window", m)
+		return " "
+	})
+	scrubbed = waterClockRe.ReplaceAllStringFunc(scrubbed, func(m string) string {
+		sub := waterClockRe.FindStringSubmatch(m)
+		var h, mi int
+		fmt.Sscanf(sub[1], "%d", &h)
+		fmt.Sscanf(sub[2], "%d", &mi)
+		if sub[3] != "" {
+			low := strings.ToLower(strings.ReplaceAll(sub[3], " ", ""))
+			if strings.HasPrefix(low, "p") {
+				if h != 12 {
+					h += 12
+				}
+			} else if h == 12 {
+				h = 0
+			}
+		}
+		if !wantHM[[2]int{h, mi}] {
+			add("time %q not in alert window", strings.Join(strings.Fields(m), " "))
+		}
+		return " "
+	})
+	allowed := map[string]bool{}
+	allowed[strconv.Itoa(s.Day())] = true
+	allowed[strconv.Itoa(int(s.Month()))] = true
+	allowed[strconv.Itoa(s.Year())] = true
+	if !a.OpenEnded && !a.End.IsZero() {
+		e := a.End.In(manilaLoc)
+		allowed[strconv.Itoa(e.Day())] = true
+		allowed[strconv.Itoa(int(e.Month()))] = true
+		allowed[strconv.Itoa(e.Year())] = true
+	}
+	for _, area := range a.Barangays {
+		for _, m := range waterIntRe.FindAllString(area, -1) {
+			allowed[m] = true
+		}
+	}
+	for _, m := range waterIntRe.FindAllString(scrubbed, -1) {
+		if !allowed[m] {
+			add("number %q not in alert", m)
+		}
+	}
+	return problems
+}
+
 // checkPowerAlert verifies a power alert caption comes from
 // s.PowerAlerts[0]: barangays, roads, city and reason wording must
 // appear; dates/times must match the alert windows when parsed.
@@ -756,6 +879,9 @@ func checkPowerAlert(text string, s *Snapshot) []string {
 		return []string{"no power alert in snapshot"}
 	}
 	a := s.PowerAlerts[0]
+	if a.Kind == "emergency" {
+		return checkPowerEmergency(text, a)
+	}
 	for _, area := range a.Barangays {
 		if area == PowerAreasTL {
 			continue

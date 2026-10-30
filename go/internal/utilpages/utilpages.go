@@ -183,12 +183,14 @@ func Run(snap *utilities.Snapshot, cfg Config) error {
 		}
 	}
 
-	// Power pages: every Las Piñas alert, unless the snapshot carries
-	// a layout alarm (then no frozen power pages are generated).
+	// Power pages: every Las Piñas planned alert, unless the snapshot
+	// carries a layout alarm (then no planned pages are generated).
+	// Emergency alerts from X are frozen regardless of the alarm.
+	plannedAlerts := utilities.BuildPowerAlerts(snap.Power, now)
 	if snap.Power != nil && snap.Power.LayoutAlarm != "" {
 		logf("skip power: layout alarm set (no frozen pages)")
 	} else {
-		for _, a := range utilities.BuildPowerAlerts(snap.Power, now) {
+		for _, a := range plannedAlerts {
 			a := a
 			// The snapshot keeps ~40 days of Las Piñas history for the
 			// monthly trend; only current/upcoming events get pages.
@@ -216,6 +218,36 @@ func Run(snap *utilities.Snapshot, cfg Config) error {
 			if err := freezePost(cfg, frozenPost{kind: "power", id: a.ID, text: text, img: img, doc: doc}); err != nil {
 				return err
 			}
+		}
+	}
+	for _, a := range utilities.BuildMeralcoXAlerts(snap.MeralcoX, plannedAlerts, now) {
+		a := a
+		if !a.End.IsZero() && a.End.Before(now.Add(-24*time.Hour)) {
+			continue
+		}
+		text := utilities.RenderPowerAlertPost(a, false)
+		checkSnap := &utilities.Snapshot{PowerAlerts: []utilities.PowerAlert{a}}
+		if problems := utilities.CheckPost(text, checkSnap, "power"); len(problems) > 0 {
+			logf("skip power %s: checker failed (unpublished)", a.ID)
+			continue
+		}
+		img, err := fbchart.RenderPowerAlert(&a, false)
+		if err != nil {
+			return fmt.Errorf("render power %s: %w", a.ID, err)
+		}
+		doc := PostDoc{Text: text, Kind: "power", AsOf: a.ID, GeneratedAt: gen, Check: "pass"}
+		if !a.Start.IsZero() {
+			doc.Start = a.Start.Format(time.RFC3339)
+		}
+		if !a.End.IsZero() {
+			doc.End = a.End.Format(time.RFC3339)
+		}
+		if a.OpenEnded {
+			doc.OpenEnded = true
+		}
+		doc.AlertKind = "emergency"
+		if err := freezePost(cfg, frozenPost{kind: "power", id: a.ID, text: text, img: img, doc: doc}); err != nil {
+			return err
 		}
 	}
 
