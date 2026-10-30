@@ -36,6 +36,9 @@ type fbPostEntry struct {
 	PostID   string `json:"post_id"`
 	PhotoID  string `json:"photo_id"`
 	PostedAt string `json:"posted_at"`
+	// Regions lists the regions covered by a "da-digest" post (empty for
+	// every other kind).
+	Regions []string `json:"regions,omitempty"`
 }
 
 // fbPostState is the state file document.

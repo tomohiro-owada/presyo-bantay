@@ -62,6 +62,8 @@ func run(argv []string) int {
 		return cmdChart(argv[1:])
 	case "fbpost":
 		return cmdFBPost(argv[1:])
+	case "fbdigest":
+		return cmdFBDigest(argv[1:])
 	case "fbweekly":
 		return cmdFBWeekly(argv[1:])
 	case "advise":
@@ -94,7 +96,7 @@ func run(argv []string) int {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: presyo <parse|ingest|ingest-json|fx|newdata|export|signals|region-signals|regions|chart|fbpost|fbweekly|advise|advice-check|deals|daypages|weekpages|utilities|utilpages|fbutil|version> [flags]")
+	fmt.Fprintln(os.Stderr, "usage: presyo <parse|ingest|ingest-json|fx|newdata|export|signals|region-signals|regions|chart|fbpost|fbdigest|fbweekly|advise|advice-check|deals|daypages|weekpages|utilities|utilpages|fbutil|version> [flags]")
 }
 
 // readMetaSourceURL mirrors cli._read_meta_source_url.
