@@ -18,12 +18,27 @@ fetched_at = now (Asia/Manila offset) unless --fetched-at given.
 
 import argparse
 import json
+import re
 import sys
 from datetime import datetime, timedelta, timezone
 
 MANILA = timezone(timedelta(hours=8))
 ACCOUNT = "maynilad"
 ACCOUNT_ID = "2992779308"
+
+
+# A long post without note_tweet that ends in a t.co link is how X renders
+# a long-form post when the read did not ask for note_tweet.fields: the text
+# is cut and the rest sits behind the link. Such text must never replace a
+# fuller copy we already hold, and the operator is warned.
+TRUNC_RE = re.compile(r"https://t\.co/\w+\s*$")
+TRUNC_MIN_LEN = 240
+
+
+def looks_truncated(text, had_note):
+    if had_note or not isinstance(text, str):
+        return False
+    return len(text) >= TRUNC_MIN_LEN and bool(TRUNC_RE.search(text))
 
 
 def parse_time(s):
@@ -63,7 +78,8 @@ def normalize_raw(obj):
         except ValueError:
             continue
         note = p.get("note_tweet") or {}
-        text = note.get("text") if isinstance(note, dict) and note.get("text") else p.get("text") or ""
+        had_note = isinstance(note, dict) and bool(note.get("text"))
+        text = note.get("text") if had_note else p.get("text") or ""
         images = []
         has_video = False
         atts = p.get("attachments") or {}
@@ -88,6 +104,7 @@ def normalize_raw(obj):
             "lang": p.get("lang") or "",
             "images": images,
             "has_video": has_video,
+            "_truncated": looks_truncated(text, had_note),
         })
     return posts
 
@@ -231,8 +248,22 @@ def main(argv=None):
     if args.merge_from:
         for p in load_merge(args.merge_from):
             by_id[p["id"]] = p
+    suspect = [p["id"] for p in posts if p.get("_truncated")]
+    kept_old = 0
     for p in posts:
+        old = by_id.get(p["id"])
+        if p.get("_truncated") and old is not None and len(old.get("text") or "") > len(p["text"]):
+            # New copy is cut short; keep the fuller text we already have.
+            kept_old += 1
+            continue
         by_id[p["id"]] = p
+    if suspect:
+        print(
+            "warning: %d post(s) look truncated (long text ending in a t.co link, no note_tweet): "
+            "refetch with tweet.fields including note_tweet; kept fuller stored text for %d"
+            % (len(suspect), kept_old),
+            file=sys.stderr,
+        )
 
     cutoff = fetched_dt - timedelta(days=21)
     merged = []
@@ -246,6 +277,8 @@ def main(argv=None):
         merged.append((dt, p))
     merged.sort(key=lambda t: t[0], reverse=True)
     merged = [p for _, p in merged[:300]]
+    for p in merged:
+        p.pop("_truncated", None)
 
     if not merged and not args.merge_from:
         print("error: no posts after normalization (and no --merge-from)", file=sys.stderr)

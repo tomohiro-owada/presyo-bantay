@@ -155,5 +155,48 @@ class TestNormalize(unittest.TestCase):
         self.assertIn("no JSON object", p.stderr)
 
 
+class TestTruncationGuard(unittest.TestCase):
+    LONG = "x" * 250 + " https://t.co/abcDEF123"
+
+    def _raw(self, text, note=None):
+        post = {"id": "1", "created_at": "2026-10-28T01:00:00.000Z", "text": text}
+        if note:
+            post["note_tweet"] = {"text": note}
+        return {"data": [post]}
+
+    def _run(self, raw, merge=None):
+        with tempfile.TemporaryDirectory() as d:
+            d = Path(d)
+            (d / "in.json").write_text(json.dumps(raw), encoding="utf-8")
+            args = [str(d / "in.json"), "--fetched-at", "2026-10-28T12:00:00+08:00"]
+            if merge is not None:
+                (d / "m.json").write_text(json.dumps(merge), encoding="utf-8")
+                args += ["--merge-from", str(d / "m.json")]
+            return run(*args)
+
+    def test_full_note_tweet_replaces_truncated_stored_text(self):
+        old = self._run(self._raw(self.LONG))
+        self.assertEqual(old.returncode, 0, old.stderr)
+        self.assertIn("look truncated", old.stderr)
+        full = "y" * 400
+        new = self._run(self._raw(self.LONG, note=full), merge=json.loads(old.stdout))
+        self.assertEqual(new.returncode, 0, new.stderr)
+        self.assertEqual(json.loads(new.stdout)["posts"][0]["text"], full)
+        self.assertNotIn("look truncated", new.stderr)
+
+    def test_truncated_text_never_overwrites_fuller_stored_text(self):
+        full = "y" * 400
+        stored = self._run(self._raw(self.LONG, note=full))
+        again = self._run(self._raw(self.LONG), merge=json.loads(stored.stdout))
+        self.assertEqual(again.returncode, 0, again.stderr)
+        self.assertEqual(json.loads(again.stdout)["posts"][0]["text"], full)
+        self.assertIn("look truncated", again.stderr)
+
+    def test_short_post_with_media_link_is_not_flagged(self):
+        r = self._run(self._raw("Short post https://t.co/abcDEF123"))
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertNotIn("look truncated", r.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()
