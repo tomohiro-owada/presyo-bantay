@@ -217,6 +217,32 @@ calls | grep -q -- "-meralco-x $MERALCO_X_INBOX" \
 rm -f "$MERALCO_X_INBOX"
 unset MERALCO_X_INBOX
 
+# --- 7b. --meralcox-only: just the meralcox section, no stamps, still utilpages + fbutil ---
+export UTIL_DOW=2 UTIL_DOM=12 UTIL_HOUR=11 UTIL_TODAY=2026-11-03
+rm -rf "$UDATA/stamps"
+reset_calls
+if ! "$UTIL" --meralcox-only; then bad "--meralcox-only run failed"; else ok "--meralcox-only exit 0"; fi
+[ "$(fetch_sections)" = "fetch -sections meralcox" ] \
+  && ok "--meralcox-only fetches meralcox only" || bad "meralcox-only sections: $(fetch_sections)"
+calls | grep -q -- "-meralco-x $PRESYO_HOME/inbox/meralco_x.json" \
+  && ok "--meralcox-only passes -meralco-x" || bad "meralcox-only -meralco-x: $(calls)"
+calls | grep -q "utilpages " && calls | grep -q "fbutil .* -auto" \
+  && ok "--meralcox-only runs utilpages + fbutil -auto" || bad "meralcox-only calls: $(calls)"
+[ ! -e "$UDATA/stamps/fuel-pump" ] && [ ! -e "$UDATA/stamps/meralco" ] && [ ! -e "$UDATA/stamps/lpg" ] \
+  && ok "--meralcox-only writes no daily stamps" || bad "stamps written by meralcox-only"
+grep -q "mode=meralcox" "$LOG" && ok "log records mode=meralcox" || bad "log lacks mode"
+if "$UTIL" --bogus >/dev/null 2>&1; then bad "unknown flag accepted"; else ok "unknown flag rejected"; fi
+
+# --- 7c. --meralcox-only waits for the hourly lock instead of skipping ---
+reset_calls
+( flock -n "$LOCK" sleep 3 ) &
+holder=$!
+sleep 0.5
+if ! "$UTIL" --meralcox-only; then bad "meralcox-only after lock failed"; else ok "meralcox-only waited for lock, exit 0"; fi
+[ "$(fetch_sections)" = "fetch -sections meralcox" ] \
+  && ok "meralcox-only ran after the lock was released" || bad "did not run after lock: $(calls)"
+wait "$holder"
+
 # --- 8. lock prevents overlap ---
 reset_calls
 flock -n "$LOCK" sleep 8 &

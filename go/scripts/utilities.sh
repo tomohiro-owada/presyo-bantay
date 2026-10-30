@@ -17,8 +17,24 @@
 # Time overrides for tests: UTIL_DOW (1-7, Mon-Sun), UTIL_DOM (01-31),
 # UTIL_HOUR (00-23), defaulting to Asia/Manila wall clock.
 #
+# `utilities.sh --meralcox-only` (cron, every 30 min at :10/:40 Manila):
+# fetches ONLY the meralcox section (the @meralco X inbox, no network),
+# then runs the same utilpages / commit / fbutil -auto steps. It shares
+# $LOCK with the hourly job (waits up to 4 min instead of skipping) so the
+# two never overlap, and it never touches the fuel/meralco/lpg stamps.
+#
 # Never uses sudo and never writes outside $PRESYO_HOME.
 set -euo pipefail
+
+MODE="full"
+case "${1:-}" in
+  "") ;;
+  --meralcox-only) MODE="meralcox" ;;
+  *)
+    echo "usage: utilities.sh [--meralcox-only]" >&2
+    exit 2
+    ;;
+esac
 
 PRESYO_HOME="${PRESYO_HOME:-$HOME}"
 REPO="${REPO:-$PRESYO_HOME/repo}"
@@ -43,7 +59,12 @@ mkdir -p "$PRESYO_HOME/logs" "$UDATA/cache" "$UDATA/stamps" "$(dirname "$LOCK")"
 
 # Lock first so concurrent cron runs (and log rotation) cannot overlap.
 exec 9>"$LOCK"
-if ! flock -n 9; then
+if [ "$MODE" = "meralcox" ]; then
+  if ! flock -w 240 9; then
+    echo "utilities.sh: --meralcox-only could not get the lock in 240s, exiting"
+    exit 0
+  fi
+elif ! flock -n 9; then
   echo "utilities.sh: already running, exiting"
   exit 0
 fi
@@ -60,7 +81,7 @@ fi
 exec >>"$LOG" 2>&1
 
 ts() { date '+%Y-%m-%d %H:%M:%S %Z'; }
-echo "=== utilities.sh start $(ts) ==="
+echo "=== utilities.sh start $(ts) mode=$MODE ==="
 
 fail=0
 fetch_rc="-"
@@ -81,6 +102,9 @@ stamp_is_today() { [ -f "$UDATA/stamps/$1" ] && [ "$(cat "$UDATA/stamps/$1")" = 
 add_section() {
   if [ -z "$sections" ]; then sections="$1"; else sections="$sections,$1"; fi
 }
+if [ "$MODE" = "meralcox" ]; then
+  add_section meralcox
+else
 # fuel+pump: hourly on Tue/Wed, else the first run after 09:00.
 if [ "$DOW" -eq 2 ] || [ "$DOW" -eq 3 ]; then
   add_section fuel; add_section pump
@@ -112,6 +136,7 @@ if [ "$((HOUR % 3))" -eq 0 ]; then
 fi
 if [ "$((HOUR % 6))" -eq 0 ]; then
   add_section power
+fi
 fi
 echo "utilities.sh: sections='$sections' (dow=$DOW dom=$DOM hour=$HOUR)"
 

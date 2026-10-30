@@ -106,3 +106,14 @@ Resolution posts never yield events.
   `-meralco-x`, and section `meralcox` runs on every hourly
   invocation (like `water`); the maintenance `power` section stays on
   hours divisible by 6.
+
+## Cadence (30 minutes)
+
+The box routine pushes `~/inbox/meralco_x.json` about every 30 minutes
+(:00 and :30 Manila, 05:00-20:00). The VPS runs the emergency path at about
+:10 and :40 Manila with `utilities.sh --meralcox-only` (server-TZ cron
+`10,40 6-20 * * *`): fetch only the `meralcox` section, then the usual
+utilpages / commit / `fbutil -auto` steps. It takes the same lock as the
+hourly job (waits up to 240 s), writes no daily stamps, and `fbutil -auto`
+still applies the posting window, the gaps (30 min for emergencies) and
+the kill switch. The hourly `utilities.sh` keeps fetching `meralcox` as well.
