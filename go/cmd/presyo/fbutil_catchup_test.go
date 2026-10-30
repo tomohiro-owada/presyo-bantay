@@ -80,7 +80,7 @@ func TestFBUtilCatchup(t *testing.T) {
 			},
 		},
 		{
-			// Fuel is evaluated before the DA-first gate.
+			// There is no DA gate: fuel posts whatever DA still owes.
 			name: "fuel due while da pending", now: "2026-10-22T13:00:00+08:00", dbDates: []string{"2026-10-21"},
 			state: []fbPostEntry{{Region: "south", AsOf: "2026-10-21", PostID: "p", PhotoID: "h", PostedAt: "2026-10-21T06:00:00+08:00"}},
 			setupSite: func(t *testing.T, e utilEnv) {
@@ -89,16 +89,18 @@ func TestFBUtilCatchup(t *testing.T) {
 			wantFiles: []string{"fuel.png", "fuel.txt"},
 		},
 		{
-			// Young bills wait for the DA queue.
-			name: "bills wait when young", now: "2026-10-22T13:00:00+08:00", dbDates: []string{"2026-10-21"},
+			// The DA-first gate is gone: even young bills post while
+			// DA regions are still unposted.
+			name: "bills due when young, no DA gate", now: "2026-10-22T13:00:00+08:00", dbDates: []string{"2026-10-21"},
 			state: []fbPostEntry{{Region: "south", AsOf: "2026-10-21", PostID: "p", PhotoID: "h", PostedAt: "2026-10-21T06:00:00+08:00"}},
 			setupSite: func(t *testing.T, e utilEnv) {
 				writeFrozenPost(t, e.site, "bills", "2026-10", "2026-10-22T12:00:00+08:00", nil)
 			},
+			wantFiles: []string{"bills.png", "bills.txt"},
 		},
 		{
-			// A stale bills page bypasses the DA gate.
-			name: "bills bypass when old", now: "2026-10-22T13:00:00+08:00", dbDates: []string{"2026-10-21"},
+			// Old bills post as well.
+			name: "bills due when old", now: "2026-10-22T13:00:00+08:00", dbDates: []string{"2026-10-21"},
 			state: []fbPostEntry{{Region: "south", AsOf: "2026-10-21", PostID: "p", PhotoID: "h", PostedAt: "2026-10-21T06:00:00+08:00"}},
 			setupSite: func(t *testing.T, e utilEnv) {
 				writeFrozenPost(t, e.site, "bills", "2026-10", "2026-10-21T11:00:00+08:00", nil)
@@ -214,31 +216,31 @@ func TestFBUtilCatchup(t *testing.T) {
 			},
 		},
 		{
-			// Gap grace applies to fbutil too: 1h59m39s passes.
-			name: "gap grace allows 1h59m39s", now: "2026-10-20T13:00:00+08:00", dbDates: []string{"2026-10-19"},
+			// Gap grace applies to fbutil too: 1h14m39s passes (min-gap 75m).
+			name: "gap grace allows 1h14m39s", now: "2026-10-20T13:00:00+08:00", dbDates: []string{"2026-10-19"},
 			setupSite: func(t *testing.T, e utilEnv) {
 				st := regionEntries(t, "2026-10-19", "2026-10-19T06:00:00+08:00", "")
-				st = append(st, fbPostEntry{Region: "south", AsOf: "2026-10-20", PostID: "q", PhotoID: "h", PostedAt: "2026-10-20T11:00:21+08:00"})
+				st = append(st, fbPostEntry{Region: "south", AsOf: "2026-10-20", PostID: "q", PhotoID: "h", PostedAt: "2026-10-20T11:45:21+08:00"})
 				writeAutoState(t, e.state, st)
 				writeFrozenPost(t, e.site, "fuel", "2026-10-20", oldGen, nil)
 			},
 			wantFiles: []string{"fuel.png", "fuel.txt"},
 		},
 		{
-			name: "gap 1h50m skips", now: "2026-10-20T13:00:00+08:00", dbDates: []string{"2026-10-19"},
+			name: "gap 1h skips", now: "2026-10-20T13:00:00+08:00", dbDates: []string{"2026-10-19"},
 			setupSite: func(t *testing.T, e utilEnv) {
 				st := regionEntries(t, "2026-10-19", "2026-10-19T06:00:00+08:00", "")
-				st = append(st, fbPostEntry{Region: "south", AsOf: "2026-10-20", PostID: "q", PhotoID: "h", PostedAt: "2026-10-20T11:10:00+08:00"})
+				st = append(st, fbPostEntry{Region: "south", AsOf: "2026-10-20", PostID: "q", PhotoID: "h", PostedAt: "2026-10-20T12:00:00+08:00"})
 				writeAutoState(t, e.state, st)
 				writeFrozenPost(t, e.site, "fuel", "2026-10-20", oldGen, nil)
 			},
 		},
 		{
-			name: "gap-grace 0 skips 1h59m39s", now: "2026-10-20T13:00:00+08:00", dbDates: []string{"2026-10-19"},
+			name: "gap-grace 0 skips 1h14m39s", now: "2026-10-20T13:00:00+08:00", dbDates: []string{"2026-10-19"},
 			extra: []string{"-gap-grace", "0s"},
 			setupSite: func(t *testing.T, e utilEnv) {
 				st := regionEntries(t, "2026-10-19", "2026-10-19T06:00:00+08:00", "")
-				st = append(st, fbPostEntry{Region: "south", AsOf: "2026-10-20", PostID: "q", PhotoID: "h", PostedAt: "2026-10-20T11:00:21+08:00"})
+				st = append(st, fbPostEntry{Region: "south", AsOf: "2026-10-20", PostID: "q", PhotoID: "h", PostedAt: "2026-10-20T11:45:21+08:00"})
 				writeAutoState(t, e.state, st)
 				writeFrozenPost(t, e.site, "fuel", "2026-10-20", oldGen, nil)
 			},

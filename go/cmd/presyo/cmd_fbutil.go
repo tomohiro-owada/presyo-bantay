@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -11,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tomohiro-owada/presyo-bantay/go/internal/regions"
 	"github.com/tomohiro-owada/presyo-bantay/go/internal/utilities"
 	"github.com/tomohiro-owada/presyo-bantay/go/internal/utilpages"
 )
@@ -31,15 +29,14 @@ func cmdFBUtil(argv []string) int {
 	statePath := fs.String("state", "", "state file (default $PRESYO_HOME/state/fbpost.json)")
 	envFile := fs.String("env-file", "", "env file with PRESYO_FB_PAGE_ID/PRESYO_FB_PAGE_TOKEN (default $PRESYO_HOME/.config/presyo/fb.env)")
 	disableFile := fs.String("disable-file", "", "skip posting when this file exists (default $PRESYO_HOME/.config/presyo/fbpost.disabled)")
-	minGap := fs.Duration("min-gap", 2*time.Hour, "auto: skip when the last successful post is newer than this")
+	minGap := fs.Duration("min-gap", defaultMinGap, "auto: skip when the last successful post is newer than this")
 	gapGrace := fs.Duration("gap-grace", 5*time.Minute, "auto: min-gap skips only when since < min-gap - grace")
 	emergencyGap := fs.Duration("emergency-gap", 30*time.Minute, "auto: urgent alerts skip when the last successful post is newer than this")
 	windowStart := fs.String("window-start", "05:30", "auto posting window start HH:MM Asia/Manila")
 	windowEnd := fs.String("window-end", "20:00", "auto posting window end HH:MM Asia/Manila (exclusive)")
-	routineWindowStart := fs.String("routine-window-start", "12:00", "auto routine posting window start HH:MM Asia/Manila (fuel/bills only)")
+	routineWindowStart := fs.String("routine-window-start", "10:00", "auto routine posting window start HH:MM Asia/Manila (fuel/bills only)")
 	routineWindowEnd := fs.String("routine-window-end", "19:00", "auto routine posting window end HH:MM Asia/Manila (exclusive, fuel/bills only)")
 	publishDelay := fs.Duration("publish-delay", 10*time.Minute, "auto: frozen pages newer than this are not yet deployed")
-	billsMaxWait := fs.Duration("bills-max-wait", 24*time.Hour, "auto: bills bypass the DA-first gate when the frozen page is at least this old")
 	graphBase := fs.String("graph-base", "https://graph.facebook.com/v21.0", "Graph API base URL (tests use httptest)")
 	nowFlag := fs.String("now", "", "RFC3339 now override (tests)")
 	if err := fs.Parse(argv); err != nil {
@@ -73,7 +70,7 @@ func cmdFBUtil(argv []string) int {
 		statePath: stPath, envFile: *envFile, disableFile: *disableFile,
 		minGap: *minGap, gapGrace: *gapGrace, emergencyGap: *emergencyGap, windowStart: *windowStart, windowEnd: *windowEnd,
 		routineWindowStart: *routineWindowStart, routineWindowEnd: *routineWindowEnd,
-		publishDelay: *publishDelay, billsMaxWait: *billsMaxWait, graphBase: *graphBase,
+		publishDelay: *publishDelay, graphBase: *graphBase,
 		presyoHome: presyoHome, now: now,
 	}
 	run := func() int { return fbutilRun(opt) }
@@ -102,7 +99,6 @@ type fbutilOptions struct {
 	routineWindowStart string
 	routineWindowEnd   string
 	publishDelay       time.Duration
-	billsMaxWait       time.Duration
 	graphBase          string
 	presyoHome         string
 	now                time.Time
@@ -437,7 +433,7 @@ func fbutilAuto(opt fbutilOptions, manila time.Time) int {
 	// "nothing due". Water and power above are unaffected.
 	rStartStr, rEndStr := opt.routineWindowStart, opt.routineWindowEnd
 	if rStartStr == "" {
-		rStartStr = "12:00"
+		rStartStr = "10:00"
 	}
 	if rEndStr == "" {
 		rEndStr = "19:00"
@@ -453,29 +449,18 @@ func fbutilAuto(opt fbutilOptions, manila time.Time) int {
 		return 1
 	}
 	if rStart <= tod && tod < rEnd {
-		// Fuel, evaluated before the DA-first gate.
-		fuelFrozen, _ := fbutilDueFuel(opt, manila, posted, oldEnough)
-		if fuelFrozen != nil {
+		// Keep routine posts out of a protected traffic slot (off unless
+		// PRESYO_TRAFFIC_RESERVE=1).
+		if why := trafficHold(manila, st, opt.minGap, opt.gapGrace); why != "" {
+			return skip("%s", why)
+		}
+		// Fuel first, then bills. There is no DA gate any more: DA now
+		// posts at most two digests a day (fbdigest), so it no longer
+		// occupies the timeline; the shared min-gap spaces everything.
+		if fuelFrozen, _ := fbutilDueFuel(opt, manila, posted, oldEnough); fuelFrozen != nil {
 			return fbutilAutoPost(opt, fuelFrozen, "fuel")
 		}
-		// Bills are evaluated before the gate for the starvation guard.
-		billsFrozen, _ := fbutilDueBills(opt, manila, posted, oldEnough)
-		// DA-first gate: when the DB's latest price date D is fresh
-		// (≤ 2 days) and some region still owes D, daily posts go first.
-		// A stale bills page (older than -bills-max-wait) bypasses the
-		// gate so bills are not starved by a stalled DA queue.
-		if next, d := fbutilDAPending(opt); next != "" {
-			_ = next
-			if billsFrozen != nil {
-				if gen, err := time.Parse(time.RFC3339, billsFrozen.doc.GeneratedAt); err == nil {
-					if manila.Sub(gen) >= opt.billsMaxWait {
-						return fbutilAutoPost(opt, billsFrozen, "bills")
-					}
-				}
-			}
-			return skip("waiting for DA posts (date %s)", d)
-		}
-		if billsFrozen != nil {
+		if billsFrozen, _ := fbutilDueBills(opt, manila, posted, oldEnough); billsFrozen != nil {
 			return fbutilAutoPost(opt, billsFrozen, "bills")
 		}
 	}
@@ -504,47 +489,6 @@ func fbutilAutoPost(opt fbutilOptions, frozen *utilFrozen, why string) int {
 		return 0
 	}
 	return fbutilPost(frozen, opt)
-}
-
-// fbutilDAPending reports whether daily posts still owe the latest DB
-// date D ("" when DA is done or stale).
-func fbutilDAPending(opt fbutilOptions) (string, string) {
-	db, err := openReadOnly(opt.dbPath)
-	if err != nil {
-		return "", ""
-	}
-	defer db.Close()
-	var d sql.NullString
-	if err := db.QueryRow("SELECT MAX(date) FROM prices").Scan(&d); err != nil || !d.Valid {
-		return "", ""
-	}
-	D := d.String
-	dT, err := time.Parse("2006-01-02", D)
-	if err != nil {
-		return "", ""
-	}
-	manila := opt.now.In(manilaZone)
-	today := time.Date(manila.Year(), manila.Month(), manila.Day(), 0, 0, 0, 0, manilaZone)
-	if int(today.Sub(dT).Hours()/24) > 2 {
-		return "", "" // stale: fbpost skips anyway
-	}
-	st, err := loadFBState(opt.statePath)
-	if err != nil {
-		return "", ""
-	}
-	for _, id := range regions.IDs() {
-		done := false
-		for _, p := range st.Posts {
-			if p.Region == id && p.AsOf == D {
-				done = true
-				break
-			}
-		}
-		if !done {
-			return id, D
-		}
-	}
-	return "", ""
 }
 
 // fbutilDueFuel selects the latest frozen fuel page when due: the

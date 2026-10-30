@@ -624,3 +624,42 @@ func TestHTMLOnly(t *testing.T) {
 		t.Error("html-only must rebuild index.html")
 	}
 }
+
+func TestDayPageShowsDigestCard(t *testing.T) {
+	doc := &DayDoc{
+		Date: "2026-10-30",
+		Digest: &DayDigest{
+			Image: "digest.png",
+			Alt:   LangText{TL: "alt tl", EN: "alt en", JA: "alt ja"},
+			Text: LangText{
+				TL: "🛒 Presyo sa Metro Manila — noong Okt 30\n• Bigas ₱49/kg →±0%\nℹ️ Wala pa sa digest: Silangan\n",
+				EN: "🇬🇧 Metro Manila prices — Oct 30\nRice ₱49/kg →±0%\n",
+				JA: "🇯🇵 メトロマニラの価格 — 10/30\n米 ₱49/kg →±0%\n",
+			},
+			Included: []string{"south"},
+			Dropped:  []string{"east"},
+		},
+		Regions: []DayRegion{{ID: "south", Title: LangText{TL: "South Metro", EN: "South Metro", JA: "南部"}}},
+	}
+	html, err := renderDayPage(doc, nil, nil, "https://example.test/")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{
+		`src="digest.png"`, "Buod sa Metro Manila", "Wala pa sa digest: Silangan",
+		`og:image" content="https://example.test/d/2026-10-30/digest.png"`,
+	} {
+		if !strings.Contains(html, want) {
+			t.Errorf("day page lacks %q", want)
+		}
+	}
+	// Without a digest the card is absent.
+	doc.Digest = nil
+	html, err = renderDayPage(doc, nil, nil, "https://example.test/")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(html, "digest.png") || strings.Contains(html, "Buod sa Metro Manila") {
+		t.Error("digest card rendered without a digest")
+	}
+}

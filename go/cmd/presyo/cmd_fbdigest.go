@@ -73,7 +73,7 @@ func cmdFBDigest(argv []string) int {
 	gapGrace := fs.Duration("gap-grace", 5*time.Minute, "auto: min-gap skips only when since < min-gap - grace")
 	digestGap := fs.Duration("digest-gap", 3*time.Hour, "auto: minimum spacing between two digests")
 	maxPerDay := fs.Int("max-per-day", 2, "auto: at most this many digests per Manila day")
-	publishDelay := fs.Duration("publish-delay", 5*time.Minute, "with -site-public: day page must be at least this old")
+	publishDelay := fs.Duration("publish-delay", 3*time.Minute, "with -site-public: day page must be at least this old")
 	nowFlag := fs.String("now", "", "RFC3339 now override (tests, simulations)")
 	if err := fs.Parse(argv); err != nil {
 		return 1
@@ -221,6 +221,9 @@ func fbdigestRun(opt fbdigestOptions) int {
 					perDay++
 				}
 			}
+		}
+		if why := trafficHold(manila, st, opt.minGap, opt.gapGrace); why != "" {
+			return skip("%s", why)
 		}
 		if perDay >= opt.maxPerDay {
 			return skip("daily digest cap reached (%d/%d)", perDay, opt.maxPerDay)

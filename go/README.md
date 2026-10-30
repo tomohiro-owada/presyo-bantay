@@ -30,7 +30,8 @@ Common flags: `-db` (default `data/presyo.db`), `-raw` (default
 | `chart -signals region.json -out file.png` | Render the 1080x1350 regional PNG chart in pure Go (no network, no fonts on the system: embedded Montserrat + Noto Sans fallback). |
 | `newdata -db DB [-state FILE] [-listing-url URL]` | ONE conditional GET of the DA listing page (never PDFs): prints the newest listed report date newer than `MAX(prices.date)` and exits 0 (new data), exits 10 when there is none (incl. HTTP 304 via the cached ETag/Last-Modified in `$PRESYO_HOME/state/newdata.json`), exits 1 on error. Same UA/timeout as ingest. |
 | `fbpost -db DB -region R [-date] [-out-dir] [-dry-run] [-state] [-env-file] [-max-age-days 2] [-disable-file] [-graph-base] [-llm]` | Post one region to the Facebook Page: compute region signals, render text + PNG, verify with the region checker (exit 3 on failure, no post), write `<region>.txt/.png/.signals.json/.check.json` into the out dir, then upload once to `{graph-base}/{page-id}/photos` (token as a form field, never in the URL) and record it in the state file. `-dry-run` renders and checks without network or token. Skips stale data, an existing state entry, or a disable file. |
-| `fbpost -db DB -auto [-dry-run] [-now RFC3339] [-window-start 05:30] [-window-end 20:00] [-min-gap 2h] [-gap-grace 5m] [...]` | Decide which region is due, at most ONE post per run: D = latest data date in the DB (stale D older than 2 days vs Manila today skips); only between 05:30 and 20:00 Asia/Manila; candidates are regions with no state entry for D, most-overdue first (no state entry sorts first, ties keep south, manila, qc, north, east order; a newer D takes over, dropping unfinished older dates); skip when the last successful post is newer than `-min-gap` minus `-gap-grace`; the first candidate that passes the checker wins (a checker failure tries the next candidate); never repost a region+date; one attempt, no retries. |
+| (legacy, rollback only) `fbpost -db DB -auto [-dry-run] [-now RFC3339] [-window-start 05:30] [-window-end 20:00] [-min-gap 2h] [-gap-grace 5m] [...]` | Decide which region is due, at most ONE post per run: D = latest data date in the DB (stale D older than 2 days vs Manila today skips); only between 05:30 and 20:00 Asia/Manila; candidates are regions with no state entry for D, most-overdue first (no state entry sorts first, ties keep south, manila, qc, north, east order; a newer D takes over, dropping unfinished older dates); skip when the last successful post is newer than `-min-gap` minus `-gap-grace`; the first candidate that passes the checker wins (a checker failure tries the next candidate); never repost a region+date; one attempt, no retries. |
+| `fbdigest -db DB [-date D] [-auto] [-dry-run] [-out-dir] [-state] [-site-public DIR] [-now RFC3339] [-window-start 07:00] [-weekday-window-start HH:MM] [-window-end 19:00] [-min-gap 75m] [-digest-gap 3h] [-max-per-day 2] [-publish-delay 3m] [...]` | Post the multi-region DA digest (replaces the five per-region posts): ONE 1080x1350 card (key staples x regions with trend triangles vs each region's previous report, like-for-like markets) + trilingual caption, linking the day page. A region that fails its checks is dropped and named in the caption; `-auto` decides by window, Sunday weekly hold, daily cap, digest spacing, global min-gap, publish delay and coverage (a digest is due for the latest date D only when some included region is not yet covered by a digest or a legacy per-region post). State `{region:"da-digest", as_of:D, regions:[...]}`. `-dry-run` renders without network/state. See `DIGEST_SPEC.md`. |
 | `advise -signals FILE -out-dir DIR [-model] [-opencode] [-timeout] [-retries] [-no-llm]` | Run the opencode CLI over a signals.json file to draft trilingual advice (`advice.md`), then check its numbers (`check.json`). Falls back to the deterministic template when the call/check fails. Never run with the live DB; numbers come only from signals. |
 | `advice-check -signals FILE -advice FILE [-out]` | Verify every peso amount / percentage in advice text exists in (or derives from) signals.json. Exit 3 when numbers are flagged. |
 | `deals -signals FILE [-advice-dir DIR] -out FILE` | Build the site `deals.json` (texts + deals/pricier + thresholds). Reuses llm texts from an advise dir only when they passed; else the template. |
@@ -431,17 +432,16 @@ Every post, image and site page shows the trend vs the previous period.
 - `fbutil` posts frozen pages only (FB == site), sharing the fbpost
   state file, flock, uploader and token handling. `-auto` posts at
   most ONE per run, priority water > power emergency > power planned
-  > fuel > DA-first gate > bills (a bills page older than
-  `-bills-max-wait`, default 24 h, bypasses the gate):
-  water/power window 05:30–20:00 Manila, fuel/bills routine window
-  12:00–19:00 Manila (`-routine-window-start`/`-routine-window-end`),
+  > fuel > bills (the old DA-first gate and `-bills-max-wait` are gone,
+  see `DIGEST_SPEC.md`): water/power window 05:30–20:00 Manila,
+  fuel/bills routine window 10:00–19:00 Manila
+  (`-routine-window-start`/`-routine-window-end`),
   Sunday 16:00–20:00 hold gates only non-emergency candidates
-  (water `emergency` and power `emergency` bypass it), global 2 h
+  (water `emergency` and power `emergency` bypass it), global 75 min
   min-gap (minus `-gap-grace`, default 5 m) over every entry with a
   short `-emergency-gap` (default 30 m, same grace) that urgent
   alerts bypass, `-publish-delay` (default 10 m) for the GitHub Pages
-  deploy lag. DA first: fuel waits until the DB's latest price date
-  has all 5 regions posted (water and power are exempt); fuel posts
+  deploy lag. Fuel posts
   any weekday while its page is 0–6 days old, bills once per current
   month, water when not yet ended and its start is within 72 h ahead
   (open-ended emergencies while posted within the last 24 h) at most

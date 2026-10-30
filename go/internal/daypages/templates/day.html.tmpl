@@ -80,7 +80,14 @@ main.wrap{padding-top:12px;padding-bottom:24px;display:grid;gap:12px}
 <span>{{if .HasOlder}}<a href="{{.OlderPath}}">&larr; <span data-lang="tl">{{.OlderTL}}</span><span data-lang="en">{{.OlderEN}}</span><span data-lang="ja">{{.OlderJA}}</span></a>{{end}}</span>
 <span>{{if .HasNewer}}<a href="{{.NewerPath}}"><span data-lang="tl">{{.NewerTL}}</span><span data-lang="en">{{.NewerEN}}</span><span data-lang="ja">{{.NewerJA}}</span> &rarr;</a>{{end}}</span>
 </nav>
-{{range .Regions}}<section class="card region" aria-label="{{.TitleTL}}">
+{{if .Digest}}<section class="card region digest" aria-label="Metro Manila">
+<h2><span data-lang="tl">Buod sa Metro Manila</span><span data-lang="en">Metro Manila summary</span><span data-lang="ja">メトロマニラ概況</span></h2>
+<img src="{{.Digest.Image}}" width="1080" height="1350" alt="{{.Digest.AltTL}}" data-alt-en="{{.Digest.AltEN}}" data-alt-ja="{{.Digest.AltJA}}" fetchpriority="high">
+<div data-lang="tl">{{range .Digest.BlocksTL}}{{template "block" .}}{{end}}</div>
+<div data-lang="en">{{range .Digest.BlocksEN}}{{template "block" .}}{{end}}</div>
+<div data-lang="ja">{{range .Digest.BlocksJA}}{{template "block" .}}{{end}}</div>
+</section>
+{{end}}{{range .Regions}}<section class="card region" aria-label="{{.TitleTL}}">
 <h2><span data-lang="tl">{{.TitleTL}}</span><span data-lang="en">{{.TitleEN}}</span><span data-lang="ja">{{.TitleJA}}</span></h2>
 {{if .HasData}}<img src="{{.Image}}" width="1080" height="1350" alt="{{.AltTL}}" data-alt-en="{{.AltEN}}" data-alt-ja="{{.AltJA}}"{{if .Eager}} fetchpriority="high"{{else}} loading="lazy" decoding="async"{{end}}>
 <div data-lang="tl">{{range .BlocksTL}}{{template "block" .}}{{end}}</div>

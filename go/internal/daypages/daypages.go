@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/tomohiro-owada/presyo-bantay/go/internal/digest"
 	"github.com/tomohiro-owada/presyo-bantay/go/internal/fbchart"
 	"github.com/tomohiro-owada/presyo-bantay/go/internal/fbregion"
 	"github.com/tomohiro-owada/presyo-bantay/go/internal/regionrender"
@@ -50,12 +51,28 @@ type DayRegion struct {
 	Check   string   `json:"check"`
 }
 
+// DayDigest is the multi-region digest card shown above the regional
+// sections (same image + caption the Facebook digest post uses).
+type DayDigest struct {
+	Image      string   `json:"image"`
+	ImageBytes int64    `json:"image_bytes"`
+	Alt        LangText `json:"alt"`
+	// Text is the caption per language (day-page link line removed).
+	Text     LangText `json:"text"`
+	PrevAsOf string   `json:"prev_as_of,omitempty"`
+	Included []string `json:"included"`
+	// Dropped lists regions left out of the digest (checker failed or no
+	// reliable data); they are named in Text as well.
+	Dropped []string `json:"dropped,omitempty"`
+}
+
 // DayDoc is the SITE/d/D/day.json document.
 type DayDoc struct {
 	Date        string      `json:"date"`
 	GeneratedAt string      `json:"generated_at"`
 	Regions     []DayRegion `json:"regions"`
 	Footer      LangText    `json:"footer"`
+	Digest      *DayDigest  `json:"digest,omitempty"`
 }
 
 // DaysSouth is the featured (south, else first with data) region in days.json.
@@ -278,6 +295,7 @@ func renderDay(db *sql.DB, cfg Config, date string) error {
 		}
 		doc.Regions = append(doc.Regions, entry)
 	}
+	doc.Digest = renderDigest(db, dir, date)
 	doc.GeneratedAt = cfg.now().In(manilaZone()).Format(time.RFC3339)
 	if err := writeJSON(dayPath, doc); err != nil {
 		return err
@@ -290,6 +308,64 @@ func renderDay(db *sql.DB, cfg Config, date string) error {
 	}
 	fmt.Printf("daypages: wrote %s (%d/5 regions)\n", date, published)
 	return nil
+}
+
+// renderDigest writes SITE/d/D/digest.png and returns the digest entry, or
+// nil when fewer than digest.MinRegions regions pass (the page then simply
+// has no digest card). Failures are logged, never fatal.
+func renderDigest(db *sql.DB, dir, date string) *DayDigest {
+	d, err := digest.Build(db, date, digest.Options{})
+	if err != nil {
+		logf("digest %s: %s", date, err)
+		return nil
+	}
+	if len(d.Included()) < digest.MinRegions {
+		logf("digest %s: only %d region(s) pass, no digest card", date, len(d.Included()))
+		return nil
+	}
+	text := digest.RenderCaption(d)
+	if rep := digest.CheckCaption(d, text); rep.Status != fbregion.StatusPass {
+		logf("digest %s: caption check failed (%v), no digest card", date, rep.Flagged)
+		return nil
+	}
+	img, err := fbchart.RenderDigest(d)
+	if err != nil {
+		logf("digest %s: %s", date, err)
+		return nil
+	}
+	var buf bytes.Buffer
+	if err := fbchart.EncodeCompact(&buf, img); err != nil {
+		logf("digest %s: %s", date, err)
+		return nil
+	}
+	if err := os.WriteFile(filepath.Join(dir, "digest.png"), buf.Bytes(), 0o644); err != nil {
+		logf("digest %s: %s", date, err)
+		return nil
+	}
+	// Strip the "see regional posts" link line: this IS that page.
+	var keep []string
+	for _, ln := range strings.Split(text, "\n") {
+		if strings.HasPrefix(ln, "📍") {
+			continue
+		}
+		keep = append(keep, ln)
+	}
+	parts := strings.Split(strings.Join(keep, "\n"), "\n"+fbregion.Separator+"\n")
+	for len(parts) < 3 {
+		parts = append(parts, "")
+	}
+	tl, en, ja := digest.AltText(d)
+	dd := &DayDigest{
+		Image: "digest.png", ImageBytes: int64(buf.Len()),
+		Alt:      LangText{TL: tl, EN: en, JA: ja},
+		Text:     LangText{TL: strings.TrimSpace(parts[0]) + "\n", EN: strings.TrimSpace(parts[1]) + "\n", JA: strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(parts[2]), fbregion.Link)) + "\n"},
+		PrevAsOf: d.PrevAsOf,
+		Included: d.Included(),
+	}
+	for _, r := range d.Dropped() {
+		dd.Dropped = append(dd.Dropped, r.ID)
+	}
+	return dd
 }
 
 // noDataAlt is the day.json alt for regions without data.

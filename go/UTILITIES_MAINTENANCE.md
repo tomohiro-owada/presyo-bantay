@@ -244,3 +244,5 @@ Bulacan Nov 3-4 entry, the layout_changed fixture (alarm), dedupe against X advi
 counts, fbutil auto rules, caption checker, image bounds/determinism, utilpages output, httptest
 fetch tests for both sources including the blocked-feed (403 + cf-mitigated header) fallback and the
 Meralco 200-but-empty alarm.
+
+> **Superseded (DA gate):** the DA-first gate, `-bills-max-wait`, the 12:00 routine window start and the 2 h min-gap described above were replaced by `DIGEST_SPEC.md` (no DA gate, 75 min min-gap, routine window 10:00-19:00).

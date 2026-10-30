@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Watch job for regional Facebook posts (REGIONS_SPEC.md section 9).
+# Watch job for the DA price Facebook post (DIGEST_SPEC.md; was the
+# per-region posts of REGIONS_SPEC.md section 9).
 #
 # Runs on the ingest host (non-root) from cron. Single pass, never loops:
 # ask `presyo newdata` whether the DA listing has a report date newer than
@@ -7,11 +8,17 @@
 # daily runs stay as a safety net). Then run `presyo fbpost -auto` on EVERY
 # run — new data or not, even if newdata errored (posting from the existing
 # DB is still fine) — unless $PRESYO_HOME/.config/presyo/fbpost.disabled
-# exists. fbpost -auto itself enforces window/gap/order/staleness.
+# exists. `presyo fbdigest -auto` posts the multi-region DA digest (at most
+# 2 a day) and itself enforces window/caps/gaps/coverage/staleness.
+# PRESYO_DA_POST=region falls back to the old one-region-per-run
+# `fbpost -auto` (rollback switch); PRESYO_PUBLISH_WAIT (default 190 s) is
+# the pause after a successful daily.sh before the digest links the day page; PRESYO_DIGEST_DRY_RUN=1 runs the digest
+# in dry-run (renders to $PRESYO_HOME/fbdigest, never posts, no state).
 #
 # Layout (all overridable via env for tests):
 #   PRESYO_HOME=$HOME  BIN=$PRESYO_HOME/bin/presyo
 #   DAILY=$PRESYO_HOME/bin/daily.sh  DB=$PRESYO_HOME/data/presyo.db
+#   REPO=$PRESYO_HOME/repo
 #   LOG=$PRESYO_HOME/logs/watch.log  LOCK=$PRESYO_HOME/.watch.lock
 #
 # Never uses sudo and never writes outside $PRESYO_HOME.
@@ -21,11 +28,12 @@ PRESYO_HOME="${PRESYO_HOME:-$HOME}"
 BIN="${BIN:-$PRESYO_HOME/bin/presyo}"
 DAILY="${DAILY:-$PRESYO_HOME/bin/daily.sh}"
 DB="${DB:-$PRESYO_HOME/data/presyo.db}"
+REPO="${REPO:-$PRESYO_HOME/repo}"
 LOG="${LOG:-$PRESYO_HOME/logs/watch.log}"
 LOCK="${LOCK:-$PRESYO_HOME/.watch.lock}"
 
 # Safety: every path we touch must live under $PRESYO_HOME.
-for p in "$BIN" "$DAILY" "$DB" "$LOG" "$LOCK"; do
+for p in "$BIN" "$DAILY" "$DB" "$REPO" "$LOG" "$LOCK"; do
   case "$p" in
     "$PRESYO_HOME"/*) ;;
     *)
@@ -85,16 +93,30 @@ else
   fail=1
 fi
 
-# Post at most one region on every run (fbpost -auto decides; it enforces
-# window/gap/order/staleness itself), unless disabled.
+# Post the DA digest (or, with PRESYO_DA_POST=region, at most one region)
+# on every run, unless disabled. The digest links to the day page, so it
+# only posts once d/<date>/day.json is published and old enough.
 if [ -f "$PRESYO_HOME/.config/presyo/fbpost.disabled" ]; then
-  echo "watch.sh: fbpost.disabled exists, skipping fbpost -auto"
+  echo "watch.sh: fbpost.disabled exists, skipping DA post"
 else
-  if "$BIN" fbpost -db "$DB" -auto; then
+  # New data was just pushed: give the site a moment to publish the day
+  # page before the digest links to it (fbdigest waits for 3 min anyway).
+  if [ "$daily_rc" = "0" ] && [ "${PRESYO_DA_POST:-digest}" != "region" ]; then
+    sleep "${PRESYO_PUBLISH_WAIT:-190}"
+  fi
+  if [ "${PRESYO_DA_POST:-digest}" = "region" ]; then
+    post_cmd=("$BIN" fbpost -db "$DB" -auto)
+  else
+    post_cmd=("$BIN" fbdigest -db "$DB" -auto -site-public "$REPO/site/public")
+    if [ "${PRESYO_DIGEST_DRY_RUN:-0}" = "1" ]; then
+      post_cmd+=(-dry-run)
+    fi
+  fi
+  if "${post_cmd[@]}"; then
     fbpost_rc=0
   else
     fbpost_rc=$?
-    echo "error: presyo fbpost -auto failed (rc=$fbpost_rc)"
+    echo "error: presyo ${post_cmd[1]} -auto failed (rc=$fbpost_rc)"
     fail=1
   fi
 fi

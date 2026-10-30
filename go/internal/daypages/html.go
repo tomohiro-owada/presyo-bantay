@@ -108,6 +108,13 @@ type RegionView struct {
 	NoDataTL, NoDataEN, NoDataJA string
 }
 
+// DigestView is the multi-region digest card on a day page.
+type DigestView struct {
+	Image                        string
+	AltTL, AltEN, AltJA          string
+	BlocksTL, BlocksEN, BlocksJA []Block
+}
+
 // DayView is the data for one day page.
 type DayView struct {
 	Title                        string
@@ -121,6 +128,7 @@ type DayView struct {
 	OlderPath, NewerPath         string
 	OlderTL, OlderEN, OlderJA    string
 	NewerTL, NewerEN, NewerJA    string
+	Digest                       *DigestView
 	Regions                      []RegionView
 	FooterTL, FooterEN, FooterJA string
 }
@@ -171,6 +179,16 @@ func renderDayPage(day *DayDoc, older, newer *DayDoc, base string) (string, erro
 		v.NewerTL, v.NewerEN, v.NewerJA = nl.TL, nl.EN, nl.JA
 	}
 	firstImg := true
+	if dg := day.Digest; dg != nil {
+		v.Digest = &DigestView{
+			Image: dg.Image,
+			AltTL: dg.Alt.TL, AltEN: dg.Alt.EN, AltJA: dg.Alt.JA,
+			BlocksTL: toBlocks(dg.Text.TL), BlocksEN: toBlocks(dg.Text.EN), BlocksJA: toBlocks(dg.Text.JA),
+		}
+		v.OGImage = base + "d/" + day.Date + "/" + dg.Image
+		v.OGAlt = dg.Alt.TL
+		firstImg = false
+	}
 	for _, r := range day.Regions {
 		rv := RegionView{
 			ID:      r.ID,

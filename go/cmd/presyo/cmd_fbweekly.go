@@ -54,7 +54,7 @@ func cmdFBWeekly(argv []string) int {
 	statePath := fs.String("state", "", "state file (default $PRESYO_HOME/state/fbpost.json)")
 	envFile := fs.String("env-file", "", "env file with PRESYO_FB_PAGE_ID/PRESYO_FB_PAGE_TOKEN (default $PRESYO_HOME/.config/presyo/fb.env)")
 	disableFile := fs.String("disable-file", "", "skip posting when this file exists (default $PRESYO_HOME/.config/presyo/fbpost.disabled)")
-	minGap := fs.Duration("min-gap", 2*time.Hour, "auto: skip when the last successful post is newer than this")
+	minGap := fs.Duration("min-gap", defaultMinGap, "auto: skip when the last successful post is newer than this")
 	windowStart := fs.String("window-start", "18:00", "auto posting window start HH:MM Asia/Manila")
 	windowEnd := fs.String("window-end", "20:00", "auto posting window end HH:MM Asia/Manila (exclusive)")
 	graphBase := fs.String("graph-base", "https://graph.facebook.com/v21.0", "Graph API base URL (tests use httptest)")

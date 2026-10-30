@@ -283,3 +283,5 @@ The website is Cloudflare-challenged, so water advisories come from
 `go/UTILITIES_MAYNILAD_X.md` for the v1 inbox format, the normalizer /
 push tooling, and the Go fetch behaviour (`-maynilad-x`, `-maynilad-site`,
 `WaterStatus.Advisories`, `XAdvisory`, `XAreasLabel`).
+
+> **Superseded (DA gate):** the DA-first gate, `-bills-max-wait`, the 12:00 routine window start and the 2 h min-gap described above were replaced by `DIGEST_SPEC.md` (no DA gate, 75 min min-gap, routine window 10:00-19:00).
