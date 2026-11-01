@@ -54,6 +54,18 @@ H2="$(git -C "$TMP/remote.git" rev-parse grab-data)"
 if FAKE_RC=1 FAKE_FARE=999 "$JOB"; then bad "failure not propagated"; else ok "failure propagates"; fi
 [ "$(git -C "$TMP/remote.git" rev-parse grab-data)" = "$H2" ] && ok "no push after failure" || bad "pushed after failure"
 
+# 4b. PUBLISH read from the env file (cron has no exported variables).
+unset PRESYO_GRABFARE_PUBLISH
+printf 'PRESYO_GRABFARE_PUBLISH=1\n' >"$PRESYO_HOME/.config/presyo/grab.env"
+H3="$(git -C "$TMP/remote.git" rev-parse grab-data)"
+FAKE_FARE=401 "$JOB"
+[ "$(git -C "$TMP/remote.git" rev-parse grab-data)" != "$H3" ] && ok "publish switch read from the env file" || bad "env file switch ignored"
+printf 'PRESYO_GRABFARE_PUBLISH=0\n' >"$PRESYO_HOME/.config/presyo/grab.env"
+H4="$(git -C "$TMP/remote.git" rev-parse grab-data)"
+FAKE_FARE=402 "$JOB"
+[ "$(git -C "$TMP/remote.git" rev-parse grab-data)" = "$H4" ] && ok "env file PUBLISH=0 keeps it off" || bad "published with PUBLISH=0"
+rm -f "$PRESYO_HOME/.config/presyo/grab.env"
+
 # 5. outside PRESYO_HOME refused.
 if BIN=/tmp/x "$JOB" 2>/dev/null; then bad "outside path accepted"; else ok "outside PRESYO_HOME refused"; fi
 echo "pass=$pass fail=$fail"

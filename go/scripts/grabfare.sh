@@ -65,6 +65,16 @@ exec >>"$LOG" 2>&1
 ts() { date '+%Y-%m-%d %H:%M:%S %Z'; }
 echo "=== grabfare.sh start $(ts) ==="
 
+# PRESYO_GRABFARE_PUBLISH (and the API settings) live in the env file; the
+# secrets in it are never echoed.
+if [ -f "$ENV_FILE" ]; then
+  set -a
+  # shellcheck disable=SC1090
+  . "$ENV_FILE"
+  set +a
+fi
+PUBLISH="${PRESYO_GRABFARE_PUBLISH:-0}"
+
 rc=0
 "$BIN" grabfare -env-file "$ENV_FILE" -out-dir "$OUT" || rc=$?
 if [ "$rc" -ne 0 ]; then
