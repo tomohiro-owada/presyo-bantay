@@ -32,6 +32,7 @@ import {
   type WeeksFile,
 } from "./weeks";
 import { resolveDeals } from "./dealsSource";
+import { evalGrabFare, type GrabFareView } from "./grabfare";
 
 /* ---------- Data shapes (see presyo_bantay/export_site.py) ---------- */
 
@@ -126,6 +127,9 @@ const PALETTE = [
 const FX_COLOR = "#6b7280";
 
 const DATA = `${import.meta.env.BASE_URL}data/`;
+const GRAB_FARE_URL =
+  import.meta.env.VITE_GRAB_FARE_URL ??
+  "https://raw.githubusercontent.com/tomohiro-owada/presyo-bantay/grab-data/grab-fare.json";
 
 let lang: Lang = loadLang();
 let meta: Meta | null = null;
@@ -134,6 +138,7 @@ let fx: FxFile | null = null;
 let fxFailed = false;
 let deals: DealsFile | null = null;
 let dealsMissing = false;
+let grabFare: GrabFareView | null = null;
 let days: DaysFile | null = null;
 let weeks: WeeksFile | null = null;
 const seriesCache = new Map<number, SeriesFile>();
@@ -308,6 +313,7 @@ function applyStrings(): void {
   renderDeals();
   renderDays();
   renderWeeks();
+  renderGrabFare();
   if (meta?.updated) {
     const t = $("foot-updated");
     t.textContent = meta.updated;
@@ -400,6 +406,47 @@ function renderDeals(): void {
       dayLink.hidden = true;
     }
   }
+}
+
+/* ---------- Grab fare card ---------- */
+
+function renderGrabFare(): void {
+  const card = document.getElementById("grab-card");
+  if (!card) return;
+  const view = grabFare;
+  if (!view || view.validUntilMs < Date.now()) {
+    card.hidden = true;
+    return;
+  }
+  const t = view.text[lang];
+  card.hidden = false;
+  $("grab-h").textContent = t.title;
+  $("grab-route").textContent = t.route;
+  const hl = $("grab-headline");
+  let strong = hl.querySelector("strong");
+  if (!strong) {
+    strong = document.createElement("strong");
+    hl.append(strong);
+  }
+  strong.textContent = t.headline;
+  $("grab-asof").textContent = t.asof;
+  const trafficEl = $("grab-traffic");
+  trafficEl.textContent = t.traffic;
+  trafficEl.hidden = t.traffic === "";
+  const trendEl = $("grab-trend");
+  trendEl.textContent = t.trend;
+  trendEl.classList.remove("grab-up", "grab-down");
+  if (view.trendDir === "up") trendEl.classList.add("grab-up");
+  else if (view.trendDir === "down") trendEl.classList.add("grab-down");
+  const yEl = $("grab-yesterday");
+  if (t.yesterday) {
+    yEl.hidden = false;
+    yEl.textContent = t.yesterday;
+  } else {
+    yEl.hidden = true;
+    yEl.textContent = "";
+  }
+  $("grab-note").textContent = t.note;
 }
 
 /* ---------- Daily reports card ---------- */
@@ -688,6 +735,24 @@ async function loadFx(): Promise<FxFile | null> {
     fx = null;
   }
   return fx;
+}
+
+/* ---------- Grab fare loading ---------- */
+
+async function loadGrabFare(): Promise<void> {
+  try {
+    const res = await fetch(GRAB_FARE_URL, { cache: "no-store" });
+    if (!res.ok) {
+      grabFare = null;
+      renderGrabFare();
+      return;
+    }
+    const json = await res.json();
+    grabFare = evalGrabFare(json, Date.now());
+  } catch {
+    grabFare = null;
+  }
+  renderGrabFare();
 }
 
 /* ---------- Range windowing ---------- */
@@ -1256,6 +1321,8 @@ async function boot(): Promise<void> {
       : (state.markets[0] ?? null);
   writeURL();
   await renderAll(true);
+  void loadGrabFare();
+  setInterval(loadGrabFare, 10 * 60 * 1000);
 }
 
 void boot();
