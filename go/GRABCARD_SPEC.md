@@ -79,3 +79,26 @@ Keep gofmt clean; `go vet ./...` and `go test ./internal/grabfare ./internal/fbc
 
 ## Map top strip (added)
 The renderer leaves out the top `fbchart.MapTopCutPx` (130 px at the 720 px native width) of every map image: the Grab group-ride bar and back arrow. It scales only the sub-rectangle below that strip; the source image is never modified (`TestRenderGrabFareCutsTopStrip`). Tile aspect follows the cut image.
+
+## Hourly auto post (`grabcard -auto`)
+
+One cron tick of the hourly Grab fare post, run through `scripts/grabpost.sh` at `10,15,20 5-21 * * *` (Manila).
+
+Gates (a skip exits 0 and says why on stderr):
+- `PRESYO_GRAB_FB=1` is required to post (off by default). `-dry-run` needs no gate, no FB credentials and writes no state.
+- window `05:00-22:00` Manila, `PRESYO_GRAB_POST_WINDOW=HH:MM-HH:MM` or `-window` to change it; tick minutes `:10-:29` only.
+- kill switch: the existing `fbpost.disabled` file.
+- `-sample` is refused when posting.
+
+Ladder per hour (data must be from a run captured in the CURRENT Manila hour and at most 40 min old; never an older reading):
+- `:10`, `:15` card with that run's clean maps (>= 2 after the device-marker filter and the top-strip cut). No fresh maps: exit 4 and wait.
+- `:20`..`:29` maps if they appeared, otherwise a fare-only card (`Fare lang ngayong oras · walang mapa`). No fare for the hour (pending/absent): exit 4, skip the hour.
+- after `:29` the hour is skipped.
+
+Spacing (state file `fbpost.json`, entry `region="grab"`, `as_of="YYYY-MM-DDTHH"`):
+- one Grab post per Manila hour (later ticks no-op, idempotent);
+- at least 50 min since the previous Grab post (5 min grace, same convention as the other gap rules);
+- the tick is skipped while any non-Grab post is younger than 15 min.
+- Grab posts are excluded from every other gap rule (`lastNonGrabPost`): DA digest 75 min, `fbpost`, `fbutil` (emergency 30 min), `fbweekly`. DA digest caps/logic are otherwise unchanged.
+
+Posting reuses `postPhoto` (Graph API `/photos`) and the state lock (`<state>.lock`); the page token is read from `fb.env`/env, never printed (errors are scrubbed). `-dry-run -sim-record` appends a `post_id="dry-run"` entry to the given `-state` to simulate idempotency: use a scratch state file only.

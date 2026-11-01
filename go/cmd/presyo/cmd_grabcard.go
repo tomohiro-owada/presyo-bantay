@@ -46,10 +46,21 @@ func cmdGrabcard(argv []string) int {
 	timeoutFlag := fs.String("timeout", "20s", "fetch timeout")
 	sample := fs.Bool("sample", false, "draw the SAMPLE (trial data) banner")
 	noMaps := fs.Bool("no-maps", false, "fare-only card: ignore map images")
+	auto := fs.Bool("auto", false, "hourly auto mode: gates, window, tick stage, gaps, post (or -dry-run)")
+	dryRun := fs.Bool("dry-run", false, "auto: render and decide only; never posts, never writes the post state")
+	simRecord := fs.Bool("sim-record", false, "auto+dry-run: record a dry-run entry in -state (simulation only; use a scratch state file)")
+	statePath := fs.String("state", "", "auto: post state file (default $PRESYO_HOME/state/fbpost.json)")
+	fbEnvFile := fs.String("fb-env-file", "", "auto: env file with PRESYO_FB_PAGE_ID/PRESYO_FB_PAGE_TOKEN (default $PRESYO_HOME/.config/presyo/fb.env)")
+	disableFile := fs.String("disable-file", "", "auto: skip when this file exists (default $PRESYO_HOME/.config/presyo/fbpost.disabled)")
+	graphBase := fs.String("graph-base", "https://graph.facebook.com/v21.0", "auto: Graph API base URL (tests use httptest)")
+	window := fs.String("window", "", "auto: posting window HH:MM-HH:MM Manila (default $PRESYO_GRAB_POST_WINDOW or 05:00-22:00)")
+	minGrabGap := fs.Duration("min-grab-gap", 50*time.Minute, "auto: minimum spacing between two Grab posts")
+	otherGap := fs.Duration("other-gap", 15*time.Minute, "auto: skip the hour when any other post is newer than this")
+	gapGrace := fs.Duration("gap-grace", 5*time.Minute, "auto: min-grab-gap skips only when since < gap - grace")
 	if err := fs.Parse(argv); err != nil {
 		return 1
 	}
-	if *outDir == "" {
+	if *outDir == "" && !*auto {
 		fmt.Fprintln(os.Stderr, "usage: presyo grabcard -out-dir DIR [-api-url URL] [-token-env NAME] [-env-file FILE] [-hours 26] [-now RFC3339] [-input-file FILE -maps-dir DIR] [-max-age 3h] [-stale-after 3h] [-sample] [-no-maps]")
 		return 1
 	}
@@ -77,29 +88,78 @@ func cmdGrabcard(argv []string) int {
 		}
 		now = t
 	}
+	p := grabcardParams{
+		outDir: *outDir, apiURL: *apiURLFlag, tokenEnv: *tokenEnv, envFile: *envFile,
+		hours: *hours, now: now, inputFile: *inputFile, mapsDir: *mapsDir,
+		maxAge: maxAge, staleAfter: staleAfter, timeout: timeout,
+		sample: *sample, noMaps: *noMaps,
+	}
+	if *auto {
+		return grabAuto(p, grabAutoOptions{
+			dryRun: *dryRun, simRecord: *simRecord, statePath: *statePath,
+			fbEnvFile: *fbEnvFile, disableFile: *disableFile, graphBase: *graphBase,
+			window: *window, minGrabGap: *minGrabGap, otherGap: *otherGap, gapGrace: *gapGrace,
+			presyoHome: defaultPresyoHome(),
+		})
+	}
+	_, code := grabcardRender(p)
+	return code
+}
 
+// grabcardParams configures one render.
+type grabcardParams struct {
+	outDir, apiURL, tokenEnv, envFile string
+	hours                             int
+	now                               time.Time
+	inputFile, mapsDir                string
+	maxAge, staleAfter, timeout       time.Duration
+	sample, noMaps                    bool
+	// currentHour: only a run captured in the current Manila hour may be used
+	// (auto mode: never post an older reading as this hour's).
+	currentHour bool
+}
+
+// grabcardResult describes a rendered card.
+type grabcardResult struct {
+	RunTs    string
+	Maps     []string
+	Dropped  []grabcardDropped
+	Caption  string
+	PNGPath  string
+	TxtPath  string
+	FareOnly bool
+}
+
+// grabcardRender fetches the data, picks the run and writes the card files.
+// Exit codes: 0 ok, 1 error, 3 check failed, 4 no eligible run.
+func grabcardRender(p grabcardParams) (*grabcardResult, int) {
+	fail := func(msg string) (*grabcardResult, int) {
+		fmt.Fprintln(os.Stderr, "grabcard: error: "+msg)
+		return nil, 1
+	}
+	now, maxAge, staleAfter, timeout := p.now, p.maxAge, p.staleAfter, p.timeout
 	// Source of the data and of the images.
 	var payload []byte
 	var fetchImage func(ts, kind string) ([]byte, error)
-	if *inputFile != "" {
-		data, err := os.ReadFile(*inputFile)
+	if p.inputFile != "" {
+		data, err := os.ReadFile(p.inputFile)
 		if err != nil {
 			return fail("cannot read input")
 		}
 		payload = data
 		fetchImage = func(ts, kind string) ([]byte, error) {
-			if *mapsDir == "" {
+			if p.mapsDir == "" {
 				return nil, fmt.Errorf("no maps dir")
 			}
-			return os.ReadFile(filepath.Join(*mapsDir, ts+"_"+kind+".webp"))
+			return os.ReadFile(filepath.Join(p.mapsDir, ts+"_"+kind+".webp"))
 		}
 	} else {
-		cfg, err := loadGrabConfig(*apiURLFlag, *tokenEnv, *envFile)
+		cfg, err := loadGrabConfig(p.apiURL, p.tokenEnv, p.envFile)
 		if err != nil {
 			return fail("missing configuration")
 		}
 		fmt.Fprintln(os.Stderr, "fetching grab fare data")
-		data, err := grabfare.FetchGET(cfg.url, *hours, cfg.token, timeout)
+		data, err := grabfare.FetchGET(cfg.url, p.hours, cfg.token, timeout)
 		if err != nil {
 			return fail("fetch failed")
 		}
@@ -136,8 +196,11 @@ func cmdGrabcard(argv []string) int {
 		images  []image.Image
 		dropped []grabcardDropped
 	)
-	for _, cand := range grabfare.SelectRuns(doc, now, maxAge, !*noMaps) {
-		if *noMaps {
+	for _, cand := range grabfare.SelectRuns(doc, now, maxAge, !p.noMaps) {
+		if p.currentHour && !sameManilaHour(cand.Captured, now) {
+			continue
+		}
+		if p.noMaps {
 			c := cand
 			chosen = &c
 			break
@@ -174,11 +237,11 @@ func cmdGrabcard(argv []string) int {
 	}
 	if chosen == nil {
 		fmt.Fprintln(os.Stderr, "grabcard: no eligible run")
-		return grabcardNoRun
+		return nil, grabcardNoRun
 	}
 
 	o := grabfare.BuildFromRun(doc, now, staleAfter, chosen.Ts)
-	img, err := fbchart.RenderGrabFare(o, images, *sample)
+	img, err := fbchart.RenderGrabFare(o, images, p.sample)
 	if err != nil {
 		return fail("render failed")
 	}
@@ -187,19 +250,19 @@ func cmdGrabcard(argv []string) int {
 	if problems == nil {
 		problems = []string{}
 	}
-	if err := os.MkdirAll(*outDir, 0o755); err != nil {
+	if err := os.MkdirAll(p.outDir, 0o755); err != nil {
 		return fail("cannot write output")
 	}
 	writeJSON := func(name string, v any) error {
 		data, _ := json.MarshalIndent(v, "", "  ")
-		return writeFileAtomic(filepath.Join(*outDir, name), append(data, '\n'))
+		return writeFileAtomic(filepath.Join(p.outDir, name), append(data, '\n'))
 	}
 	if err := writeJSON("grab-card.check.json", map[string]any{"ok": len(problems) == 0, "problems": problems}); err != nil {
 		return fail("cannot write output")
 	}
 	if len(problems) > 0 {
 		fmt.Fprintln(os.Stderr, "grabcard: check failed")
-		return grabcardCheckFailed
+		return nil, grabcardCheckFailed
 	}
 	// Full-colour PNG (not the palette-quantised EncodeCompact): the real
 	// map screenshots must keep their colours.
@@ -208,10 +271,10 @@ func cmdGrabcard(argv []string) int {
 	if err := enc.Encode(&buf, img); err != nil {
 		return fail("encode failed")
 	}
-	if err := writeFileAtomic(filepath.Join(*outDir, "grab-card.png"), buf.Bytes()); err != nil {
+	if err := writeFileAtomic(filepath.Join(p.outDir, "grab-card.png"), buf.Bytes()); err != nil {
 		return fail("cannot write output")
 	}
-	if err := writeFileAtomic(filepath.Join(*outDir, "grab-card.txt"), []byte(caption+"\n")); err != nil {
+	if err := writeFileAtomic(filepath.Join(p.outDir, "grab-card.txt"), []byte(caption+"\n")); err != nil {
 		return fail("cannot write output")
 	}
 
@@ -236,7 +299,7 @@ func cmdGrabcard(argv []string) int {
 	meta := map[string]any{
 		"run_ts":       chosen.Ts,
 		"as_of":        asOf,
-		"sample":       *sample,
+		"sample":       p.sample,
 		"maps":         kinds,
 		"dropped_maps": dropped,
 		"traffic":      map[string]any{"included": o.Traffic != nil, "reason": trafficReason},
@@ -244,8 +307,13 @@ func cmdGrabcard(argv []string) int {
 	if err := writeJSON("grab-card.json", meta); err != nil {
 		return fail("cannot write output")
 	}
-	fmt.Printf("grabcard: wrote %s\n", filepath.Join(*outDir, "grab-card.png"))
-	return 0
+	fmt.Printf("grabcard: wrote %s\n", filepath.Join(p.outDir, "grab-card.png"))
+	res := &grabcardResult{
+		RunTs: chosen.Ts, Maps: kinds, Dropped: dropped, Caption: caption,
+		PNGPath: filepath.Join(p.outDir, "grab-card.png"), TxtPath: filepath.Join(p.outDir, "grab-card.txt"),
+		FareOnly: p.noMaps,
+	}
+	return res, 0
 }
 
 type grabConfig struct{ url, token string }
@@ -301,4 +369,9 @@ func writeFileAtomic(path string, data []byte) error {
 		return err
 	}
 	return os.Rename(name, path)
+}
+
+func sameManilaHour(a, b time.Time) bool {
+	a, b = a.In(manilaZone), b.In(manilaZone)
+	return a.Year() == b.Year() && a.YearDay() == b.YearDay() && a.Hour() == b.Hour()
 }

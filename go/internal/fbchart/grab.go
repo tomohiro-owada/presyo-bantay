@@ -97,14 +97,23 @@ func RenderGrabFare(o *grabfare.Output, maps []image.Image, sample bool) (*image
 		mapH = tileH + 16 + 30
 	}
 
+	// Fare-only card: a small honest note instead of an empty strip.
+	noteH := 0
+	if nMaps == 0 {
+		noteH = 64
+	}
+
 	numBlocks := 1 + 1
 	if trafficH > 0 {
+		numBlocks++
+	}
+	if noteH > 0 {
 		numBlocks++
 	}
 	if mapH > 0 {
 		numBlocks++
 	}
-	total := panelH + trendH + trafficH + mapH
+	total := panelH + trendH + trafficH + noteH + mapH
 	pad := (footerTop - top - total) / (numBlocks + 1)
 	if pad < 8 {
 		pad = 8
@@ -206,6 +215,16 @@ func RenderGrabFare(o *grabfare.Output, maps []image.Image, sample bool) (*image
 		fillRounded(dst, px, y, px+cw, y+52, 12, fill)
 		cdraw(dst, chipText, Bold, 32, white, px+26, y+37)
 		y += trafficH + pad
+	}
+
+	// fare-only note
+	if noteH > 0 {
+		noteText := "Fare lang ngayong oras · walang mapa"
+		cw := cmeasure(noteText, Bold, 30) + 52
+		px := marginL + 30
+		fillRounded(dst, px, y, px+cw, y+52, 12, grey)
+		cdraw(dst, noteText, Bold, 30, white, px+26, y+36)
+		y += noteH + pad
 	}
 
 	// map strip

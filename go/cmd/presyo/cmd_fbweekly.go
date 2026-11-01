@@ -231,6 +231,9 @@ func fbweeklyRun(db *sql.DB, opt fbweeklyOptions) int {
 		}
 		var latest time.Time
 		for _, p := range st.Posts {
+			if isGrabPost(p) { // hourly Grab posts never count toward gaps
+				continue
+			}
 			if t, err := time.Parse(time.RFC3339, p.PostedAt); err == nil {
 				if t.After(latest) {
 					latest = t

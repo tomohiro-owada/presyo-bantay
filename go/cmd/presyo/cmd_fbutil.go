@@ -339,14 +339,8 @@ func fbutilAuto(opt fbutilOptions, manila time.Time) int {
 	}
 	// Global min-gap over ALL entries (DA, weekly, util). Urgent
 	// alerts bypass the full gap but keep a short one.
-	var latest time.Time
-	for _, p := range st.Posts {
-		if t, err := time.Parse(time.RFC3339, p.PostedAt); err == nil {
-			if t.After(latest) {
-				latest = t
-			}
-		}
-	}
+	// Hourly Grab posts are excluded (lastNonGrabPost).
+	latest := lastNonGrabPost(st)
 	emergencyOnlyGap := false
 	if !latest.IsZero() {
 		sinceLast := manila.Sub(latest)

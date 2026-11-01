@@ -206,6 +206,9 @@ func fbdigestRun(opt fbdigestOptions) int {
 		var lastAny, lastDigest time.Time
 		perDay := 0
 		for _, p := range st.Posts {
+			if isGrabPost(p) { // hourly Grab posts never count toward gaps
+				continue
+			}
 			t, err := time.Parse(time.RFC3339, p.PostedAt)
 			if err != nil {
 				continue

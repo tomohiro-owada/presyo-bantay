@@ -19,7 +19,7 @@
 #   3. aborts unless `ssh $VPS_HOST uname -m` reports x86_64,
 #   4. copies the binary to $REMOTE_DIR/bin/presyo.new, then atomically
 #      `mv`s it over $REMOTE_DIR/bin/presyo,
-#   5. copies scripts/daily.sh and scripts/watch.sh to $REMOTE_DIR/bin/
+#   5. copies scripts/daily.sh, watch.sh, weekly.sh, utilities.sh, grabfare.sh and grabpost.sh to $REMOTE_DIR/bin/
 #      (chmod 755),
 #   6. prints the remote `presyo version`.
 #
@@ -88,6 +88,10 @@ run scp scripts/weekly.sh "${VPS_HOST}:${REMOTE_DIR}/bin/weekly.sh"
 run ssh "${VPS_HOST}" "chmod 755 ${REMOTE_DIR}/bin/weekly.sh"
 run scp scripts/utilities.sh "${VPS_HOST}:${REMOTE_DIR}/bin/utilities.sh"
 run ssh "${VPS_HOST}" "chmod 755 ${REMOTE_DIR}/bin/utilities.sh"
+run scp scripts/grabfare.sh "${VPS_HOST}:${REMOTE_DIR}/bin/grabfare.sh"
+run ssh "${VPS_HOST}" "chmod 755 ${REMOTE_DIR}/bin/grabfare.sh"
+run scp scripts/grabpost.sh "${VPS_HOST}:${REMOTE_DIR}/bin/grabpost.sh"
+run ssh "${VPS_HOST}" "chmod 755 ${REMOTE_DIR}/bin/grabpost.sh"
 run ssh "${VPS_HOST}" "${REMOTE_BIN} version"
 
 echo "deploy done. This script never touches crontab (see your private ops notes for the schedule)."

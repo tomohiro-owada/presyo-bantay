@@ -601,6 +601,9 @@ func autoSelect(db *sql.DB, opt autoOptions) ([]string, string, bool) {
 	posted := map[string]bool{}
 	var latest time.Time
 	for _, p := range st.Posts {
+		if isGrabPost(p) { // hourly Grab posts never count toward gaps
+			continue
+		}
 		// "weekly" entries never satisfy a region slot, but they
 		// still count for the min-gap spacing below.
 		if p.Region != "" && p.Region != "weekly" && p.AsOf == D {
