@@ -240,6 +240,8 @@ func TestGrabcardNoEligibleRun(t *testing.T) {
 }
 
 func TestGrabcardMissingConfigAndAuth(t *testing.T) {
+	t.Setenv("PRESYO_GRAB_API_URL", "")
+	t.Setenv("PRESYO_GRAB_API_TOKEN", "")
 	out := t.TempDir()
 	if code := cmdGrabcard([]string{"-out-dir", out}); code != 1 {
 		t.Errorf("missing config exit %d", code)
