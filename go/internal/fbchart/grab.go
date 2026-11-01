@@ -15,6 +15,22 @@ var amber = colorRGB(0xC9, 0x8A, 0x00)
 
 func colorRGB(r, g, b byte) color.RGBA { return color.RGBA{R: r, G: g, B: b, A: 0xFF} }
 
+// MapTopCutPx is the height (at the 720px native width of the cropped map
+// images) of the top strip that holds the Grab group-ride bar and the back
+// arrow. The card renderer leaves this strip out.
+const MapTopCutPx = 130
+
+func mapTopCut(b image.Rectangle) int {
+	if b.Dx() <= 0 {
+		return 0
+	}
+	c := MapTopCutPx * b.Dx() / 720
+	if c > b.Dy()/3 { // never eat more than a third of a (small/odd) image
+		c = b.Dy() / 3
+	}
+	return c
+}
+
 func RenderGrabFare(o *grabfare.Output, maps []image.Image, sample bool) (*image.RGBA, error) {
 	if o == nil || !o.Visible || o.Fare == nil {
 		return nil, fmt.Errorf("fbchart: grab fare not visible")
@@ -76,7 +92,8 @@ func RenderGrabFare(o *grabfare.Output, maps []image.Image, sample bool) (*image
 	var tileW, tileH int
 	if nMaps > 0 {
 		tileW = (W - 2*marginL - (nMaps-1)*16) / nMaps
-		tileH = tileW * 744 / 720
+		b0 := maps[0].Bounds()
+		tileH = tileW * (b0.Dy() - mapTopCut(b0)) / b0.Dx()
 		mapH = tileH + 16 + 30
 	}
 
@@ -201,7 +218,11 @@ func RenderGrabFare(o *grabfare.Output, maps []image.Image, sample bool) (*image
 			y1 := y0 + tileH
 			fillRounded(dst, x0, y0, x1, y1, 14, sepCol)
 			inner := image.Rect(x0+2, y0+2, x1-2, y1-2)
-			draw.CatmullRom.Scale(dst, inner, maps[i], maps[i].Bounds(), draw.Over, nil)
+			// The top strip (Grab group-ride bar + back arrow) is left out by
+			// scaling only the sub-rectangle below it; the source is not modified.
+			sb := maps[i].Bounds()
+			sb.Min.Y += mapTopCut(sb)
+			draw.CatmullRom.Scale(dst, inner, maps[i], sb, draw.Over, nil)
 			// clip outer corners
 			for yy := y0; yy < y1; yy++ {
 				for xx := x0; xx < x1; xx++ {

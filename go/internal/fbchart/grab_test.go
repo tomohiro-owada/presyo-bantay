@@ -130,3 +130,46 @@ func TestStripTrendGlyph(t *testing.T) {
 		}
 	}
 }
+
+func TestRenderGrabFareCutsTopStrip(t *testing.T) {
+	red := color.RGBA{0xFF, 0x00, 0xFF, 0xFF} // magenta: appears nowhere else on the card
+	blue := color.RGBA{0x00, 0x00, 0xFF, 0xFF}
+	src := image.NewRGBA(image.Rect(0, 0, 720, 744))
+	for y := 0; y < 744; y++ {
+		c := blue
+		if y < MapTopCutPx {
+			c = red // the group-ride bar strip
+		}
+		for x := 0; x < 720; x++ {
+			src.Set(x, y, c)
+		}
+	}
+	before := append([]uint8(nil), src.Pix...)
+	img, err := RenderGrabFare(grabOutput(nil, false, "up"), []image.Image{src, src}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	nRed, nBlue := 0, 0
+	for y := 0; y < 1350; y++ {
+		for x := 0; x < 1080; x++ {
+			p := img.RGBAAt(x, y)
+			if p.R > 200 && p.G < 60 && p.B > 200 {
+				nRed++
+			}
+			if p == blue {
+				nBlue++
+			}
+		}
+	}
+	if nBlue < 2*250*200 {
+		t.Errorf("map body missing: %d blue px", nBlue)
+	}
+	if nRed > 0 {
+		t.Errorf("top strip leaked into the card: %d red px", nRed)
+	}
+	for i := range before {
+		if src.Pix[i] != before[i] {
+			t.Fatal("source image was modified")
+		}
+	}
+}

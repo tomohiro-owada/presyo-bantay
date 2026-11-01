@@ -76,3 +76,6 @@ Vertical spacing: distribute free space evenly like power.go does. Tests: render
 - Outputs in DIR (atomic writes): `grab-card.png`, `grab-card.txt` (caption), `grab-card.check.json` ({"ok":bool,"problems":[...]}), `grab-card.json` (run ts, chosen map kinds, dropped map kinds with reason "device-marker", whether traffic was included or dropped with its TrafficSane reason, as_of). Exit 0 ok.
 - Tests (httptest API with a fake `/v1/grab/map/...` endpoint and Bearer check; fixtures generated in-test): happy path with 3 maps; marker image dropped; overlay-traffic run skipped in favour of an older clean run; traffic insane (non-overlay) -> card without traffic; no maps -> exit 4; checker failure path; no token/URL in outputs/stderr; output scan has no server identifiers (no "http" except the site URL in the caption, no "/home", "ssh").
 Keep gofmt clean; `go vet ./...` and `go test ./internal/grabfare ./internal/fbchart ./cmd/presyo` must pass.
+
+## Map top strip (added)
+The renderer leaves out the top `fbchart.MapTopCutPx` (130 px at the 720 px native width) of every map image: the Grab group-ride bar and back arrow. It scales only the sub-rectangle below that strip; the source image is never modified (`TestRenderGrabFareCutsTopStrip`). Tile aspect follows the cut image.
