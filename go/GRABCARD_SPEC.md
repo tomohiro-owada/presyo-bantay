@@ -54,7 +54,7 @@ Route names come from Output.Route (from/to); shorten "Festival Supermall Alaban
 `CheckCaption(text string, o *Output) []string` (problems, empty = ok): 4 blocks, none empty; no "$", "NaN", nested parentheses; every ₱ amount and every N% and every HH:MM
 in the text must be derivable from Output values (headline min/max/standard rounded, trend deltas and pct rounded, as_of_hhmm, previous_hhmm, yesterday hhmm, traffic red pct);
 each of the three language blocks must contain a trend line (▲/▼/＝ or the none text) and the disclaimer wording (TL "Hindi opisyal", EN "Not an official fare", JA "公式運賃ではありません");
-a traffic line (🚦) is present iff Output.Traffic != nil; the only URL is the site URL; no "ssh", "/home", "@", IPs, "abalol.blog".
+a traffic line (🚦) is present iff Output.Traffic != nil; the only URL is the site URL; no "ssh", "/home", "@", IPs.
 
 ## 4. Renderer `internal/fbchart/grab.go`
 `RenderGrabFare(o *grabfare.Output, maps []image.Image, sample bool) (*image.RGBA, error)` – 1080x1350 in the exact style of RenderPowerAlert (read power.go, water.go and

@@ -146,7 +146,7 @@ func TestCheckCaptionCatchesProblems(t *testing.T) {
 		"ssh":              c + "\nssh box",
 		"home path":        c + "\n/home/x",
 		"email":            c + "\nme@example.com",
-		"other url":        c + "\nhttps://abalol.blog/x",
+		"other url":        c + "\nhttps://example.com/x",
 		"dollar":           c + "\n$5",
 		"block missing":    strings.Replace(c, Separator, "", 1),
 	}

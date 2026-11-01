@@ -280,7 +280,7 @@ func CheckCaption(text string, o *Output) []string {
 	if strings.Contains(cleaned, "http") {
 		add("unexpected http")
 	}
-	for _, bad := range []string{"ssh", "/home", "@", "abalol.blog"} {
+	for _, bad := range []string{"ssh", "/home", "@"} {
 		if strings.Contains(text, bad) {
 			add("forbidden token: " + bad)
 		}
