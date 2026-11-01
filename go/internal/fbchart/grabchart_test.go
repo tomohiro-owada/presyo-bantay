@@ -172,3 +172,41 @@ func TestLeftHalfTextsStayLeftOfChart(t *testing.T) {
 		}
 	}
 }
+
+func TestBottomYLabelDoesNotCollideWithXLabels(t *testing.T) {
+	o := hourlyOut(hp(0, 1, 2, 3, 4, 5, 6, 7), nil)
+	today, yest, _ := grabChartSeries(o)
+	lo, hi, step := chartYRange(today, yest)
+	zone := image.Rect(560, 290, 1000, 575)
+	g := chartGeom(zone, lo, hi, step)
+	dst := image.NewRGBA(image.Rect(0, 0, W, 700))
+	fillRect(dst, 0, 0, W, 700, white)
+	drawGrabChart(dst, zone, o)
+
+	nonWhite := func(r image.Rectangle) int {
+		n := 0
+		for y := r.Min.Y; y < r.Max.Y; y++ {
+			for x := r.Min.X; x < r.Max.X; x++ {
+				if dst.RGBAAt(x, y) != white {
+					n++
+				}
+			}
+		}
+		return n
+	}
+	// y gutter around and below the bottom gridline (left of the "00" label): nothing drawn
+	botY := int(g.y(lo))
+	gutter := image.Rect(zone.Min.X, botY-int(g.tickSize), g.left-24, g.bottom+int(g.tickSize*1.4))
+	if n := nonWhite(gutter); n != 0 {
+		t.Errorf("bottom y label (or something else) in the gutter overlaps the x labels: %d px", n)
+	}
+	// the next gridline is still labelled
+	above := int(g.y(lo + step))
+	if n := nonWhite(image.Rect(zone.Min.X, above-int(g.tickSize*0.6), g.left-8, above+int(g.tickSize*0.6))); n == 0 {
+		t.Error("second y label missing")
+	}
+	// the "00" x label is drawn
+	if n := nonWhite(image.Rect(g.left-14, g.bottom+6, g.left+14, g.bottom+int(g.tickSize*1.4))); n == 0 {
+		t.Error("00 x label missing")
+	}
+}

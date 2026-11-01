@@ -236,6 +236,9 @@ func drawGrabChart(dst *image.RGBA, zone image.Rectangle, o *grabfare.Output) {
 	for v := lo; v <= hi+0.001; v += step {
 		yy := int(math.Round(g.y(v)))
 		fillRect(dst, g.left, yy, g.right, yy+1, sepCol)
+		if v < lo+step/2 {
+			continue // bottom gridline stays unlabelled: its label would collide with the "00" x label
+		}
 		lbl := yTickLabel(v)
 		cdraw(dst, lbl, Medium, g.tickSize, mutCol, g.left-8-cmeasure(lbl, Medium, g.tickSize), yy+int(g.tickSize*0.35+0.5))
 	}
