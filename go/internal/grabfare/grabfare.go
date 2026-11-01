@@ -51,6 +51,7 @@ type Run struct {
 	Status     string     `json:"status"`
 	Fare       *Fare      `json:"fare"`
 	Traffic    *TrafficIn `json:"traffic"`
+	MapImages  []string   `json:"map_images"`
 }
 
 // Fare mirrors the fare object. Numbers may be null.
@@ -261,8 +262,52 @@ func parseCaptured(s string) (time.Time, error) {
 }
 
 // trafficOut builds the public traffic object from the same run only.
+// TrafficSane reports whether a traffic analysis is usable for the card.
+func TrafficSane(t *TrafficIn) (bool, string) {
+	if t == nil {
+		return false, "empty"
+	}
+	summary := strings.ToLower(strings.TrimSpace(t.Summary))
+	if summary == "" {
+		return false, "empty"
+	}
+	for _, bad := range []string{"notification", "overlay", "screenshot", "supplied", "food-order", "food order", "grab food"} {
+		if strings.Contains(summary, bad) {
+			return false, "overlay"
+		}
+	}
+	for _, bad := range []string{"unable", "cannot", "can't", "not a map", "no route", "does not show", "doesn't show", "not visible"} {
+		if strings.Contains(summary, bad) {
+			return false, "unusable"
+		}
+	}
+	level := strings.ToLower(strings.TrimSpace(t.Level))
+	switch level {
+	case "light", "moderate", "heavy", "severe":
+	default:
+		return false, "level"
+	}
+	pcts := []*float64{t.GreenPct, t.YellowPct, t.RedPct}
+	for _, p := range pcts {
+		if p == nil {
+			return false, "pct"
+		}
+		if *p < 0 || *p > 100 {
+			return false, "pct"
+		}
+	}
+	sum := *t.GreenPct + *t.YellowPct + *t.RedPct
+	if sum < 95 || sum > 105 {
+		return false, "pct"
+	}
+	return true, ""
+}
+
 func trafficOut(t *TrafficIn) *TrafficOut {
 	if t == nil || strings.TrimSpace(t.Level) == "" {
+		return nil
+	}
+	if ok, _ := TrafficSane(t); !ok {
 		return nil
 	}
 	seen := map[string]bool{}
@@ -753,6 +798,79 @@ func Build(doc *InputDoc, now time.Time, staleAfter time.Duration) *Output {
 	}
 }
 
+// BuildFromRun is like Build but treats the run with the given ts as the
+// newest (runs captured after it are dropped). Returns a hidden/unavailable
+// output when that run is not usable.
+func BuildFromRun(doc *InputDoc, now time.Time, staleAfter time.Duration, ts string) *Output {
+	var target *Run
+	var targetCaptured time.Time
+	found := false
+	for i := range doc.Runs {
+		if doc.Runs[i].Ts != ts {
+			continue
+		}
+		t, err := parseCaptured(doc.Runs[i].CapturedAt)
+		if err != nil {
+			// Unusable captured time -> unavailable.
+			return unavailableOutput(doc, now)
+		}
+		r := doc.Runs[i]
+		target = &r
+		targetCaptured = t
+		found = true
+		break
+	}
+	if !found || target == nil {
+		return unavailableOutput(doc, now)
+	}
+	if _, _, _, _, ok := usableHeadline(*target); !ok {
+		// Force unavailable by considering only the target run.
+		clone := *doc
+		clone.Runs = []Run{*target}
+		return Build(&clone, now, staleAfter)
+	}
+	clone := *doc
+	var runs []Run
+	for _, r := range doc.Runs {
+		t, err := parseCaptured(r.CapturedAt)
+		if err != nil {
+			continue
+		}
+		if t.After(targetCaptured) {
+			continue
+		}
+		runs = append(runs, r)
+	}
+	clone.Runs = runs
+	return Build(&clone, now, staleAfter)
+}
+
+func unavailableOutput(doc *InputDoc, now time.Time) *Output {
+	currency := ""
+	route := RouteOut{}
+	if doc != nil {
+		currency = doc.Currency
+		route = RouteOut{From: doc.Route.From, To: doc.Route.To, Via: doc.Route.Via}
+	}
+	if currency == "" {
+		currency = "PHP"
+	}
+	return &Output{
+		GeneratedAt: rfc3339Manila(now),
+		Visible:     false,
+		State:       "unavailable",
+		Reason:      "unavailable: no usable fare reading",
+		Route:       route,
+		Currency:    currency,
+		Trend:       noneTrend(),
+		Text: Texts{
+			En: LangText{Title: "Grab fare estimate", Note: noteEn},
+			Tl: LangText{Title: "Tantiya sa pamasahe ng Grab", Note: noteTl},
+			Ja: LangText{Title: "Grab料金の目安", Note: noteJa},
+		},
+	}
+}
+
 // trendFor finds the next older usable run within the 26h window.
 func trendFor(cur usable, usables []usable) TrendOut {
 	for _, u := range usables {
@@ -800,11 +918,179 @@ func vsYesterday(cur usable, usables []usable) *TrendOut {
 	return &t
 }
 
+// TrendTextEn/Tl/Ja are exported wrappers around the trend text helpers.
+func TrendTextEn(d TrendOut) string { return trendTextEn(d) }
+func TrendTextTl(d TrendOut) string { return trendTextTl(d) }
+func TrendTextJa(d TrendOut) string { return trendTextJa(d) }
+
+// YesterdayTextEn/Tl/Ja format a vs-yesterday trend.
+func YesterdayTextEn(d TrendOut) string {
+	switch d.Direction {
+	case "up":
+		amt, pct, prev := "", "", ""
+		if d.DeltaPesos != nil {
+			amt = FormatPeso(math.Abs(*d.DeltaPesos))
+		}
+		if d.DeltaPct != nil {
+			pct = "(+" + fmtPct(*d.DeltaPct) + "%)"
+		}
+		if d.PreviousHHMM != nil {
+			prev = " vs yesterday " + *d.PreviousHHMM
+		}
+		return strings.TrimSpace("\u25b2 " + amt + " " + pct + prev)
+	case "down":
+		amt, pct, prev := "", "", ""
+		if d.DeltaPesos != nil {
+			amt = FormatPeso(math.Abs(*d.DeltaPesos))
+		}
+		if d.DeltaPct != nil {
+			pct = "(-" + fmtPct(math.Abs(*d.DeltaPct)) + "%)"
+		}
+		if d.PreviousHHMM != nil {
+			prev = " vs yesterday " + *d.PreviousHHMM
+		}
+		return strings.TrimSpace("\u25bc " + amt + " " + pct + prev)
+	case "flat":
+		prev := ""
+		if d.PreviousHHMM != nil {
+			prev = " vs yesterday " + *d.PreviousHHMM
+		}
+		return "\uff1d No change" + prev
+	default:
+		return "No earlier reading yet"
+	}
+}
+
+func YesterdayTextTl(d TrendOut) string {
+	switch d.Direction {
+	case "up", "down":
+		arrow := "\u25b2"
+		if d.Direction == "down" {
+			arrow = "\u25bc"
+		}
+		amt, pct, prev := "", "", ""
+		if d.DeltaPesos != nil {
+			amt = FormatPeso(math.Abs(*d.DeltaPesos))
+		}
+		if d.DeltaPct != nil {
+			if d.Direction == "up" {
+				pct = "(+" + fmtPct(*d.DeltaPct) + "%)"
+			} else {
+				pct = "(-" + fmtPct(math.Abs(*d.DeltaPct)) + "%)"
+			}
+		}
+		if d.PreviousHHMM != nil {
+			prev = " kumpara kahapon " + *d.PreviousHHMM
+		}
+		return strings.TrimSpace(arrow + " " + amt + " " + pct + prev)
+	case "flat":
+		prev := ""
+		if d.PreviousHHMM != nil {
+			prev = " kumpara kahapon " + *d.PreviousHHMM
+		}
+		return "\uff1d Walang pagbabago" + prev
+	default:
+		return "Wala pang naunang reading"
+	}
+}
+
+func YesterdayTextJa(d TrendOut) string {
+	switch d.Direction {
+	case "up", "down":
+		arrow := "\u25b2"
+		if d.Direction == "down" {
+			arrow = "\u25bc"
+		}
+		amt, pct, prev := "", "", ""
+		if d.DeltaPesos != nil {
+			amt = FormatPeso(math.Abs(*d.DeltaPesos))
+		}
+		if d.DeltaPct != nil {
+			if d.Direction == "up" {
+				pct = "（+" + fmtPct(*d.DeltaPct) + "%）"
+			} else {
+				pct = "（-" + fmtPct(math.Abs(*d.DeltaPct)) + "%）"
+			}
+		}
+		if d.PreviousHHMM != nil {
+			prev = " 昨日" + *d.PreviousHHMM + "比"
+		}
+		return strings.TrimSpace(arrow + " " + amt + pct + prev)
+	case "flat":
+		prev := ""
+		if d.PreviousHHMM != nil {
+			prev = " 昨日" + *d.PreviousHHMM + "比で変化なし"
+		} else {
+			prev = " 変化なし"
+		}
+		return "\uff1d" + prev
+	default:
+		return "以前の記録はまだありません"
+	}
+}
+
 // MarshalJSONDoc encodes the output with indent 2 and a trailing newline,
 // matching repo JSON conventions.
 func MarshalJSONDoc(o *Output) []byte {
 	data, _ := json.MarshalIndent(o, "", "  ")
 	return append(data, '\n')
+}
+
+// Candidate is a run eligible for the grab card.
+type Candidate struct {
+	Run      Run
+	Ts       string
+	Captured time.Time
+}
+
+// SelectCardRun returns candidates newest-first: usable fare, young enough,
+// with at least one cropped map image.
+func SelectCardRun(doc *InputDoc, now time.Time, maxAge time.Duration) []Candidate {
+	return SelectRuns(doc, now, maxAge, true)
+}
+
+// SelectRuns is SelectCardRun with the map requirement switchable (fare-only
+// cards pass requireMaps=false).
+func SelectRuns(doc *InputDoc, now time.Time, maxAge time.Duration, requireMaps bool) []Candidate {
+	var all []struct {
+		run      Run
+		captured time.Time
+	}
+	for _, r := range doc.Runs {
+		t, err := parseCaptured(r.CapturedAt)
+		if err != nil {
+			continue
+		}
+		all = append(all, struct {
+			run      Run
+			captured time.Time
+		}{run: r, captured: t})
+	}
+	sort.Slice(all, func(i, j int) bool { return all[i].captured.After(all[j].captured) })
+
+	var out []Candidate
+	for _, o := range all {
+		if _, _, _, _, ok := usableHeadline(o.run); !ok {
+			continue
+		}
+		if now.Sub(o.captured) > maxAge {
+			continue
+		}
+		if requireMaps && len(o.run.MapImages) == 0 {
+			continue
+		}
+		if requireMaps && o.run.Traffic != nil {
+			ok, reason := TrafficSane(o.run.Traffic)
+			if !ok && reason == "overlay" {
+				continue
+			}
+		}
+		out = append(out, Candidate{Run: o.run, Ts: o.run.Ts, Captured: o.captured})
+	}
+	if out == nil {
+		out = []Candidate{}
+	}
+	return out
 }
 
 // routeLine renders "from → to (via)".

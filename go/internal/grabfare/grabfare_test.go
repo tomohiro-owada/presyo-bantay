@@ -298,7 +298,7 @@ func TestNullNumbers(t *testing.T) {
 	if strings.Contains(out2.Text.En.Traffic, "%") {
 		t.Fatalf("traffic text should omit %%: %q", out2.Text.En.Traffic)
 	}
-	if out2.Traffic.RedPct != nil {
+	if out2.Traffic != nil && out2.Traffic.RedPct != nil {
 		t.Fatalf("redpct should be null")
 	}
 }

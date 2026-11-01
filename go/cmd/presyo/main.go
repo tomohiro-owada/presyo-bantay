@@ -84,6 +84,8 @@ func run(argv []string) int {
 		return cmdUtilities(argv[1:])
 	case "grabfare":
 		return cmdGrabfare(argv[1:])
+	case "grabcard":
+		return cmdGrabcard(argv[1:])
 	case "version":
 		fmt.Println("presyo " + version)
 		return 0
@@ -98,7 +100,7 @@ func run(argv []string) int {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: presyo <parse|ingest|ingest-json|fx|newdata|export|signals|region-signals|regions|chart|fbpost|fbdigest|fbweekly|advise|advice-check|deals|daypages|weekpages|utilities|utilpages|fbutil|grabfare|version> [flags]")
+	fmt.Fprintln(os.Stderr, "usage: presyo <parse|ingest|ingest-json|fx|newdata|export|signals|region-signals|regions|chart|fbpost|fbdigest|fbweekly|advise|advice-check|deals|daypages|weekpages|utilities|utilpages|fbutil|grabfare|grabcard|version> [flags]")
 }
 
 // readMetaSourceURL mirrors cli._read_meta_source_url.
