@@ -16,7 +16,7 @@ func cmdGrabfare(argv []string) int {
 	apiURLFlag := fs.String("api-url", "", "API base URL (or PRESYO_GRAB_API_URL)")
 	tokenEnv := fs.String("token-env", "PRESYO_GRAB_API_TOKEN", "env var name holding the API token")
 	envFile := fs.String("env-file", "", "KEY=VALUE env file (no default path)")
-	hours := fs.Int("hours", 26, "hours window for the recent-runs request")
+	hours := fs.Int("hours", 50, "hours window for the recent-runs request (covers yesterday for the hourly chart)")
 	nowFlag := fs.String("now", "", "RFC3339 now override (tests)")
 	inputFile := fs.String("input-file", "", "read API JSON from disk instead of fetching")
 	staleAfterFlag := fs.String("stale-after", "2h", "freshness window (Go duration)")

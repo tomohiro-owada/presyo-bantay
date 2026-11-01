@@ -5,7 +5,7 @@ Shows a Grab app quote for a fixed taxi route on Presyo Bantay: Zapote Bridge ->
 fare, and not endorsed by Grab. No Grab screenshots, logos or brand colours.
 
 ## Command
-`presyo grabfare -out-dir DIR [-api-url URL] [-token-env NAME] [-env-file FILE] [-hours 26] [-now RFC3339] [-input-file FILE] [-stale-after 2h] [-timeout 20s]`
+`presyo grabfare -out-dir DIR [-api-url URL] [-token-env NAME] [-env-file FILE] [-hours 50] [-now RFC3339] [-input-file FILE] [-stale-after 2h] [-timeout 20s]`
 - Source: `GET {api-url}/v1/grab/recent?hours=N` with `Authorization: Bearer <token>` (JSON, see "API" below). `-input-file`
   reads the same JSON from disk instead (tests/offline). api-url and token are NEVER hardcoded or defaulted in the repo: they
   come from flags/env (`PRESYO_GRAB_API_URL`, `PRESYO_GRAB_API_TOKEN`) or `-env-file` (KEY=VALUE lines, `#` comments; no
@@ -22,7 +22,7 @@ fare, and not endorsed by Grab. No Grab screenshots, logos or brand colours.
 
 ## API input (do not invent fields)
 ```
-{"route":{"from","to","via","label"},"source":"...","currency":"PHP","server_time":"...+08:00","hours":26,"count":N,
+{"route":{"from","to","via","label"},"source":"...","currency":"PHP","server_time":"...+08:00","hours":50,"count":N,
  "runs":[ newest first:
   {"ts":"20261102-0800","captured_at":"2026-11-02T08:00:00+08:00","analyzed_at":string|null,
    "status":"complete|fare_only|traffic_only|pending",
@@ -60,6 +60,7 @@ All numbers may be null.
  "traffic":null|{"level","summary_en","green_pct","yellow_pct","red_pct","worst_sections":[up to 3 street names]},
  "trend":{"direction":"up|down|flat|none","delta_pesos":n|null,"delta_pct":n|null,"previous_as_of":..,"previous_hhmm":..},
  "vs_yesterday":null|{same shape without none},
+ "hourly":{"today_date":"YYYY-MM-DD","yesterday_date":"YYYY-MM-DD","today":[{"h":0-23,"min":n,"max":n,"std":n|omitted}],"yesterday":[...]},   // visible states only
  "text":{"tl":{"title","headline","asof","traffic","trend","note"},"en":{...},"ja":{...}}}
 ```
 Texts, Taglish (tl) / English / Japanese. Example en: title "Grab fare estimate", route "Zapote Bridge → Festival Mall (Alabang-Zapote Rd)",
@@ -77,3 +78,8 @@ CSS variables with fallbacks. No images, no external requests.
 fresh complete run; up/down/flat/none trend; fallback when newest is pending; stale (>2h) hidden; only pending rows -> unavailable hidden; fare_only (traffic omitted);
 standard-basis fallback; vs_yesterday; null numbers; HTML escaping; fetch via httptest with bearer header check; token/URL never appear in stdout/stderr/outputs;
 failure path rewriting an expired previous card but leaving a valid one; a scan test that output files contain no "http", "ssh", "/home", "@" besides explicit allowed strings.
+
+## hourly series (site chart)
+`-hours` now defaults to 50 so the recent-runs request covers all of yesterday. `hourly` groups plausible usable readings by Manila date
+(today = date of `now`, yesterday = the day before) and hour; the earliest reading in an hour wins; future readings are ignored; missing hours are
+absent from the lists (never interpolated). Lists are `[]`, never null. Present only on visible (fresh/fallback) output; old consumers ignore it.

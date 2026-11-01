@@ -83,7 +83,7 @@ func TestGrabfareFetchBearer(t *testing.T) {
 	if gotAuth != "Bearer tok123" {
 		t.Fatalf("auth=%q", gotAuth)
 	}
-	if gotPath != "/v1/grab/recent" || gotHours != "26" {
+	if gotPath != "/v1/grab/recent" || gotHours != "50" {
 		t.Fatalf("path=%q hours=%q", gotPath, gotHours)
 	}
 	combined := out + errOut

@@ -498,3 +498,110 @@ table.data tr.cheap td {
     scroll-behavior: auto !important;
   }
 }
+
+/* Grab fare hour-of-day chart (inline SVG) */
+.grab-chart {
+  margin: 12px 0 4px;
+}
+
+.grab-chart h3 {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+}
+
+.grab-chart-svg {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+}
+
+.gc-grid {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.gc-xtick {
+  stroke: var(--muted);
+  stroke-width: 1;
+}
+
+.gc-tick {
+  fill: var(--muted);
+  font-size: 10px;
+}
+
+.gc-band {
+  fill: var(--accent);
+  fill-opacity: 0.14;
+}
+
+.gc-t-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.gc-t-dot {
+  fill: var(--accent);
+  stroke: var(--card);
+  stroke-width: 1;
+}
+
+.gc-y-line {
+  fill: none;
+  stroke: var(--muted);
+  stroke-opacity: 0.45;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.gc-y-dot {
+  fill: var(--muted);
+  fill-opacity: 0.45;
+}
+
+.gc-last {
+  fill: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.gc-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.gc-sw {
+  display: inline-block;
+  width: 18px;
+  height: 0;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+
+.gc-sw-t {
+  border-top: 3px solid var(--accent);
+}
+
+.gc-sw-y {
+  border-top: 2px solid var(--muted);
+  opacity: 0.45;
+}
+
+.gc-sw-b {
+  height: 8px;
+  background: var(--accent);
+  opacity: 0.14;
+}
+
+.gc-pending {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}

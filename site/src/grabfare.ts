@@ -1,4 +1,5 @@
 import type { Lang } from "./i18n";
+import { parseHourly, type GrabHourly } from "./grabchart";
 
 export interface GrabFareText {
   title: string;
@@ -18,6 +19,7 @@ export interface GrabFareView {
   trendDir: GrabFareTrendDir;
   fallback: boolean;
   validUntilMs: number;
+  hourly: GrabHourly | null;
 }
 
 function formatPeso(x: number): string {
@@ -179,5 +181,6 @@ export function evalGrabFare(raw: unknown, nowMs: number): GrabFareView | null {
     trendDir,
     fallback,
     validUntilMs,
+    hourly: parseHourly(r.hourly),
   };
 }

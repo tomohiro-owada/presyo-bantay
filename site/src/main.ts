@@ -33,6 +33,7 @@ import {
 } from "./weeks";
 import { resolveDeals } from "./dealsSource";
 import { evalGrabFare, type GrabFareView } from "./grabfare";
+import { buildGrabChartLegend, buildGrabChartSvg, chartText } from "./grabchart";
 
 /* ---------- Data shapes (see presyo_bantay/export_site.py) ---------- */
 
@@ -446,7 +447,24 @@ function renderGrabFare(): void {
     yEl.hidden = true;
     yEl.textContent = "";
   }
+  renderGrabChart(view);
   $("grab-note").textContent = t.note;
+}
+
+function renderGrabChart(view: GrabFareView): void {
+  const box = $("grab-chart");
+  const svg = view.hourly ? buildGrabChartSvg(view.hourly, lang) : "";
+  if (!view.hourly || svg === "") {
+    box.hidden = true;
+    $("grab-chart-svg").innerHTML = "";
+    $("grab-chart-legend").innerHTML = "";
+    return;
+  }
+  box.hidden = false;
+  $("grab-chart-h").textContent = chartText(lang).title;
+  // svg/legend are built from validated numbers and static escaped strings
+  $("grab-chart-svg").innerHTML = svg;
+  $("grab-chart-legend").innerHTML = buildGrabChartLegend(view.hourly, lang);
 }
 
 /* ---------- Daily reports card ---------- */

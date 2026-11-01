@@ -20,3 +20,13 @@ Nothing is rebuilt hourly: the page fetches the file when it loads (and every 10
   `const GRAB_FARE_URL = import.meta.env.VITE_GRAB_FARE_URL ?? "https://raw.githubusercontent.com/tomohiro-owada/presyo-bantay/grab-data/grab-fare.json"`. Add the vite env typing if needed (src/vite-env.d.ts or existing).
   Color the trend line with the existing --up (rising price) / --down CSS variables via classes `grab-up`/`grab-down`; add the few CSS rules to style.css matching the deals card look (no new colours).
 - Do NOT touch data files under site/public/data, and do not add any server identifiers. Keep `npm run build` (tsc --noEmit && vite build) and `npm test` green. Run them.
+
+## Hour-of-day chart (inside the same card)
+- `site/src/grabchart.ts`: `parseHourly(raw)` validates `hourly` of grab-fare.json (hours 0-23 integers, positive min<=max, dedup, sorted);
+  null when today is empty and yesterday has < 6 points. Yesterday is hidden (`yesterday = null`, `yesterdayPending = true`) when it has < 6 points.
+- `buildGrabChartSvg(data, lang)`: inline SVG (viewBox 360x190, width 100%), x = 00-23 Manila hours (ticks every 3h), y = fare in PHP.
+  Today = bold line through the midpoint of the metered taxi range + light min-max band + dots (hover title with range); yesterday = thin faint
+  midpoint line only. A missing hour breaks the line (no interpolation); isolated points are dots. Latest today value is labelled.
+  Grab Standard is not drawn (keeps the chart readable). Colours reuse --accent/--muted/--line.
+- `buildGrabChartLegend`: legend (Today/Yesterday/range) + a hint when yesterday exists but is still < 6 points. Labels TL/EN/JA live in grabchart.ts.
+- No new dependency; the chart is re-rendered on language switch with the rest of the card.

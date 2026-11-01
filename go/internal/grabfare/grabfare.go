@@ -183,6 +183,8 @@ type Output struct {
 	Trend       TrendOut    `json:"trend"`
 	VsYesterday *TrendOut   `json:"vs_yesterday"`
 	Text        Texts       `json:"text"`
+	// Hourly: today's/yesterday's readings per Manila hour (site chart).
+	Hourly *HourlyOut `json:"hourly,omitempty"`
 	// Focus is set by the card command when the wide Colours/SM Southmall
 	// band is part of the image (adds one caption line; never serialised).
 	Focus bool `json:"-"`
@@ -798,6 +800,7 @@ func Build(doc *InputDoc, now time.Time, staleAfter time.Duration) *Output {
 		Trend:       tr,
 		VsYesterday: vy,
 		Text:        texts,
+		Hourly:      buildHourly(usables, now),
 	}
 }
 
