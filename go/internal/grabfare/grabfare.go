@@ -183,6 +183,9 @@ type Output struct {
 	Trend       TrendOut    `json:"trend"`
 	VsYesterday *TrendOut   `json:"vs_yesterday"`
 	Text        Texts       `json:"text"`
+	// Focus is set by the card command when the wide Colours/SM Southmall
+	// band is part of the image (adds one caption line; never serialised).
+	Focus bool `json:"-"`
 }
 
 // ParseInput parses the API/input-file JSON. It does not invent fields:

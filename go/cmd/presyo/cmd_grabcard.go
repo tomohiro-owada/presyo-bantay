@@ -128,6 +128,7 @@ type grabcardResult struct {
 	PNGPath  string
 	TxtPath  string
 	FareOnly bool
+	Focus    bool
 }
 
 // grabcardRender fetches the data, picks the run and writes the card files.
@@ -195,6 +196,7 @@ func grabcardRender(p grabcardParams) (*grabcardResult, int) {
 		kinds   []string
 		images  []image.Image
 		dropped []grabcardDropped
+		focus   image.Image
 	)
 	for _, cand := range grabfare.SelectRuns(doc, now, maxAge, !p.noMaps) {
 		if p.currentHour && !sameManilaHour(cand.Captured, now) {
@@ -207,6 +209,7 @@ func grabcardRender(p grabcardParams) (*grabcardResult, int) {
 		}
 		clean := map[string]image.Image{}
 		var drop []grabcardDropped
+		var focusImg image.Image
 		for _, kind := range cand.Run.MapImages {
 			raw, err := fetchImage(cand.Ts, kind)
 			if err != nil {
@@ -222,14 +225,20 @@ func grabcardRender(p grabcardParams) (*grabcardResult, int) {
 				drop = append(drop, grabcardDropped{kind, "device-marker"})
 				continue
 			}
+			if kind == "focus" {
+				// the wide Colours/SM Southmall band: already cropped
+				// (no top cut), shown as the main image
+				focusImg = img
+				continue
+			}
 			clean[kind] = img
 		}
 		picked := grabfare.PickMaps(clean)
-		if len(picked) < 2 {
+		if len(picked) < 2 && focusImg == nil {
 			continue
 		}
 		c := cand
-		chosen, kinds, dropped = &c, picked, drop
+		chosen, kinds, dropped, focus = &c, picked, drop, focusImg
 		for _, k := range picked {
 			images = append(images, clean[k])
 		}
@@ -241,7 +250,8 @@ func grabcardRender(p grabcardParams) (*grabcardResult, int) {
 	}
 
 	o := grabfare.BuildFromRun(doc, now, staleAfter, chosen.Ts)
-	img, err := fbchart.RenderGrabFare(o, images, p.sample)
+	o.Focus = focus != nil
+	img, err := fbchart.RenderGrabFareFocus(o, images, focus, p.sample)
 	if err != nil {
 		return fail("render failed")
 	}
@@ -301,6 +311,7 @@ func grabcardRender(p grabcardParams) (*grabcardResult, int) {
 		"as_of":        asOf,
 		"sample":       p.sample,
 		"maps":         kinds,
+		"focus":        focus != nil,
 		"dropped_maps": dropped,
 		"traffic":      map[string]any{"included": o.Traffic != nil, "reason": trafficReason},
 	}
@@ -312,6 +323,7 @@ func grabcardRender(p grabcardParams) (*grabcardResult, int) {
 		RunTs: chosen.Ts, Maps: kinds, Dropped: dropped, Caption: caption,
 		PNGPath: filepath.Join(p.outDir, "grab-card.png"), TxtPath: filepath.Join(p.outDir, "grab-card.txt"),
 		FareOnly: p.noMaps,
+		Focus:    focus != nil,
 	}
 	return res, 0
 }

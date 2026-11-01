@@ -60,6 +60,9 @@ func RenderCaption(o *Output) string {
 		if o.Traffic != nil && o.Text.Tl.Traffic != "" {
 			lines = append(lines, "🚦 "+o.Text.Tl.Traffic)
 		}
+		if o.Focus {
+			lines = append(lines, "🗺️ Malapitan: Colours Town Center · SM Southmall · Village Square sa Alabang-Zapote Rd")
+		}
 		lines = append(lines, o.Text.Tl.Note)
 		tlBlock = strings.Join(lines, "\n")
 	}
@@ -87,6 +90,9 @@ func RenderCaption(o *Output) string {
 		if o.Traffic != nil && o.Text.En.Traffic != "" {
 			lines = append(lines, "🚦 "+o.Text.En.Traffic)
 		}
+		if o.Focus {
+			lines = append(lines, "🗺️ Close-up: Colours Town Center · SM Southmall · Village Square on Alabang-Zapote Rd")
+		}
 		lines = append(lines, o.Text.En.Note)
 		enBlock = strings.Join(lines, "\n")
 	}
@@ -113,6 +119,9 @@ func RenderCaption(o *Output) string {
 		}
 		if o.Traffic != nil && o.Text.Ja.Traffic != "" {
 			lines = append(lines, "🚦 "+o.Text.Ja.Traffic)
+		}
+		if o.Focus {
+			lines = append(lines, "🗺️ 拡大: Alabang-Zapote Rd の Colours Town Center・SM Southmall・Village Square 付近")
 		}
 		lines = append(lines, o.Text.Ja.Note)
 		jaBlock = strings.Join(lines, "\n")

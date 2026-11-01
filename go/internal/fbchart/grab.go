@@ -31,25 +31,37 @@ func mapTopCut(b image.Rectangle) int {
 	return c
 }
 
+// RenderGrabFare renders the card without a focus band (see RenderGrabFareFocus).
 func RenderGrabFare(o *grabfare.Output, maps []image.Image, sample bool) (*image.RGBA, error) {
+	return RenderGrabFareFocus(o, maps, nil, sample)
+}
+
+// focusLabel is the caption under the wide focus band.
+const focusLabel = "Colours · SM Southmall · Village Square"
+
+// Focus band geometry: full content width, never taller than focusMaxH
+// (a taller image is scaled down to fit and centred, never cropped).
+const (
+	focusMaxH   = 380
+	focusLabelH = 34
+	focusMinPad = 14
+)
+
+// RenderGrabFareFocus renders the card. With a focus image (the wide
+// Colours/SM Southmall band, already cropped) it is drawn as a full-width
+// strip under the fare/trend rows and the usual map row stays at its normal
+// size below it. The card is 1080x1350 when it fits (spacing is reclaimed
+// first); otherwise it grows taller by exactly what is needed.
+func RenderGrabFareFocus(o *grabfare.Output, maps []image.Image, focus image.Image, sample bool) (*image.RGBA, error) {
 	if o == nil || !o.Visible || o.Fare == nil {
 		return nil, fmt.Errorf("fbchart: grab fare not visible")
 	}
-	dst := image.NewRGBA(image.Rect(0, 0, W, H))
-	fillRect(dst, 0, 0, W, H, cream)
 	dy := 0
 	if sample {
-		fillRect(dst, 0, 0, W, 76, red)
-		banner := "SAMPLE — trial data, not a live post"
-		bw := measure(banner, Bold, 28)
-		drawString(dst, banner, Bold, 28, white, (W-bw)/2, 50)
 		dy = 90
 	}
-	utilHeaderAt(dst, dy)
-	utilTitleAt(dst, "Tantiya sa pamasahe ng Grab", "Zapote Bridge → Festival Mall · Alabang-Zapote Rd", dy)
 
 	top := 256 + dy
-	footerTop := H - 118
 	cardW := W - 2*marginL - 60
 
 	hhmm := ""
@@ -65,10 +77,19 @@ func RenderGrabFare(o *grabfare.Output, maps []image.Image, sample bool) (*image
 	pillH := 0
 	if o.Fare.Standard != nil {
 		pillH = 52 + 12
+		if focus != nil {
+			pillH = 52 + 8
+		}
 	}
 	asofText := "Ayon sa Grab app noong " + hhmm + " · oras sa Maynila"
 	asofSize := cfitSize(asofText, Medium, 28, 20, cardW)
-	panelH := 24 + int(bigSize*1.35+0.5) + 12 + int(capSize*1.35+0.5) + 12 + pillH + int(asofSize*1.35+0.5) + 24
+	// With a focus band the panel's inner padding is tightened (sizes of
+	// the texts are unchanged) to reclaim whitespace.
+	padIn, gapIn := 24, 12
+	if focus != nil {
+		padIn, gapIn = 16, 8
+	}
+	panelH := padIn + int(bigSize*1.35+0.5) + gapIn + int(capSize*1.35+0.5) + gapIn + pillH + int(asofSize*1.35+0.5) + padIn
 	if panelH < 200 {
 		panelH = 200
 	}
@@ -103,6 +124,27 @@ func RenderGrabFare(o *grabfare.Output, maps []image.Image, sample bool) (*image
 		noteH = 64
 	}
 
+	// focus band
+	focusH, focusW := 0, 0
+	focusBlockH := 0
+	if focus != nil {
+		fb := focus.Bounds()
+		focusW = W - 2*marginL
+		focusH = focusW * fb.Dy() / fb.Dx()
+		if focusH > focusMaxH {
+			focusW = focusW * focusMaxH / focusH
+			focusH = focusMaxH
+		}
+		focusBlockH = focusH + 12 + focusLabelH
+		// With a focus band and no thumbnails the focus caption also
+		// carries the source label.
+	}
+
+	// Fare-only note is for cards without any picture.
+	if focus != nil {
+		noteH = 0
+	}
+
 	numBlocks := 1 + 1
 	if trafficH > 0 {
 		numBlocks++
@@ -113,35 +155,59 @@ func RenderGrabFare(o *grabfare.Output, maps []image.Image, sample bool) (*image
 	if mapH > 0 {
 		numBlocks++
 	}
-	total := panelH + trendH + trafficH + noteH + mapH
-	pad := (footerTop - top - total) / (numBlocks + 1)
-	if pad < 8 {
-		pad = 8
+	if focusBlockH > 0 {
+		numBlocks++
 	}
+	total := panelH + trendH + trafficH + noteH + focusBlockH + mapH
+	h := H
+	footerTop := h - 118
+	minPad := 8
+	if focus != nil {
+		minPad = focusMinPad
+	}
+	pad := (footerTop - top - total) / (numBlocks + 1)
+	if pad < minPad {
+		// Not enough room even with the reclaimed spacing: grow the card
+		// by exactly what is missing (nothing is made smaller).
+		pad = minPad
+		h = top + total + (numBlocks+1)*pad + 118
+		footerTop = h - 118
+	}
+
+	dst := image.NewRGBA(image.Rect(0, 0, W, h))
+	fillRect(dst, 0, 0, W, h, cream)
+	if sample {
+		fillRect(dst, 0, 0, W, 76, red)
+		banner := "SAMPLE — trial data, not a live post"
+		bw := measure(banner, Bold, 28)
+		drawString(dst, banner, Bold, 28, white, (W-bw)/2, 50)
+	}
+	utilHeaderAt(dst, dy)
+	utilTitleAt(dst, "Tantiya sa pamasahe ng Grab", "Zapote Bridge → Festival Mall · Alabang-Zapote Rd", dy)
 
 	y := top + pad
 
 	// panel
 	billCard(dst, y, panelH)
-	cy := y + 24
+	cy := y + padIn
 	// big
 	tw := measure(big, ExtraBold, bigSize)
 	bx := marginL + (W-marginL-marginR-tw)/2
 	drawString(dst, big, ExtraBold, bigSize, green, bx, cy+int(bigSize*0.85+0.5))
-	cy += int(bigSize*1.35+0.5) + 12
+	cy += int(bigSize*1.35+0.5) + gapIn
 	// caption
 	ctw := measure(capText, Medium, capSize)
 	// use cfit? capText fixed
 	cx := marginL + (W-marginL-marginR-ctw)/2
 	cdraw(dst, capText, Medium, capSize, mutCol, cx, cy+int(capSize*0.85+0.5))
-	cy += int(capSize*1.35+0.5) + 12
+	cy += int(capSize*1.35+0.5) + gapIn
 	// pill
 	if o.Fare.Standard != nil {
 		pillText := "Grab Standard " + grabfare.FormatPeso(*o.Fare.Standard)
 		pw := cmeasure(pillText, Bold, 32) + 52
 		px := marginL + (W-marginL-marginR-pw)/2
 		pill(dst, pillText, px, cy, green)
-		cy += 52 + 12
+		cy += pillH
 	}
 	// asof
 	atw := measure(asofText, Medium, asofSize)
@@ -227,6 +293,22 @@ func RenderGrabFare(o *grabfare.Output, maps []image.Image, sample bool) (*image
 		y += noteH + pad
 	}
 
+	// focus band (wide, already cropped: no top cut)
+	if focus != nil {
+		x0 := marginL + (W-2*marginL-focusW)/2
+		fillRounded(dst, x0, y, x0+focusW, y+focusH, 14, sepCol)
+		inner := image.Rect(x0+2, y+2, x0+focusW-2, y+focusH-2)
+		draw.CatmullRom.Scale(dst, inner, focus, focus.Bounds(), draw.Over, nil)
+		roundCorners(dst, x0, y, x0+focusW, y+focusH, 14)
+		lbl := focusLabel
+		if mapH == 0 {
+			lbl += " · Map: Grab app screenshot"
+		}
+		ls := cfitSize(lbl, Medium, 24, 14, W-2*marginL)
+		cdraw(dst, lbl, Medium, ls, mutCol, marginL, y+focusH+12+22)
+		y += focusBlockH + pad
+	}
+
 	// map strip
 	if mapH > 0 {
 		stripY := y
@@ -242,26 +324,7 @@ func RenderGrabFare(o *grabfare.Output, maps []image.Image, sample bool) (*image
 			sb := maps[i].Bounds()
 			sb.Min.Y += mapTopCut(sb)
 			draw.CatmullRom.Scale(dst, inner, maps[i], sb, draw.Over, nil)
-			// clip outer corners
-			for yy := y0; yy < y1; yy++ {
-				for xx := x0; xx < x1; xx++ {
-					dx := 0
-					if xx < x0+14 {
-						dx = x0 + 14 - xx
-					} else if xx >= x1-14 {
-						dx = xx - (x1 - 14 - 1)
-					}
-					dy2 := 0
-					if yy < y0+14 {
-						dy2 = y0 + 14 - yy
-					} else if yy >= y1-14 {
-						dy2 = yy - (y1 - 14 - 1)
-					}
-					if dx > 0 && dy2 > 0 && dx*dx+dy2*dy2 > 14*14 {
-						dst.Set(xx, yy, cream)
-					}
-				}
-			}
+			roundCorners(dst, x0, y0, x1, y1, 14)
 		}
 		label := "Map: Grab app screenshot"
 		ls := cfitSize(label, Medium, 22, 14, W-2*marginL)
@@ -269,7 +332,7 @@ func RenderGrabFare(o *grabfare.Output, maps []image.Image, sample bool) (*image
 		y += mapH + pad
 	}
 
-	utilFooter(dst, "Grab app quote, not an official fare", "Hindi opisyal na pamasahe")
+	grabFooter(dst, h, "Grab app quote, not an official fare", "Hindi opisyal na pamasahe")
 	_ = draw.Draw
 	return dst, nil
 }
@@ -284,4 +347,40 @@ func stripTrendGlyph(s string) string {
 		}
 	}
 	return s
+}
+
+// roundCorners paints the outer corners of the rect back to the cream
+// background so a pasted image gets rounded corners.
+func roundCorners(dst *image.RGBA, x0, y0, x1, y1, r int) {
+	for yy := y0; yy < y1; yy++ {
+		for xx := x0; xx < x1; xx++ {
+			dx := 0
+			if xx < x0+r {
+				dx = x0 + r - xx
+			} else if xx >= x1-r {
+				dx = xx - (x1 - r - 1)
+			}
+			dy2 := 0
+			if yy < y0+r {
+				dy2 = y0 + r - yy
+			} else if yy >= y1-r {
+				dy2 = yy - (y1 - r - 1)
+			}
+			if dx > 0 && dy2 > 0 && dx*dx+dy2*dy2 > r*r {
+				dst.Set(xx, yy, cream)
+			}
+		}
+	}
+}
+
+// grabFooter is utilFooter for a card of height h.
+func grabFooter(dst *image.RGBA, h int, left1, left2 string) {
+	footerTop := h - 118
+	fillRect(dst, 0, footerTop, W, h, greenDk)
+	size, divX, footX, t1, t2 := footerLayout(left1, left2)
+	midY := footerTop + (h-footerTop)/2
+	drawString(dst, t1, SemiBold, size, white, marginL, midY-4)
+	drawString(dst, t2, SemiBold, size, white, marginL, midY+28)
+	drawString(dst, "abalol.xyz/presyo-bantay", Bold, 26, white, footX, midY+9)
+	vline(dst, divX, footerTop+20, h-20, 2, footDiv)
 }

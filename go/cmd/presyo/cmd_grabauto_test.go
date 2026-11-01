@@ -398,3 +398,61 @@ func TestFBPostAutoIgnoresGrabPostsForGap(t *testing.T) {
 		t.Errorf("a Grab post blocked the DA region post: %v", err)
 	}
 }
+
+func gaRunFocus(t *testing.T, focusFile string, thumbs bool) *gaEnv {
+	t.Helper()
+	files := map[string]string{"20261102-0800/focus": focusFile}
+	maps := []string{"focus"}
+	if thumbs {
+		maps = []string{"map1", "map2", "map4", "focus"}
+		for _, k := range []string{"map1", "map2", "map4"} {
+			files["20261102-0800/"+k] = "clean.webp"
+		}
+	}
+	runs := []gcRun{gcRunOf("20261102-0800", gcCap(8, 0), 320, 385, nil, maps...),
+		gcRunOf("20261102-0700", gcCap(7, 0), 308, 370, nil)}
+	return gaSetup(t, runs, files)
+}
+
+func TestGrabAutoFocusBandIsUsedAndCaptioned(t *testing.T) {
+	e := gaRunFocus(t, "clean.webp", true)
+	if code := e.tick("08:10"); code != 0 {
+		t.Fatalf("exit %d %s", code, e.stderr)
+	}
+	if e.graph.count() != 1 || !strings.Contains(e.graph.msgs[0], "Colours Town Center") {
+		t.Fatalf("caption lacks the Colours line: %v", e.graph.msgs)
+	}
+	for _, want := range []string{"Malapitan", "Close-up", "拡大"} {
+		if !strings.Contains(e.graph.msgs[0], want) {
+			t.Errorf("caption lacks %q", want)
+		}
+	}
+	meta := readJSONFile(t, filepath.Join(e.home, "out", "0810", "grab-card.json"))
+	if meta["focus"] != true {
+		t.Errorf("meta = %v", meta)
+	}
+}
+
+func TestGrabAutoFocusOnlyRunIsEligibleMarkerFocusDropped(t *testing.T) {
+	e := gaRunFocus(t, "clean.webp", false) // no thumbnails, focus only
+	if code := e.tick("08:10"); code != 0 || e.graph.count() != 1 {
+		t.Fatalf("focus-only run: exit %d posts %d %s", code, e.graph.count(), e.stderr)
+	}
+	// a focus image with the blue dot is dropped; without thumbnails the run is not eligible
+	e2 := gaRunFocus(t, "marker.webp", false)
+	if code := e2.tick("08:10"); code != 4 || e2.graph.count() != 0 {
+		t.Errorf("marker focus: exit %d posts %d", code, e2.graph.count())
+	}
+	// with thumbnails the card still goes out, just without the focus band
+	e3 := gaRunFocus(t, "marker.webp", true)
+	if code := e3.tick("08:10"); code != 0 || e3.graph.count() != 1 {
+		t.Fatalf("exit %d", code)
+	}
+	if strings.Contains(e3.graph.msgs[0], "Colours Town Center") {
+		t.Error("caption mentions the focus band although it was dropped")
+	}
+	meta := readJSONFile(t, filepath.Join(e3.home, "out", "0810", "grab-card.json"))
+	if meta["focus"] != false {
+		t.Errorf("meta focus = %v", meta["focus"])
+	}
+}

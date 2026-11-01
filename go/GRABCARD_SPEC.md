@@ -102,3 +102,9 @@ Spacing (state file `fbpost.json`, entry `region="grab"`, `as_of="YYYY-MM-DDTHH"
 - Grab posts are excluded from every other gap rule (`lastNonGrabPost`): DA digest 75 min, `fbpost`, `fbutil` (emergency 30 min), `fbweekly`. DA digest caps/logic are otherwise unchanged.
 
 Posting reuses `postPhoto` (Graph API `/photos`) and the state lock (`<state>.lock`); the page token is read from `fb.env`/env, never printed (errors are scrubbed). `-dry-run -sim-record` appends a `post_id="dry-run"` entry to the given `-state` to simulate idempotency: use a scratch state file only.
+
+## Focus band (Colours / SM Southmall / Village Square)
+The watcher writes `<ts>_focus.webp` (720x280, cut from map3 below the device marker). The API lists it as kind `focus` in `map_images` (after the map kinds) and serves `/v1/grab/map/<ts>/focus.webp` under the same strict rules.
+- With a clean focus image the card shows it as a full-width (940 px) strip under the fare/trend rows, captioned "Colours · SM Southmall · Village Square"; the usual 3-map row stays exactly as large as before below it (source label "Map: Grab app screenshot"). No top cut is applied to the focus band (already cropped). A focus image with the device dot is dropped.
+- Layout: spacing is reclaimed first (panel padding, 14 px gaps), then the card grows taller by exactly what is missing (about 1080x1532 with focus + 3 maps, no traffic chip). Without focus the card is unchanged (1080x1350). A run with focus is eligible even with fewer than 2 clean thumbnails.
+- Caption gets one line per language (TL/EN/JA) naming the stretch. Fare-only cards (`-no-maps`, the :20 fallback) never include it.

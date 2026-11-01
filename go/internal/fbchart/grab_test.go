@@ -173,3 +173,77 @@ func TestRenderGrabFareCutsTopStrip(t *testing.T) {
 		}
 	}
 }
+
+func solid(w, h int, c color.RGBA) *image.RGBA {
+	img := image.NewRGBA(image.Rect(0, 0, w, h))
+	for y := 0; y < h; y++ {
+		for x := 0; x < w; x++ {
+			img.Set(x, y, c)
+		}
+	}
+	return img
+}
+
+func countColor(img *image.RGBA, c color.RGBA) int {
+	n := 0
+	for y := 0; y < img.Bounds().Dy(); y++ {
+		for x := 0; x < img.Bounds().Dx(); x++ {
+			if img.RGBAAt(x, y) == c {
+				n++
+			}
+		}
+	}
+	return n
+}
+
+func TestRenderGrabFareFocusBand(t *testing.T) {
+	blue := color.RGBA{0x12, 0x9A, 0xEE, 0xFF}
+	mag := color.RGBA{0xFF, 0x00, 0xFF, 0xFF}
+	o := grabOutput(nil, false, "up")
+	thumb := mapTile(blue)
+
+	base, err := RenderGrabFare(o, []image.Image{thumb, thumb, thumb}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	withFocus, err := RenderGrabFareFocus(o, []image.Image{thumb, thumb, thumb}, solid(720, 280, mag), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if base.Bounds().Dy() != 1350 || withFocus.Bounds().Dx() != 1080 {
+		t.Fatalf("sizes %v %v", base.Bounds(), withFocus.Bounds())
+	}
+	if withFocus.Bounds().Dy() < 1350 {
+		t.Errorf("focus card shorter than 1350: %d", withFocus.Bounds().Dy())
+	}
+	// no top cut on the focus band: the full 940 x 366 area is source colour
+	if n := countColor(withFocus, mag); n < 930*360 {
+		t.Errorf("focus band cut or shrunk: %d px", n)
+	}
+	// the thumbnails keep exactly their size: same source-coloured area as without focus
+	if a, b := countColor(base, blue), countColor(withFocus, blue); b != a {
+		t.Errorf("thumbnail area changed: %d -> %d", a, b)
+	}
+	// source untouched is covered by the other test; the footer is at the bottom of the taller card
+	if got := withFocus.RGBAAt(5, withFocus.Bounds().Dy()-5); got == (color.RGBA{}) {
+		t.Error("footer not drawn at the bottom")
+	}
+}
+
+func TestRenderGrabFareFocusOnlyAndTall(t *testing.T) {
+	mag := color.RGBA{0xFF, 0x00, 0xFF, 0xFF}
+	o := grabOutput(nil, false, "down")
+	// focus without thumbnails fits 1350
+	img, err := RenderGrabFareFocus(o, nil, solid(720, 280, mag), false)
+	if err != nil || img.Bounds().Dy() != 1350 {
+		t.Fatalf("focus only: %v %v", err, img.Bounds())
+	}
+	// a very tall "focus" is scaled down to the cap, never cropped, and centred
+	img, err = RenderGrabFareFocus(o, nil, solid(720, 1000, mag), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n := countColor(img, mag); n < 250*350 || n > 940*380 {
+		t.Errorf("tall focus area %d", n)
+	}
+}
