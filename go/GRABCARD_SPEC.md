@@ -70,7 +70,7 @@ Error when o is not visible or o.Fare == nil. Layout (top to bottom; compute y p
 Vertical spacing: distribute free space evenly like power.go does. Tests: renders 1080x1350 for 0/2/3 maps and with/without traffic/yesterday/sample; invisible output errors; a map tile region contains the source pixels (spot check after scaling tolerance); text-fit smoke (no panic with very long numbers); EncodeCompact works on the result.
 
 ## 5. Command `presyo grabcard` (`cmd/presyo/cmd_grabcard.go`, register in main.go, README row)
-`presyo grabcard -out-dir DIR [-api-url URL] [-token-env NAME] [-env-file FILE] [-hours 26] [-now RFC3339] [-input-file FILE -maps-dir DIR] [-max-age 3h] [-stale-after 3h] [-sample] [-no-maps]`
+`presyo grabcard -out-dir DIR [-api-url URL] [-token-env NAME] [-env-file FILE] [-hours 50] [-now RFC3339] [-input-file FILE -maps-dir DIR] [-max-age 3h] [-stale-after 3h] [-sample] [-no-maps]`
 - Config exactly like `grabfare` (flags/env/env-file only; nothing hardcoded; never print URL/token; print only generic messages).
 - Fetch recent JSON (or -input-file), pick the newest candidate from SelectCardRun, fetch its images (or read `{maps-dir}/{ts}_{kind}.webp`), decode webp, drop marker images with HasDeviceMarker, PickMaps; if a candidate ends with fewer than 2 clean maps go to the next candidate; if none -> exit 4 "no eligible run" (write nothing). `-no-maps` ignores maps and uses the newest usable fare run (fare-only card). Then `BuildFromRun`, render PNG via fbchart.RenderGrabFare + `fbchart.EncodeCompact`, caption via RenderCaption, run CheckCaption (exit 3 and write nothing but `grab-card.check.json` when problems exist).
 - Outputs in DIR (atomic writes): `grab-card.png`, `grab-card.txt` (caption), `grab-card.check.json` ({"ok":bool,"problems":[...]}), `grab-card.json` (run ts, chosen map kinds, dropped map kinds with reason "device-marker", whether traffic was included or dropped with its TrafficSane reason, as_of). Exit 0 ok.
@@ -108,3 +108,16 @@ The watcher writes `<ts>_focus.webp` (720x280, cut from map3 below the device ma
 - With a clean focus image the card shows it as a full-width (940 px) strip under the fare/trend rows, captioned "Colours · SM Southmall · Village Square"; the usual 3-map row stays exactly as large as before below it (source label "Map: Grab app screenshot"). No top cut is applied to the focus band (already cropped). A focus image with the device dot is dropped.
 - Layout: spacing is reclaimed first (panel padding, 14 px gaps), then the card grows taller by exactly what is missing (about 1080x1532 with focus + 3 maps, no traffic chip). Without focus the card is unchanged (1080x1350). A run with focus is eligible even with fewer than 2 clean thumbnails.
 - Caption gets one line per language (TL/EN/JA) naming the stretch. Fare-only cards (`-no-maps`, the :20 fallback) never include it.
+
+
+## Hour-of-day chart on the card (new)
+When `Output.Hourly` is present and a chart can be drawn, the white panel (billCard) stays one rounded card of the same full width, but its content splits into two halves:
+- LEFT half: the same four texts (big fare range, "Metered taxi · Grab app quote" caption, "Grab Standard ₱xxx" pill, "Ayon sa Grab app noong HH:MM · oras sa Maynila" as-of) re-fitted to the half width (caption/pill/as-of shrink to fit; the as-of line wraps onto two lines: "Ayon sa Grab app noong HH:MM" / "oras sa Maynila"), centred vertically, never overflowing. A thin divider separates the halves.
+- RIGHT half: hour-of-day line chart. x = hours 00..23 (Manila), minor ticks every 3h, labels every 6h (00 06 12 18); y = fare in PHP with at most 4 round-number grid intervals (step 10/20/25/50/100/...), labelled "300"-style without the peso sign (the latest-value label carries it).
+  - TODAY = bold dark-green line through (min+max)/2 with dots plus a light translucent min-max band; latest today point gets a value label.
+  - YESTERDAY = thin faint grey line (midpoint only, no dots). A missing hour breaks the line (no interpolation); an isolated single point is a dot.
+  - Yesterday line hidden when fewer than 6 points. Chart omitted entirely (panel stays full-width as before) when nothing to draw (today empty AND yesterday < 6 points, or `Output.Hourly == nil`).
+  - Small legend ("Ngayon" bold swatch, "Kahapon" faint swatch) and small title "Pamasahe kada oras" if it fits. All chart text >= 24 px (title 28, last value 26); colours from the existing palette.
+  - Drawn on a 3x supersampled RGBA scratch and downscaled with CatmullRom; text at final resolution; round caps/joins.
+- Card width stays 1080; panel height unchanged; overall card height logic (1350 when fits, otherwise grows) unchanged; card dimensions for the same inputs unchanged by the chart. Fare-only card (`-no-maps`) gets the chart the same way.
+- Hourly data comes from `o.Hourly` (`*grabfare.HourlyOut`); `grabfare.Build`/JSON unchanged. Default `-hours` is 50 so yesterday is available.

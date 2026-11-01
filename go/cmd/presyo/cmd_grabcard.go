@@ -37,7 +37,7 @@ func cmdGrabcard(argv []string) int {
 	apiURLFlag := fs.String("api-url", "", "API base URL (or PRESYO_GRAB_API_URL)")
 	tokenEnv := fs.String("token-env", "PRESYO_GRAB_API_TOKEN", "env var name holding the API token")
 	envFile := fs.String("env-file", "", "KEY=VALUE env file (no default path)")
-	hours := fs.Int("hours", 26, "hours window for the recent-runs request")
+	hours := fs.Int("hours", 50, "hours window for the recent-runs request (covers yesterday for the hourly chart)")
 	nowFlag := fs.String("now", "", "RFC3339 now override (tests)")
 	inputFile := fs.String("input-file", "", "read API JSON from disk instead of fetching")
 	mapsDir := fs.String("maps-dir", "", "with -input-file: directory with {ts}_{kind}.webp files")
@@ -61,7 +61,7 @@ func cmdGrabcard(argv []string) int {
 		return 1
 	}
 	if *outDir == "" && !*auto {
-		fmt.Fprintln(os.Stderr, "usage: presyo grabcard -out-dir DIR [-api-url URL] [-token-env NAME] [-env-file FILE] [-hours 26] [-now RFC3339] [-input-file FILE -maps-dir DIR] [-max-age 3h] [-stale-after 3h] [-sample] [-no-maps]")
+		fmt.Fprintln(os.Stderr, "usage: presyo grabcard -out-dir DIR [-api-url URL] [-token-env NAME] [-env-file FILE] [-hours 50] [-now RFC3339] [-input-file FILE -maps-dir DIR] [-max-age 3h] [-stale-after 3h] [-sample] [-no-maps]")
 		return 1
 	}
 	fail := func(msg string) int {

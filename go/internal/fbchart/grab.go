@@ -189,32 +189,36 @@ func RenderGrabFareFocus(o *grabfare.Output, maps []image.Image, focus image.Ima
 
 	// panel
 	billCard(dst, y, panelH)
-	cy := y + padIn
-	// big
-	tw := measure(big, ExtraBold, bigSize)
-	bx := marginL + (W-marginL-marginR-tw)/2
-	drawString(dst, big, ExtraBold, bigSize, green, bx, cy+int(bigSize*0.85+0.5))
-	cy += int(bigSize*1.35+0.5) + gapIn
-	// caption
-	ctw := measure(capText, Medium, capSize)
-	// use cfit? capText fixed
-	cx := marginL + (W-marginL-marginR-ctw)/2
-	cdraw(dst, capText, Medium, capSize, mutCol, cx, cy+int(capSize*0.85+0.5))
-	cy += int(capSize*1.35+0.5) + gapIn
-	// pill
-	if o.Fare.Standard != nil {
-		pillText := "Grab Standard " + grabfare.FormatPeso(*o.Fare.Standard)
-		pw := cmeasure(pillText, Bold, 32) + 52
-		px := marginL + (W-marginL-marginR-pw)/2
-		pill(dst, pillText, px, cy, green)
-		cy += pillH
+	hasChart := grabChartAvailable(o)
+	if !hasChart {
+		cy := y + padIn
+		// big
+		tw := measure(big, ExtraBold, bigSize)
+		bx := marginL + (W-marginL-marginR-tw)/2
+		drawString(dst, big, ExtraBold, bigSize, green, bx, cy+int(bigSize*0.85+0.5))
+		cy += int(bigSize*1.35+0.5) + gapIn
+		// caption
+		ctw := measure(capText, Medium, capSize)
+		cx := marginL + (W-marginL-marginR-ctw)/2
+		cdraw(dst, capText, Medium, capSize, mutCol, cx, cy+int(capSize*0.85+0.5))
+		cy += int(capSize*1.35+0.5) + gapIn
+		// pill
+		if o.Fare.Standard != nil {
+			pillText := "Grab Standard " + grabfare.FormatPeso(*o.Fare.Standard)
+			pw := cmeasure(pillText, Bold, 32) + 52
+			px := marginL + (W-marginL-marginR-pw)/2
+			pill(dst, pillText, px, cy, green)
+			cy += pillH
+		}
+		// asof
+		atw := measure(asofText, Medium, asofSize)
+		ax := marginL + (W-marginL-marginR-atw)/2
+		cdraw(dst, asofText, Medium, asofSize, mutCol, ax, cy+int(asofSize*0.85+0.5))
+		cy += int(asofSize*1.35+0.5) + 24
+		_ = cy
+	} else {
+		drawGrabPanelHalf(dst, y, panelH, padIn, gapIn, big, bigSize, capText, capSize, asofText, hhmm, o)
 	}
-	// asof
-	atw := measure(asofText, Medium, asofSize)
-	ax := marginL + (W-marginL-marginR-atw)/2
-	cdraw(dst, asofText, Medium, asofSize, mutCol, ax, cy+int(asofSize*0.85+0.5))
-	cy += int(asofSize*1.35+0.5) + 24
-	_ = cy
 	y += panelH + pad
 
 	// trend rows
@@ -339,6 +343,60 @@ func RenderGrabFareFocus(o *grabfare.Output, maps []image.Image, focus image.Ima
 
 // stripTrendGlyph removes the leading arrow glyph (the card draws its own
 // triangle) from a trend text.
+// drawGrabPanelHalf draws the fare texts in the LEFT half of the panel and the
+// hour-of-day chart in the RIGHT half. Text sizes shrink to fit the half
+// width; the as-of line wraps onto two lines.
+func drawGrabPanelHalf(dst *image.RGBA, y, panelH, padIn, gapIn int, big string, bigSize float64, capText string, capSize float64, asofText, hhmm string, o *grabfare.Output) {
+	px0, px1 := marginL, W-marginR
+	midX := (px0 + px1) / 2
+	leftMaxW := midX - px0 - 2*padIn - 8
+	centreX := (px0 + midX) / 2
+
+	capS := cfitSize(capText, Medium, 26, 18, leftMaxW)
+	asof1 := "Ayon sa Grab app noong " + hhmm
+	asof2 := "oras sa Maynila"
+	asofS := cfitSize(asof1, Medium, 26, 18, leftMaxW)
+	pillText := ""
+	pillS := 0.0
+	pillBlock := 0
+	if o.Fare.Standard != nil {
+		pillText = "Grab Standard " + grabfare.FormatPeso(*o.Fare.Standard)
+		pillS = cfitSize(pillText, Bold, 30, 18, leftMaxW-52)
+		pillBlock = 52 + gapIn
+	}
+	rest := int(capS*1.3+0.5) + gapIn + pillBlock + 2*int(asofS*1.3+0.5)
+	avail := panelH - 2*padIn
+	bs := cfitSize(big, ExtraBold, bigSize, 40, leftMaxW)
+	for bs > 40 && int(bs*1.3+0.5)+gapIn+rest > avail {
+		bs -= 2
+	}
+	contentH := int(bs*1.3+0.5) + gapIn + rest
+	cy := y + (panelH-contentH)/2
+	if cy < y+padIn {
+		cy = y + padIn
+	}
+	tw := cmeasure(big, ExtraBold, bs)
+	cdraw(dst, big, ExtraBold, bs, green, centreX-tw/2, cy+int(bs*0.85+0.5))
+	cy += int(bs*1.3+0.5) + gapIn
+	cw := cmeasure(capText, Medium, capS)
+	cdraw(dst, capText, Medium, capS, mutCol, centreX-cw/2, cy+int(capS*0.85+0.5))
+	cy += int(capS*1.3+0.5) + gapIn
+	if pillText != "" {
+		pw := cmeasure(pillText, Bold, pillS) + 52
+		fillRounded(dst, centreX-pw/2, cy, centreX-pw/2+pw, cy+52, 12, green)
+		cdraw(dst, pillText, Bold, pillS, white, centreX-pw/2+26, cy+26+int(pillS*0.35+0.5))
+		cy += pillBlock
+	}
+	for _, ln := range []string{asof1, asof2} {
+		lw := cmeasure(ln, Medium, asofS)
+		cdraw(dst, ln, Medium, asofS, mutCol, centreX-lw/2, cy+int(asofS*0.85+0.5))
+		cy += int(asofS*1.3 + 0.5)
+	}
+	// divider + chart zone
+	fillRect(dst, midX, y+padIn, midX+1, y+panelH-padIn, sepCol)
+	drawGrabChart(dst, image.Rect(midX+padIn, y+padIn, px1-padIn, y+panelH-padIn), o)
+}
+
 func stripTrendGlyph(s string) string {
 	s = strings.TrimSpace(s)
 	for _, g := range []string{"\u25b2", "\u25bc", "\uff1d"} {
