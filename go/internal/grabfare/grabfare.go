@@ -26,13 +26,14 @@ const UserAgent = "PresyoBantay/0.1 (non-profit community price watch; https://g
 
 // Input mirrors the API JSON. Only the documented fields are used.
 type InputDoc struct {
-	Route      RouteIn `json:"route"`
-	Source     string  `json:"source"`
-	Currency   string  `json:"currency"`
-	ServerTime string  `json:"server_time"`
-	Hours      int     `json:"hours"`
-	Count      int     `json:"count"`
-	Runs       []Run   `json:"runs"`
+	Route      RouteIn   `json:"route"`
+	Pickup     *PickupIn `json:"pickup"`
+	Source     string    `json:"source"`
+	Currency   string    `json:"currency"`
+	ServerTime string    `json:"server_time"`
+	Hours      int       `json:"hours"`
+	Count      int       `json:"count"`
+	Runs       []Run     `json:"runs"`
 }
 
 // RouteIn is the input route object.
@@ -41,6 +42,21 @@ type RouteIn struct {
 	To    string `json:"to"`
 	Via   string `json:"via"`
 	Label string `json:"label"`
+}
+
+// PickupIn is the optional top-level pickup block.
+type PickupIn struct {
+	Current string        `json:"current"`
+	SinceTs string        `json:"since_ts"`
+	Since   string        `json:"since"`
+	History []PickupEntry `json:"history"`
+}
+
+// PickupEntry is one pickup era.
+type PickupEntry struct {
+	SinceTs string `json:"since_ts"`
+	Since   string `json:"since"`
+	Pickup  string `json:"pickup"`
 }
 
 // Run is one row, newest first.
@@ -121,6 +137,14 @@ type RouteOut struct {
 	Via  string `json:"via"`
 }
 
+// PickupOut is the public pickup object.
+type PickupOut struct {
+	Name      string `json:"name"`
+	Since     string `json:"since"`
+	SinceHHMM string `json:"since_hhmm"`
+	Previous  string `json:"previous,omitempty"`
+}
+
 // FareOut carries raw (unrounded) numbers.
 type FareOut struct {
 	Min      float64  `json:"min"`
@@ -149,12 +173,13 @@ type TrendOut struct {
 
 // LangText holds one language's card strings.
 type LangText struct {
-	Title    string `json:"title"`
-	Headline string `json:"headline"`
-	Asof     string `json:"asof"`
-	Traffic  string `json:"traffic"`
-	Trend    string `json:"trend"`
-	Note     string `json:"note"`
+	Title      string `json:"title"`
+	Headline   string `json:"headline"`
+	Asof       string `json:"asof"`
+	Traffic    string `json:"traffic"`
+	Trend      string `json:"trend"`
+	Note       string `json:"note"`
+	PickupNote string `json:"pickup_note,omitempty"`
 }
 
 // Texts holds tl/en/ja strings.
@@ -172,6 +197,7 @@ type Output struct {
 	Reason      string      `json:"reason"`
 	ValidUntil  *string     `json:"valid_until"`
 	Route       RouteOut    `json:"route"`
+	Pickup      *PickupOut  `json:"pickup,omitempty"`
 	Currency    string      `json:"currency"`
 	Basis       string      `json:"basis"`
 	AsOf        *string     `json:"as_of"`
@@ -213,6 +239,7 @@ type usable struct {
 	max      float64
 	basis    string
 	standard *float64
+	era      int
 }
 
 // usableHeadline computes the headline fares per the spec.
@@ -656,6 +683,123 @@ func noneTrend() TrendOut {
 	return TrendOut{Direction: "none"}
 }
 
+// pickupValid reports whether doc has a usable pickup block.
+func pickupValid(doc *InputDoc) bool {
+	if doc == nil || doc.Pickup == nil {
+		return false
+	}
+	return strings.TrimSpace(doc.Pickup.Current) != "" && strings.TrimSpace(doc.Pickup.SinceTs) != ""
+}
+
+// era implements the Era helper on InputDoc.
+func (d *InputDoc) era(ts string) int {
+	if !pickupValid(d) {
+		return 0
+	}
+	n := 0
+	for _, h := range d.Pickup.History {
+		if strings.Compare(h.SinceTs, ts) > 0 {
+			n++
+		}
+	}
+	return n
+}
+
+// pickupPrevious returns the name of the pickup before the current one
+// (the history entry just before the one that starts at pickup.since_ts).
+func pickupPrevious(doc *InputDoc) string {
+	if !pickupValid(doc) {
+		return ""
+	}
+	hist := doc.Pickup.History
+	for i := range hist {
+		if hist[i].SinceTs == doc.Pickup.SinceTs {
+			if i > 0 {
+				return hist[i-1].Pickup
+			}
+			return ""
+		}
+	}
+	return ""
+}
+
+// pickupSinceTime parses the pickup since into a Manila time.
+func pickupSinceTime(doc *InputDoc) time.Time {
+	if !pickupValid(doc) {
+		return time.Time{}
+	}
+	if t, err := time.Parse(time.RFC3339, doc.Pickup.Since); err == nil {
+		return t.In(Manila)
+	}
+	if t, err := time.Parse("20060102-1504", doc.Pickup.SinceTs); err == nil {
+		return t.In(Manila)
+	}
+	return time.Time{}
+}
+
+// pickupSinceHHMM returns HH:MM for the pickup change.
+func pickupSinceHHMM(doc *InputDoc) string {
+	if !pickupValid(doc) {
+		return ""
+	}
+	if doc.Pickup.Since != "" {
+		if t, err := time.Parse(time.RFC3339, doc.Pickup.Since); err == nil {
+			return t.In(Manila).Format("15:04")
+		}
+	}
+	ts := doc.Pickup.SinceTs
+	if len(ts) >= 13 {
+		return ts[9:11] + ":" + ts[11:13]
+	}
+	return ""
+}
+
+// pickupSinceDate returns the Manila date (YYYY-MM-DD) of the pickup change.
+func pickupSinceDate(doc *InputDoc) string {
+	t := pickupSinceTime(doc)
+	if !t.IsZero() {
+		return t.Format("2006-01-02")
+	}
+	ts := doc.Pickup.SinceTs
+	if len(ts) >= 8 {
+		return ts[0:4] + "-" + ts[4:6] + "-" + ts[6:8]
+	}
+	return ""
+}
+
+// pickupOut builds the public pickup object when valid.
+func pickupOut(doc *InputDoc) *PickupOut {
+	if !pickupValid(doc) {
+		return nil
+	}
+	since := doc.Pickup.Since
+	if since == "" {
+		t := pickupSinceTime(doc)
+		if !t.IsZero() {
+			since = t.Format(time.RFC3339)
+		}
+	}
+	return &PickupOut{
+		Name:      doc.Pickup.Current,
+		Since:     since,
+		SinceHHMM: pickupSinceHHMM(doc),
+		Previous:  pickupPrevious(doc),
+	}
+}
+
+// pickupNoteRelevant reports whether the pickup note should be shown.
+func pickupNoteRelevant(doc *InputDoc, now time.Time) bool {
+	if !pickupValid(doc) {
+		return false
+	}
+	if pickupPrevious(doc) == "" {
+		return false
+	}
+	sinceDate := pickupSinceDate(doc)
+	yesterday := now.In(Manila).AddDate(0, 0, -1).Format("2006-01-02")
+	return sinceDate >= yesterday
+}
+
 // Build computes the public card. now is the injected clock.
 func Build(doc *InputDoc, now time.Time, staleAfter time.Duration) *Output {
 	gen := rfc3339Manila(now)
@@ -664,6 +808,9 @@ func Build(doc *InputDoc, now time.Time, staleAfter time.Duration) *Output {
 		currency = "PHP"
 	}
 	route := RouteOut{From: doc.Route.From, To: doc.Route.To, Via: doc.Route.Via}
+	if pickupValid(doc) {
+		route.From = doc.Pickup.Current
+	}
 
 	type ordered struct {
 		run      Run
@@ -687,7 +834,14 @@ func Build(doc *InputDoc, now time.Time, staleAfter time.Duration) *Output {
 		if !ok {
 			continue
 		}
-		usables = append(usables, usable{run: o.run, captured: o.captured, min: min, max: max, basis: basis, standard: std})
+		usables = append(usables, usable{run: o.run, captured: o.captured, min: min, max: max, basis: basis, standard: std, era: doc.era(o.run.Ts)})
+	}
+
+	var curUsables []usable
+	for _, u := range usables {
+		if u.era == 0 {
+			curUsables = append(curUsables, u)
+		}
 	}
 
 	hiddenTexts := func() Texts {
@@ -698,20 +852,21 @@ func Build(doc *InputDoc, now time.Time, staleAfter time.Duration) *Output {
 		}
 	}
 
-	if len(usables) == 0 {
+	if len(curUsables) == 0 {
 		return &Output{
 			GeneratedAt: gen,
 			Visible:     false,
 			State:       "unavailable",
 			Reason:      "unavailable: no usable fare reading",
 			Route:       route,
+			Pickup:      pickupOut(doc),
 			Currency:    currency,
 			Trend:       noneTrend(),
 			Text:        hiddenTexts(),
 		}
 	}
 
-	cur := usables[0]
+	cur := curUsables[0]
 	isPendingNewest := len(all) > 0 && all[0].run.Status == "pending"
 	fallback := isPendingNewest && !all[0].captured.Equal(cur.captured)
 	age := now.Sub(cur.captured)
@@ -732,6 +887,7 @@ func Build(doc *InputDoc, now time.Time, staleAfter time.Duration) *Output {
 			Reason:      "stale: latest usable reading is older than the freshness window",
 			ValidUntil:  strPtr(valid),
 			Route:       route,
+			Pickup:      pickupOut(doc),
 			Currency:    currency,
 			Basis:       cur.basis,
 			AsOf:        strPtr(asof),
@@ -740,7 +896,7 @@ func Build(doc *InputDoc, now time.Time, staleAfter time.Duration) *Output {
 			Fallback:    fallback,
 			Fare:        &FareOut{Min: cur.min, Max: cur.max, Standard: cur.standard},
 			Traffic:     trafficOut(cur.run.Traffic),
-			Trend:       trendFor(cur, usables),
+			Trend:       trendFor(cur, curUsables),
 			Text:        hiddenTexts(),
 		}
 	}
@@ -752,34 +908,48 @@ func Build(doc *InputDoc, now time.Time, staleAfter time.Duration) *Output {
 		reason = "fallback: latest run is pending, showing latest analysed reading"
 	}
 
-	tr := trendFor(cur, usables)
-	vy := vsYesterday(cur, usables)
+	tr := trendFor(cur, curUsables)
+	vy := vsYesterday(cur, curUsables)
 	tout := trafficOut(cur.run.Traffic)
 	fareOut := &FareOut{Min: cur.min, Max: cur.max, Standard: cur.standard}
+	pickupNoteTl := ""
+	pickupNoteEn := ""
+	pickupNoteJa := ""
+	if pickupNoteRelevant(doc, now) {
+		n := pickupSinceHHMM(doc)
+		p := doc.Pickup.Current
+		q := pickupPrevious(doc)
+		pickupNoteTl = "Bagong sundo mula " + n + ": " + p + ". Hindi kasama sa paghahambing ang mga naunang presyo mula sa " + q + "."
+		pickupNoteEn = "Pickup changed at " + n + " to " + p + ". Earlier fares from " + q + " are not compared."
+		pickupNoteJa = n + "から乗車地点を" + p + "に変更。以前の" + q + "の料金とは比較していません。"
+	}
 	texts := Texts{
 		En: LangText{
-			Title:    "Grab fare estimate",
-			Headline: headlineEn(cur.min, cur.max, cur.basis),
-			Asof:     asofEn(hhmm, fallback),
-			Traffic:  trafficEn(tout),
-			Trend:    trendTextEn(tr),
-			Note:     noteEn,
+			Title:      "Grab fare estimate",
+			Headline:   headlineEn(cur.min, cur.max, cur.basis),
+			Asof:       asofEn(hhmm, fallback),
+			Traffic:    trafficEn(tout),
+			Trend:      trendTextEn(tr),
+			Note:       noteEn,
+			PickupNote: pickupNoteEn,
 		},
 		Tl: LangText{
-			Title:    "Tantiya sa pamasahe ng Grab",
-			Headline: headlineTl(cur.min, cur.max, cur.basis),
-			Asof:     asofTl(hhmm, fallback),
-			Traffic:  trafficTl(tout),
-			Trend:    trendTextTl(tr),
-			Note:     noteTl,
+			Title:      "Tantiya sa pamasahe ng Grab",
+			Headline:   headlineTl(cur.min, cur.max, cur.basis),
+			Asof:       asofTl(hhmm, fallback),
+			Traffic:    trafficTl(tout),
+			Trend:      trendTextTl(tr),
+			Note:       noteTl,
+			PickupNote: pickupNoteTl,
 		},
 		Ja: LangText{
-			Title:    "Grab料金の目安",
-			Headline: headlineJa(cur.min, cur.max, cur.basis),
-			Asof:     asofJa(hhmm, fallback),
-			Traffic:  trafficJa(tout),
-			Trend:    trendTextJa(tr),
-			Note:     noteJa,
+			Title:      "Grab料金の目安",
+			Headline:   headlineJa(cur.min, cur.max, cur.basis),
+			Asof:       asofJa(hhmm, fallback),
+			Traffic:    trafficJa(tout),
+			Trend:      trendTextJa(tr),
+			Note:       noteJa,
+			PickupNote: pickupNoteJa,
 		},
 	}
 	return &Output{
@@ -801,6 +971,7 @@ func Build(doc *InputDoc, now time.Time, staleAfter time.Duration) *Output {
 		VsYesterday: vy,
 		Text:        texts,
 		Hourly:      buildHourly(usables, now),
+		Pickup:      pickupOut(doc),
 	}
 }
 
@@ -808,6 +979,9 @@ func Build(doc *InputDoc, now time.Time, staleAfter time.Duration) *Output {
 // newest (runs captured after it are dropped). Returns a hidden/unavailable
 // output when that run is not usable.
 func BuildFromRun(doc *InputDoc, now time.Time, staleAfter time.Duration, ts string) *Output {
+	if doc != nil && doc.era(ts) > 0 {
+		return unavailableOutput(doc, now)
+	}
 	var target *Run
 	var targetCaptured time.Time
 	found := false
@@ -857,6 +1031,9 @@ func unavailableOutput(doc *InputDoc, now time.Time) *Output {
 	if doc != nil {
 		currency = doc.Currency
 		route = RouteOut{From: doc.Route.From, To: doc.Route.To, Via: doc.Route.Via}
+		if pickupValid(doc) {
+			route.From = doc.Pickup.Current
+		}
 	}
 	if currency == "" {
 		currency = "PHP"
@@ -867,6 +1044,7 @@ func unavailableOutput(doc *InputDoc, now time.Time) *Output {
 		State:       "unavailable",
 		Reason:      "unavailable: no usable fare reading",
 		Route:       route,
+		Pickup:      pickupOut(doc),
 		Currency:    currency,
 		Trend:       noneTrend(),
 		Text: Texts{
@@ -1076,6 +1254,9 @@ func SelectRuns(doc *InputDoc, now time.Time, maxAge time.Duration, requireMaps 
 
 	var out []Candidate
 	for _, o := range all {
+		if doc != nil && doc.era(o.run.Ts) > 0 {
+			continue
+		}
 		if _, _, _, _, ok := usableHeadline(o.run); !ok {
 			continue
 		}
@@ -1239,9 +1420,10 @@ func FetchGET(base string, hours int, token string, timeout time.Duration) ([]by
 // (leave files untouched).
 func ExpireForFailure(existing []byte, now time.Time) *Output {
 	var doc struct {
-		ValidUntil *string  `json:"valid_until"`
-		Route      RouteOut `json:"route"`
-		Currency   string   `json:"currency"`
+		ValidUntil *string    `json:"valid_until"`
+		Route      RouteOut   `json:"route"`
+		Pickup     *PickupOut `json:"pickup"`
+		Currency   string     `json:"currency"`
 	}
 	if err := json.Unmarshal(existing, &doc); err != nil {
 		return nil
@@ -1267,6 +1449,7 @@ func ExpireForFailure(existing []byte, now time.Time) *Output {
 		Reason:      "stale: source update failed and the previous card expired",
 		ValidUntil:  doc.ValidUntil,
 		Route:       doc.Route,
+		Pickup:      doc.Pickup,
 		Currency:    currency,
 		Trend:       noneTrend(),
 		Text: Texts{

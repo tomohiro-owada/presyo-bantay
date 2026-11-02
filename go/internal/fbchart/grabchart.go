@@ -58,9 +58,12 @@ func splitRuns(pts []grabfare.HourPoint) [][]grabfare.HourPoint {
 	var runs [][]grabfare.HourPoint
 	var cur []grabfare.HourPoint
 	for _, p := range pts {
-		if len(cur) > 0 && p.H != cur[len(cur)-1].H+1 {
-			runs = append(runs, cur)
-			cur = nil
+		if len(cur) > 0 {
+			last := cur[len(cur)-1]
+			if p.H != last.H+1 || p.Era != last.Era {
+				runs = append(runs, cur)
+				cur = nil
+			}
 		}
 		cur = append(cur, p)
 	}
@@ -270,7 +273,11 @@ func drawGrabChart(dst *image.RGBA, zone image.Rectangle, o *grabfare.Output) {
 		for i := len(run) - 1; i >= 0; i-- {
 			poly = append(poly, [2]float64{sx(run[i].H), sy(run[i].Min)})
 		}
-		fillPoly(sc, poly, premul(green, 0x30))
+		bandCol := premul(green, 0x30)
+		if len(run) > 0 && run[0].Era > 0 {
+			bandCol = premul(green, 0x18)
+		}
+		fillPoly(sc, poly, bandCol)
 	}
 	if yesterday != nil {
 		yc := premul(grey, 0xA0)
@@ -285,15 +292,70 @@ func drawGrabChart(dst *image.RGBA, zone image.Rectangle, o *grabfare.Output) {
 		}
 	}
 	for _, run := range splitRuns(today) {
+		lineCol := green
+		if len(run) > 0 && run[0].Era > 0 {
+			lineCol = premul(green, 0x80)
+		}
 		for i := 0; i+1 < len(run); i++ {
-			fillCapsule(sc, sx(run[i].H), sy(mid(run[i])), sx(run[i+1].H), sy(mid(run[i+1])), 3.2*ss, green)
+			fillCapsule(sc, sx(run[i].H), sy(mid(run[i])), sx(run[i+1].H), sy(mid(run[i+1])), 3.2*ss, lineCol)
 		}
 	}
 	for _, p := range today {
-		fillDisc(sc, sx(p.H), sy(mid(p)), 5*ss, green)
+		dotCol := green
+		if p.Era > 0 {
+			dotCol = premul(green, 0x80)
+		}
+		fillDisc(sc, sx(p.H), sy(mid(p)), 5*ss, dotCol)
 		fillDisc(sc, sx(p.H), sy(mid(p)), 2.4*ss, white)
 	}
 	xdraw.CatmullRom.Scale(dst, zone, sc, sc.Bounds(), draw.Over, nil)
+
+	// Era boundary markers (today only).
+	for i := 0; i+1 < len(today); i++ {
+		if today[i].Era == today[i+1].Era {
+			continue
+		}
+		xmid := int(math.Round((g.x(today[i].H) + g.x(today[i+1].H)) / 2))
+		// dashed vertical line, plot top to bottom
+		for y := g.top; y < g.bottom; y += 12 {
+			end := y + 6
+			if end > g.bottom {
+				end = g.bottom
+			}
+			fillRect(dst, xmid-1, y, xmid+2, end, mutCol)
+		}
+		// label: two short lines ("Bagong" / "sundo") beside the line, on the
+		// side with room (right first: the upper right of the plot is empty
+		// after a change); skipped when neither side fits.
+		ls := 20.0
+		lines := []string{"Bagong", "sundo"}
+		lw := 0
+		for _, ln := range lines {
+			if w := cmeasure(ln, Medium, ls); w > lw {
+				lw = w
+			}
+		}
+		lx := 0
+		leftAligned := true
+		switch {
+		case g.right-xmid-6 >= lw:
+			lx = xmid + 6
+		case xmid-g.left-6 >= lw:
+			lx = xmid - 6 - lw
+			leftAligned = false
+		default:
+			continue
+		}
+		ly := g.top + int(ls*0.85+0.5)
+		for _, ln := range lines {
+			x := lx
+			if !leftAligned {
+				x = lx + lw - cmeasure(ln, Medium, ls)
+			}
+			cdraw(dst, ln, Medium, ls, mutCol, x, ly)
+			ly += int(ls*1.2 + 0.5)
+		}
+	}
 
 	// title + legend + latest value
 	tw := cmeasure(g.titleText, Bold, g.titleSize)

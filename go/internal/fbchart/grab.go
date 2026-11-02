@@ -31,6 +31,18 @@ func mapTopCut(b image.Rectangle) int {
 	return c
 }
 
+// defaultCardSubtitle is used only when the data carries no route at all.
+const defaultCardSubtitle = "Old Zapote Public Market → Festival Mall · Alabang-Zapote Rd"
+
+// grabCardSubtitle is the route line under the title; the pickup comes from
+// the data (route.from = the current pickup), never from a constant.
+func grabCardSubtitle(o *grabfare.Output) string {
+	if s := grabfare.CardSubtitle(o.Route); s != "" {
+		return s
+	}
+	return defaultCardSubtitle
+}
+
 // RenderGrabFare renders the card without a focus band (see RenderGrabFareFocus).
 func RenderGrabFare(o *grabfare.Output, maps []image.Image, sample bool) (*image.RGBA, error) {
 	return RenderGrabFareFocus(o, maps, nil, sample)
@@ -183,7 +195,7 @@ func RenderGrabFareFocus(o *grabfare.Output, maps []image.Image, focus image.Ima
 		drawString(dst, banner, Bold, 28, white, (W-bw)/2, 50)
 	}
 	utilHeaderAt(dst, dy)
-	utilTitleAt(dst, "Tantiya sa pamasahe ng Grab", "Zapote Bridge → Festival Mall · Alabang-Zapote Rd", dy)
+	utilTitleAt(dst, "Tantiya sa pamasahe ng Grab", grabCardSubtitle(o), dy)
 
 	y := top + pad
 

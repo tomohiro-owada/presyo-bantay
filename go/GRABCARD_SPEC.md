@@ -39,7 +39,7 @@ Traffic is non-null in the API only when the upstream traffic analysis succeeded
 constant used by internal/utilities (`utilities.Separator`; copy its value into a local const, do not import utilities if that creates a cycle) — 4 blocks: TL, EN, JA, footer.
 TL block (emoji prefixes like the power post):
 ```
-🚕 Tantiya sa pamasahe ng Grab: Zapote Bridge → Festival Mall (Alabang-Zapote Rd)
+🚕 Tantiya sa pamasahe ng Grab: Old Zapote Public Market → Festival Mall (Alabang-Zapote Rd)
 💰 ₱308–370 metered taxi · Grab Standard ₱309 · Ayon sa Grab app noong 23:00 (oras sa Maynila)
 📈 ▼ ₱5 (-1%) kumpara sa 22:36
 📈 ▲ ₱12 (+4%) kumpara kahapon 23:00          <- only when vs_yesterday exists
@@ -61,7 +61,7 @@ a traffic line (🚦) is present iff Output.Traffic != nil; the only URL is the 
 utilities.go: cream background, utilHeader/utilHeaderAt, utilTitleAt, billCard panel, pill, fillTriangle, cdraw/wrapLines/cfitSize helpers, utilFooter, Montserrat+Noto fallback so JA works).
 Error when o is not visible or o.Fare == nil. Layout (top to bottom; compute y positions, no overlaps, nothing below footerTop = H-118):
 - optional red banner when `sample` is true (like pastSample): "SAMPLE — trial data, not a live post" (then dy=90 as in power.go).
-- header "Presyo Bantay", title (TL) "Tantiya sa pamasahe ng Grab", subtitle "Zapote Bridge → Festival Mall · Alabang-Zapote Rd".
+- header "Presyo Bantay", title (TL) "Tantiya sa pamasahe ng Grab", subtitle "Old Zapote Public Market → Festival Mall · Alabang-Zapote Rd".
 - white panel (billCard): big "₱308–370" (ExtraBold, ~120 px, fit to width), caption under it "Metered taxi · Grab app quote" (Medium ~30), a green pill "Grab Standard ₱309" (only when Standard != nil), and the as-of line "Ayon sa Grab app noong 23:00 · oras sa Maynila" (Medium ~28, mutCol).
 - trend rows (always at least one; ~30 px): coloured triangle (up = red, down = green, flat = grey square/bar, none = grey dot) + TL text "₱5 (-1%) kumpara sa 22:36"; second row for vs_yesterday when present "₱12 (+4%) kumpara kahapon 23:00". Colours: up red (price rising is bad), down green.
 - traffic chip only when o.Traffic != nil: pill "Trapiko: magaan" coloured light=green, moderate=amber (#C98A00), heavy=red, severe=redDk.
@@ -121,3 +121,6 @@ When `Output.Hourly` is present and a chart can be drawn, the white panel (billC
   - Drawn on a 3x supersampled RGBA scratch and downscaled with CatmullRom; text at final resolution; round caps/joins.
 - Card width stays 1080; panel height unchanged; overall card height logic (1350 when fits, otherwise grows) unchanged; card dimensions for the same inputs unchanged by the chart. Fare-only card (`-no-maps`) gets the chart the same way.
 - Hourly data comes from `o.Hourly` (`*grabfare.HourlyOut`); `grabfare.Build`/JSON unchanged. Default `-hours` is 50 so yesterday is available.
+
+## Pickup change
+When the Grab pickup changed, today's hourly series may contain era>0 readings (an earlier pickup) followed by era 0 readings (the current pickup); these are not comparable. `splitRuns` breaks the line on an era change, and a dashed vertical marker labelled "Bagong sundo" is drawn at the midpoint of the two hours. Earlier-era (era>0) points are drawn lighter (premul green alpha 0x80 line, 0x18 band, lighter dot ring). The card subtitle is taken from `route.from` (the current pickup) via `grabfare.CardSubtitle`, falling back to the default when the route is empty.

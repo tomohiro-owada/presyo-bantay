@@ -605,3 +605,22 @@ table.data tr.cheap td {
   font-size: 0.8rem;
   color: var(--muted);
 }
+
+.gc-break {
+  stroke: var(--muted);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.gc-break-label {
+  fill: var(--muted);
+  font-size: 10px;
+}
+
+.gc-prev {
+  opacity: 0.55;
+}
+
+.gc-sw-k {
+  border-top: 2px dashed var(--muted);
+}

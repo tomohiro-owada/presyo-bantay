@@ -1,7 +1,6 @@
 package grabfare
 
 import (
-	"sort"
 	"time"
 )
 
@@ -11,6 +10,10 @@ type HourPoint struct {
 	Min float64  `json:"min"`
 	Max float64  `json:"max"`
 	Std *float64 `json:"std,omitempty"`
+	// Era counts the pickup changes after this reading: 0 = the current
+	// pickup, 1 = the one before it, ... Readings of different eras are not
+	// comparable, so charts must not join them (a break marker is drawn).
+	Era int `json:"era,omitempty"`
 }
 
 // HourlyOut carries today's and yesterday's readings per Manila hour, for the
@@ -23,8 +26,11 @@ type HourlyOut struct {
 }
 
 // buildHourly groups the usable (plausible) readings by Manila date and hour.
-// When several readings fall in the same hour the earliest one is used (the
-// watcher's :00 capture). Readings from the future are ignored.
+// When several readings fall in the same hour the one with the lowest era
+// (the current pickup) wins, then the earliest captured (the watcher's :00
+// capture). Readings from the future are ignored. Today keeps every era (the
+// renderers draw a break marker); yesterday keeps only era-0 readings, which
+// are the only ones comparable with today's.
 func buildHourly(usables []usable, now time.Time) *HourlyOut {
 	nowM := now.In(Manila)
 	today := nowM.Format("2006-01-02")
@@ -44,19 +50,20 @@ func buildHourly(usables []usable, now time.Time) *HourlyOut {
 			continue
 		}
 		k := key{d, t.Hour()}
-		if prev, ok := best[k]; !ok || u.captured.Before(prev.captured) {
+		if prev, ok := best[k]; !ok || u.era < prev.era || (u.era == prev.era && u.captured.Before(prev.captured)) {
 			best[k] = u
 		}
 	}
-	collect := func(date string) []HourPoint {
+	collect := func(date string, era0Only bool) []HourPoint {
 		out := []HourPoint{}
 		for h := 0; h < 24; h++ {
-			if u, ok := best[key{date, h}]; ok {
-				out = append(out, HourPoint{H: h, Min: u.min, Max: u.max, Std: u.standard})
+			u, ok := best[key{date, h}]
+			if !ok || (era0Only && u.era != 0) {
+				continue
 			}
+			out = append(out, HourPoint{H: h, Min: u.min, Max: u.max, Std: u.standard, Era: u.era})
 		}
-		sort.Slice(out, func(i, j int) bool { return out[i].H < out[j].H })
 		return out
 	}
-	return &HourlyOut{TodayDate: today, YesterdayDate: yesterday, Today: collect(today), Yesterday: collect(yesterday)}
+	return &HourlyOut{TodayDate: today, YesterdayDate: yesterday, Today: collect(today, false), Yesterday: collect(yesterday, true)}
 }

@@ -219,3 +219,51 @@ func TestGrabfareEnvFile(t *testing.T) {
 		t.Fatalf("auth=%q", gotAuth)
 	}
 }
+
+func TestGrabfarePickupEndToEnd(t *testing.T) {
+	dir := t.TempDir()
+	in := filepath.Join(dir, "in.json")
+	doc := map[string]any{
+		"route":  map[string]any{"from": "Zapote Bridge", "to": "Festival Mall", "via": "Alabang-Zapote Rd", "label": "x"},
+		"pickup": map[string]any{"current": "Old Zapote Public Market", "since_ts": "20261102-1220", "since": "2026-11-02T12:20:00+08:00", "history": []map[string]any{{"since_ts": "19700101-0000", "pickup": "Zapote Bridge"}, {"since_ts": "20261102-1220", "pickup": "Old Zapote Public Market"}}},
+		"source": "grab", "currency": "PHP", "server_time": "2026-11-02T13:00:00+08:00", "hours": 26, "count": 3,
+		"runs": []map[string]any{
+			{"ts": "20261102-1300", "captured_at": "2026-11-02T13:00:00+08:00", "status": "complete", "fare": map[string]any{"currency": "PHP", "standard": map[string]any{"price": 320}, "metered_taxi": map[string]any{"min": 300, "max": 360}}, "traffic": nil},
+			{"ts": "20261102-1220", "captured_at": "2026-11-02T12:20:00+08:00", "status": "complete", "fare": map[string]any{"currency": "PHP", "standard": map[string]any{"price": 310}, "metered_taxi": map[string]any{"min": 290, "max": 350}}, "traffic": nil},
+			{"ts": "20261102-1200", "captured_at": "2026-11-02T12:00:00+08:00", "status": "complete", "fare": map[string]any{"currency": "PHP", "standard": map[string]any{"price": 300}, "metered_taxi": map[string]any{"min": 280, "max": 340}}, "traffic": nil},
+		},
+	}
+	b, _ := json.Marshal(doc)
+	if err := os.WriteFile(in, b, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	outDir := filepath.Join(dir, "out")
+	code, _, _ := captureGrabfare(t, []string{"-out-dir", outDir, "-input-file", in, "-now", "2026-11-02T13:10:00+08:00"})
+	if code != 0 {
+		t.Fatalf("exit %d", code)
+	}
+	data, _ := os.ReadFile(filepath.Join(outDir, "grab-fare.json"))
+	var got map[string]any
+	if err := json.Unmarshal(data, &got); err != nil {
+		t.Fatal(err)
+	}
+	if route, _ := got["route"].(map[string]any); route["from"] != "Old Zapote Public Market" {
+		t.Fatalf("route.from=%v", route["from"])
+	}
+	if pickup, _ := got["pickup"].(map[string]any); pickup["name"] != "Old Zapote Public Market" {
+		t.Fatalf("pickup=%v", got["pickup"])
+	}
+	if trend, _ := got["trend"].(map[string]any); trend["previous_hhmm"] != "12:20" {
+		t.Fatalf("trend=%v", got["trend"])
+	}
+	hourly, _ := got["hourly"].(map[string]any)
+	today, _ := hourly["today"].([]any)
+	if len(today) == 0 {
+		t.Fatal("hourly.today empty")
+	}
+	text, _ := got["text"].(map[string]any)
+	en, _ := text["en"].(map[string]any)
+	if pn, _ := en["pickup_note"].(string); pn == "" {
+		t.Fatal("pickup_note empty")
+	}
+}

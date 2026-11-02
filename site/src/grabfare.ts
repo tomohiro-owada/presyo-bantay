@@ -10,6 +10,7 @@ export interface GrabFareText {
   trend: string;
   yesterday?: string;
   note: string;
+  pickupNote?: string;
 }
 
 export type GrabFareTrendDir = "up" | "down" | "flat" | "none";
@@ -161,6 +162,12 @@ export function evalGrabFare(raw: unknown, nowMs: number): GrabFareView | null {
   for (const l of langs) {
     const lo = t[l] as Record<string, unknown>;
     const traffic = typeof lo.traffic === "string" ? (lo.traffic as string) : "";
+    const rawNote = lo.pickup_note;
+    let pickupNote: string | undefined;
+    if (typeof rawNote === "string") {
+      const cleaned = rawNote.trim().slice(0, 300);
+      if (cleaned !== "") pickupNote = cleaned;
+    }
     const entry: GrabFareText = {
       title: lo.title as string,
       route,
@@ -170,6 +177,7 @@ export function evalGrabFare(raw: unknown, nowMs: number): GrabFareView | null {
       trend: lo.trend as string,
       note: lo.note as string,
     };
+    if (pickupNote !== undefined) entry.pickupNote = pickupNote;
     if (hasYesterday) {
       entry.yesterday = buildYesterday(l, vsYesterday as Record<string, unknown>);
     }

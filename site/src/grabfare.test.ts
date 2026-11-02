@@ -10,7 +10,7 @@ function base(overrides: Record<string, unknown> = {}) {
     valid_until: "2026-11-02T10:00:00+08:00",
     as_of: "2026-11-02T08:00:00+08:00",
     fallback: false,
-    route: { from: "Zapote Bridge", to: "Festival Supermall Alabang", via: "Alabang-Zapote Road" },
+    route: { from: "Old Zapote Public Market", to: "Festival Supermall Alabang", via: "Alabang-Zapote Road" },
     trend: { direction: "up", delta_pesos: 12, delta_pct: 4, previous_as_of: "x", previous_hhmm: "07:00" },
     vs_yesterday: null,
     text: {
@@ -28,7 +28,7 @@ describe("evalGrabFare", () => {
     expect(v).not.toBeNull();
     expect(v!.fallback).toBe(false);
     expect(v!.trendDir).toBe("up");
-    expect(v!.text.en.route).toBe("Zapote Bridge → Festival Supermall Alabang (Alabang-Zapote Road)");
+    expect(v!.text.en.route).toBe("Old Zapote Public Market → Festival Supermall Alabang (Alabang-Zapote Road)");
   });
 
   it("expired valid_until -> null", () => {
@@ -82,5 +82,55 @@ describe("evalGrabFare", () => {
     expect(evalGrabFare("str", NOW)).toBeNull();
     expect(evalGrabFare(42, NOW)).toBeNull();
     expect(evalGrabFare([], NOW)).toBeNull();
+  });
+});
+
+describe("evalGrabFare pickup note", () => {
+  it("sets pickupNote trimmed", () => {
+    const b = base();
+    (b.text as any).tl.pickup_note = "  note tl  ";
+    (b.text as any).en.pickup_note = "note en";
+    (b.text as any).ja.pickup_note = "note ja";
+    const v = evalGrabFare(b, NOW)!;
+    expect(v.text.tl.pickupNote).toBe("note tl");
+    expect(v.text.en.pickupNote).toBe("note en");
+    expect(v.text.ja.pickupNote).toBe("note ja");
+  });
+
+  it("empty/whitespace/non-string/absent -> undefined", () => {
+    const b = base();
+    (b.text as any).tl.pickup_note = "   ";
+    (b.text as any).en.pickup_note = 42;
+    const v = evalGrabFare(b, NOW)!;
+    expect(v.text.tl.pickupNote).toBeUndefined();
+    expect(v.text.en.pickupNote).toBeUndefined();
+    expect(v.text.ja.pickupNote).toBeUndefined();
+  });
+
+  it("truncates >300 chars to 300", () => {
+    const b = base();
+    (b.text as any).en.pickup_note = "a".repeat(350);
+    const v = evalGrabFare(b, NOW)!;
+    expect(v.text.en.pickupNote).toHaveLength(300);
+  });
+
+  it("fixture without pickup field/era evaluates as before", () => {
+    const v1 = evalGrabFare(base(), NOW);
+    const v2 = evalGrabFare(base(), NOW);
+    expect(v1).toEqual(v2);
+    expect(v1!.text.en.pickupNote).toBeUndefined();
+  });
+});
+
+describe("evalGrabFare route names", () => {
+  it("Old Zapote Public Market route", () => {
+    const v = evalGrabFare(base(), NOW)!;
+    expect(v.text.en.route).toBe("Old Zapote Public Market → Festival Supermall Alabang (Alabang-Zapote Road)");
+  });
+
+  it("Zapote Bridge route", () => {
+    const b = base({ route: { from: "Zapote Bridge", to: "Festival Supermall Alabang", via: "Alabang-Zapote Road" } });
+    const v = evalGrabFare(b, NOW)!;
+    expect(v.text.en.route).toBe("Zapote Bridge → Festival Supermall Alabang (Alabang-Zapote Road)");
   });
 });

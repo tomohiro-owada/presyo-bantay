@@ -3,7 +3,7 @@
 The static site (Vite + vanilla TypeScript, GitHub Pages) must show a "Grab fare estimate" card from a small JSON file that is
 refreshed hourly OUTSIDE the site build. The JSON is the output of `presyo grabfare` (`grab-fare.json`; shape in go/GRABFARE_SPEC.md:
 `visible`, `state` (fresh|fallback|stale|unavailable), `valid_until` (RFC3339), `as_of`, `fare{min,max,standard}`, `trend{direction,...}`,
-`vs_yesterday`, `traffic|null`, `text{tl,en,ja:{title,headline,asof,traffic,trend,note}}`, `route{from,to,via}`).
+`vs_yesterday`, `traffic|null`, `text{tl,en,ja:{title,headline,asof,traffic,trend,note}}`, `route{from,to,via}`, `text.{tl,en,ja}.pickup_note` (optional string), `hourly.*[].era` (optional int)).
 Nothing is rebuilt hourly: the page fetches the file when it loads (and every 10 minutes while open).
 
 ## Implement
@@ -11,7 +11,7 @@ Nothing is rebuilt hourly: the page fetches the file when it loads (and every 10
   - returns null (card hidden) unless: raw is an object, `visible === true`, state is "fresh" or "fallback", `valid_until` parses and is >= nowMs,
     `as_of` parses and is not more than 10 minutes in the future, `text.tl|en|ja` objects with a non-empty string `headline`, `title`, `asof`, `trend`, `note`.
   - GrabFareView = { text: Record<Lang, {title, route, headline, asof, traffic, trend, yesterday?, note}>, trendDir: "up"|"down"|"flat"|"none", fallback: boolean, validUntilMs: number }.
-    `route` is built from route.from/to/via ("Zapote Bridge → Festival Supermall Alabang (Alabang-Zapote Road)"); `traffic` may be "" (then not shown);
+    `route` is built from route.from/to/via ("Old Zapote Public Market → Festival Supermall Alabang (Alabang-Zapote Road)"); `traffic` may be "" (then not shown);
     `yesterday` only when vs_yesterday exists: build with the same wording as the caption: en "▼ ₱12 (-3%) vs yesterday 23:00", tl "... kumpara kahapon 23:00", ja "... 昨日23:00比" using vs_yesterday.delta_pesos / delta_pct / previous_hhmm (arrow up/down/＝ from direction).
   - never trusts markup: strings are only ever assigned with textContent.
 - `site/src/grabfare.test.ts` (vitest): fresh ok; expired valid_until -> null; visible false -> null; stale/unavailable -> null; future as_of -> null; garbage/missing text -> null; yesterday line wording for up/down/flat; fallback flag; invalid JSON types.
@@ -30,3 +30,11 @@ Nothing is rebuilt hourly: the page fetches the file when it loads (and every 10
   Grab Standard is not drawn (keeps the chart readable). Colours reuse --accent/--muted/--line.
 - `buildGrabChartLegend`: legend (Today/Yesterday/range) + a hint when yesterday exists but is still < 6 points. Labels TL/EN/JA live in grabchart.ts.
 - No new dependency; the chart is re-rendered on language switch with the rest of the card.
+
+
+## Pickup change markers (2026-11-02)
+- `GrabFareText.pickupNote?: string`: optional note shown in `#grab-pickup-note` (hidden when absent/empty; trimmed, max 300 chars).
+- `HourPt.era: number` (default 0; non-integer/negative -> 0). `0` = current pickup; `>0` = earlier pickup, not comparable.
+- `parseHourly` keeps `era`; dedups same hour by lowest era.
+- `splitRuns` also breaks when era changes between consecutive points.
+- Chart draws a dashed vertical break marker (`.gc-break`, `.gc-break-label`) at each era boundary in today, a legend swatch (`.gc-sw-k`), and `.gc-prev` opacity for earlier-era points; aria-label gains a sentence when a boundary exists. Earlier-era dots' titles get " · earlier pickup" (localized).

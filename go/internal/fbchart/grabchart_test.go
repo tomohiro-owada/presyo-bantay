@@ -3,6 +3,7 @@ package fbchart
 import (
 	"image"
 	"image/color"
+	"math"
 	"reflect"
 	"testing"
 
@@ -208,5 +209,202 @@ func TestBottomYLabelDoesNotCollideWithXLabels(t *testing.T) {
 	// the "00" x label is drawn
 	if n := nonWhite(image.Rect(g.left-14, g.bottom+6, g.left+14, g.bottom+int(g.tickSize*1.4))); n == 0 {
 		t.Error("00 x label missing")
+	}
+}
+
+func TestSplitRunsBreaksOnEraChange(t *testing.T) {
+	pts := []grabfare.HourPoint{
+		{H: 11, Min: 280, Max: 340, Era: 1},
+		{H: 12, Min: 280, Max: 340, Era: 0},
+		{H: 13, Min: 280, Max: 340, Era: 0},
+	}
+	var got [][]int
+	for _, r := range splitRuns(pts) {
+		var hs []int
+		for _, p := range r {
+			hs = append(hs, p.H)
+		}
+		got = append(got, hs)
+	}
+	if want := [][]int{{11}, {12, 13}}; !reflect.DeepEqual(got, want) {
+		t.Errorf("runs %v", got)
+	}
+	plain := []grabfare.HourPoint{
+		{H: 11, Min: 280, Max: 340},
+		{H: 12, Min: 280, Max: 340},
+		{H: 13, Min: 280, Max: 340},
+	}
+	var got2 [][]int
+	for _, r := range splitRuns(plain) {
+		var hs []int
+		for _, p := range r {
+			hs = append(hs, p.H)
+		}
+		got2 = append(got2, hs)
+	}
+	if want := [][]int{{11, 12, 13}}; !reflect.DeepEqual(got2, want) {
+		t.Errorf("runs %v", got2)
+	}
+}
+
+func TestGrabChartEraBoundaryMarker(t *testing.T) {
+	today := []grabfare.HourPoint{
+		{H: 10, Min: 100, Max: 120, Era: 1},
+		{H: 11, Min: 110, Max: 130, Era: 1},
+		{H: 12, Min: 200, Max: 220, Era: 0},
+		{H: 13, Min: 210, Max: 230, Era: 0},
+	}
+	o := hourlyOut(today, nil)
+	zone := image.Rect(560, 290, 1000, 575)
+	lo, hi, step := chartYRange(today, nil)
+	g := chartGeom(zone, lo, hi, step)
+	dst := image.NewRGBA(image.Rect(0, 0, W, 700))
+	for y := 0; y < 700; y++ {
+		for x := 0; x < W; x++ {
+			dst.Set(x, y, white)
+		}
+	}
+	drawGrabChart(dst, zone, o)
+
+	xmid := int(math.Round((g.x(11) + g.x(12)) / 2))
+	mutCount := 0
+	for y := g.top; y < g.bottom; y++ {
+		for dx := -2; dx <= 2; dx++ {
+			if dst.RGBAAt(xmid+dx, y) == mutCol {
+				mutCount++
+			}
+		}
+	}
+	if mutCount < (g.bottom-g.top)/4 {
+		t.Errorf("mutCol marker pixels too few: %d", mutCount)
+	}
+	consecutive := 0
+	maxConsec := 0
+	for y := g.top; y < g.bottom; y++ {
+		if dst.RGBAAt(xmid, y) == mutCol {
+			consecutive++
+			if consecutive > maxConsec {
+				maxConsec = consecutive
+			}
+		} else {
+			consecutive = 0
+		}
+	}
+	if maxConsec > 8 {
+		t.Errorf("marker not dashed: max consecutive %d", maxConsec)
+	}
+	greenCount := 0
+	for y := g.top + 12; y < g.bottom; y++ {
+		for dx := -2; dx <= 2; dx++ {
+			if dst.RGBAAt(xmid+dx, y) == green {
+				greenCount++
+			}
+		}
+	}
+	if greenCount != 0 {
+		t.Errorf("strong green in boundary band: %d", greenCount)
+	}
+}
+
+func TestGrabChartAllEraZeroIdenticalNoMarker(t *testing.T) {
+	mk := func(set bool) []grabfare.HourPoint {
+		pts := []grabfare.HourPoint{
+			{H: 10, Min: 100, Max: 120},
+			{H: 11, Min: 110, Max: 130},
+			{H: 12, Min: 200, Max: 220},
+			{H: 13, Min: 210, Max: 230},
+		}
+		if set {
+			for i := range pts {
+				pts[i].Era = 0
+			}
+		}
+		return pts
+	}
+	o1 := hourlyOut(mk(false), nil)
+	o2 := hourlyOut(mk(true), nil)
+	zone := image.Rect(560, 290, 1000, 575)
+	render := func(o *grabfare.Output) *image.RGBA {
+		dst := image.NewRGBA(image.Rect(0, 0, W, 700))
+		for y := 0; y < 700; y++ {
+			for x := 0; x < W; x++ {
+				dst.Set(x, y, white)
+			}
+		}
+		drawGrabChart(dst, zone, o)
+		return dst
+	}
+	a := render(o1)
+	b := render(o2)
+	if a.Bounds() != b.Bounds() || !reflect.DeepEqual(a.Pix, b.Pix) {
+		t.Error("all-era-0 renders are not byte-identical")
+	}
+	today := o1.Hourly.Today
+	lo, hi, step := chartYRange(today, nil)
+	g := chartGeom(zone, lo, hi, step)
+	for i := 0; i+1 < len(today); i++ {
+		x0 := int(math.Round(g.x(today[i].H)))
+		x1 := int(math.Round(g.x(today[i+1].H)))
+		for x := x0 + 1; x < x1; x++ {
+			n := 0
+			for y := g.top; y < g.bottom; y++ {
+				if a.RGBAAt(x, y) == mutCol {
+					n++
+				}
+			}
+			if n > (g.bottom-g.top)/6 {
+				t.Errorf("mutCol dashed column at x=%d: %d", x, n)
+			}
+		}
+	}
+}
+
+func TestGrabChartEraDotLighter(t *testing.T) {
+	today0 := []grabfare.HourPoint{{H: 12, Min: 280, Max: 340, Era: 0}}
+	zone := image.Rect(560, 290, 1000, 575)
+	lo, hi, step := chartYRange(today0, nil)
+	g := chartGeom(zone, lo, hi, step)
+	render := func(era int) *image.RGBA {
+		today := []grabfare.HourPoint{{H: 12, Min: 280, Max: 340, Era: era}}
+		o := hourlyOut(today, nil)
+		dst := image.NewRGBA(image.Rect(0, 0, W, 700))
+		for y := 0; y < 700; y++ {
+			for x := 0; x < W; x++ {
+				dst.Set(x, y, white)
+			}
+		}
+		drawGrabChart(dst, zone, o)
+		return dst
+	}
+	dst0 := render(0)
+	dst1 := render(1)
+	midv := 310.0
+	px := int(math.Round(g.x(12)))
+	py := int(math.Round(g.y(midv)))
+	greenFound := false
+	for dy := -8; dy <= 8; dy++ {
+		for dx := -8; dx <= 8; dx++ {
+			if dst0.RGBAAt(px+dx, py+dy) == green {
+				greenFound = true
+			}
+		}
+	}
+	if !greenFound {
+		t.Error("era0 ring has no exact green pixel")
+	}
+	lighterFound := false
+	for dy := -8; dy <= 8; dy++ {
+		for dx := -8; dx <= 8; dx++ {
+			c := dst1.RGBAAt(px+dx, py+dy)
+			if c == green {
+				t.Errorf("era1 ring contains strong green at %d,%d", px+dx, py+dy)
+			}
+			if c != white && c != green {
+				lighterFound = true
+			}
+		}
+	}
+	if !lighterFound {
+		t.Error("era1 ring has no lighter pixel")
 	}
 }

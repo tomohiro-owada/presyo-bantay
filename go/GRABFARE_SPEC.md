@@ -1,6 +1,6 @@
 # grabfare — "Grab fare estimate" card (dry-run prototype)
 
-Shows a Grab app quote for a fixed taxi route on Presyo Bantay: Zapote Bridge -> Festival Supermall Alabang
+Shows a Grab app quote for a fixed taxi route on Presyo Bantay: Old Zapote Public Market -> Festival Supermall Alabang (pickup was "Zapote Bridge" until run 20261102-1220)
 (Alabang-Zapote Road, Las Pinas/Muntinlupa). It is a quote read from the Grab app at a given time, NOT an official
 fare, and not endorsed by Grab. No Grab screenshots, logos or brand colours.
 
@@ -63,7 +63,7 @@ All numbers may be null.
  "hourly":{"today_date":"YYYY-MM-DD","yesterday_date":"YYYY-MM-DD","today":[{"h":0-23,"min":n,"max":n,"std":n|omitted}],"yesterday":[...]},   // visible states only
  "text":{"tl":{"title","headline","asof","traffic","trend","note"},"en":{...},"ja":{...}}}
 ```
-Texts, Taglish (tl) / English / Japanese. Example en: title "Grab fare estimate", route "Zapote Bridge → Festival Mall (Alabang-Zapote Rd)",
+Texts, Taglish (tl) / English / Japanese. Example en: title "Grab fare estimate", route "Old Zapote Public Market → Festival Mall (Alabang-Zapote Rd)" (earlier pickup: Zapote Bridge),
 headline "₱282–338 metered taxi quote", asof "As of 08:00 (Manila time)", traffic "Traffic: heavy (about 35% red)" (omit % if null), trend "▲ ₱12 (+4%) vs 07:00"
 (▼ down, ＝ "No change vs 07:00", none: "No earlier reading yet"), note "Quote shown in the Grab app at that time. Not an official fare; actual fare may differ."
 For fallback add to asof: "(latest analysed reading)". Japanese and Taglish equivalents must be natural and short (Taglish: "Tantiya sa pamasahe ng Grab", "Ayon sa Grab app noong 08:00
@@ -83,3 +83,24 @@ failure path rewriting an expired previous card but leaving a valid one; a scan 
 `-hours` now defaults to 50 so the recent-runs request covers all of yesterday. `hourly` groups plausible usable readings by Manila date
 (today = date of `now`, yesterday = the day before) and hour; the earliest reading in an hour wins; future readings are ignored; missing hours are
 absent from the lists (never interpolated). Lists are `[]`, never null. Present only on visible (fresh/fallback) output; old consumers ignore it.
+
+## Pickup change and eras
+The API may add an optional top-level `pickup` block right after `route`:
+`"pickup":{"current":"Old Zapote Public Market","since_ts":"20261102-1220","since":"2026-11-02T12:20:00+08:00","history":[{"since_ts":"19700101-0000","since":"1970-01-01T00:00:00+08:00","pickup":"Zapote Bridge"},{"since_ts":"20261102-1220","since":"2026-11-02T12:20:00+08:00","pickup":"Old Zapote Public Market"}]}`.
+`route.from` already equals the current pickup. When the block is absent (old API) everything behaves as before: all runs are era 0 and no pickup output is emitted.
+
+A run's ts is "YYYYMMDD-HHMM" (Manila). Era of a run = number of history entries whose `since_ts` is greater than the run ts (lexicographic). Era 0 = current pickup.
+
+Fares from different pickups are NOT comparable. Build splits usables into `all` (every plausible reading, for the hourly chart) and `cur` (era 0 only); headline, fallback, freshness, trend, vs_yesterday and traffic come ONLY from era-0 usables. trendFor/vsYesterday receive the era-0 list. If there is no era-0 usable reading the output is the same unavailable (hidden) output as today.
+
+buildHourly takes all usables and the doc era function. Per (Manila date, hour) it picks the reading with the lowest era first, then the earliest captured, and sets `HourPoint.Era`. The `yesterday` list contains only era-0 readings; `today` keeps all eras (renderers draw a break marker). Future readings are ignored.
+
+Pickup note is shown only when the change is relevant: Manila date of `pickup.since` >= yesterday's date (rest of change day and the next day), and the doc has a previous pickup. Texts:
+- tl: "Bagong sundo mula {N}: {P}. Hindi kasama sa paghahambing ang mga naunang presyo mula sa {Q}."
+- en: "Pickup changed at {N} to {P}. Earlier fares from {Q} are not compared."
+- ja: "{N}から乗車地点を{P}に変更。以前の{Q}の料金とは比較していません。"
+where N = since HH:MM, P = current pickup name, Q = previous pickup name. `Output.Pickup` (name/since/since_hhmm/previous) is set whenever the block is valid.
+
+Runs with era > 0 are never eligible for a card; `BuildFromRun` with an era > 0 ts returns the unavailable output.
+
+`Output.Pickup` is placed after `Route` and has `name`, `since` (RFC3339 Manila), `since_hhmm`, and `previous` (optional). `LangText` gains `pickup_note`.

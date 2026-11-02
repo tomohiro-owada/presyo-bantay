@@ -247,3 +247,59 @@ func TestRenderGrabFareFocusOnlyAndTall(t *testing.T) {
 		t.Errorf("tall focus area %d", n)
 	}
 }
+
+func TestGrabCardSubtitle(t *testing.T) {
+	route := grabfare.RouteOut{From: "Old Zapote Public Market", To: "Festival Supermall Alabang", Via: "Alabang-Zapote Road"}
+	if got := grabCardSubtitle(&grabfare.Output{Route: route}); got != "Old Zapote Public Market → Festival Mall · Alabang-Zapote Rd" {
+		t.Errorf("got %q", got)
+	}
+	if got := grabCardSubtitle(&grabfare.Output{}); got != defaultCardSubtitle {
+		t.Errorf("empty got %q", got)
+	}
+	route2 := grabfare.RouteOut{From: "A", To: "Festival Supermall Alabang", Via: ""}
+	if got := grabCardSubtitle(&grabfare.Output{Route: route2}); got != "A → Festival Mall" {
+		t.Errorf("got %q", got)
+	}
+}
+
+func TestGrabfareCardSubtitle(t *testing.T) {
+	route := grabfare.RouteOut{From: "Old Zapote Public Market", To: "Festival Supermall Alabang", Via: "Alabang-Zapote Road"}
+	if got := grabfare.CardSubtitle(route); got != "Old Zapote Public Market → Festival Mall · Alabang-Zapote Rd" {
+		t.Errorf("got %q", got)
+	}
+	if got := grabfare.CardSubtitle(grabfare.RouteOut{}); got != "" {
+		t.Errorf("empty got %q", got)
+	}
+	route2 := grabfare.RouteOut{From: "A", To: "Festival Supermall Alabang", Via: ""}
+	if got := grabfare.CardSubtitle(route2); got != "A → Festival Mall" {
+		t.Errorf("got %q", got)
+	}
+}
+
+func TestRenderGrabFareWithHourlyEras(t *testing.T) {
+	o := grabOutput(nil, false, "up")
+	o.Route = grabfare.RouteOut{From: "Old Zapote Public Market", To: "Festival Supermall Alabang", Via: "Alabang-Zapote Road"}
+	o.Hourly = &grabfare.HourlyOut{
+		Today: []grabfare.HourPoint{
+			{H: 10, Min: 280, Max: 340, Era: 1},
+			{H: 11, Min: 290, Max: 350, Era: 1},
+			{H: 12, Min: 300, Max: 360, Era: 0},
+		},
+	}
+	img, err := RenderGrabFare(o, nil, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if img.Bounds().Dx() != 1080 {
+		t.Errorf("width %d", img.Bounds().Dx())
+	}
+	o2 := grabOutput(nil, false, "up")
+	o2.Hourly = nil
+	img2, err2 := RenderGrabFare(o2, nil, false)
+	if err2 != nil {
+		t.Fatal(err2)
+	}
+	if img2.Bounds().Dx() != 1080 {
+		t.Errorf("width %d", img2.Bounds().Dx())
+	}
+}

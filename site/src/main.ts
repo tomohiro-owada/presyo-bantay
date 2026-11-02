@@ -447,6 +447,16 @@ function renderGrabFare(): void {
     yEl.hidden = true;
     yEl.textContent = "";
   }
+  const pickupNoteEl = document.getElementById("grab-pickup-note");
+  if (pickupNoteEl) {
+    if (t.pickupNote) {
+      pickupNoteEl.hidden = false;
+      pickupNoteEl.textContent = t.pickupNote;
+    } else {
+      pickupNoteEl.hidden = true;
+      pickupNoteEl.textContent = "";
+    }
+  }
   renderGrabChart(view);
   $("grab-note").textContent = t.note;
 }

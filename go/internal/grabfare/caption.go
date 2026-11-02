@@ -26,6 +26,23 @@ func captionRoute(r RouteOut) string {
 	return from + " → " + to
 }
 
+// CardSubtitle is the route line under the FB card title:
+// "<pickup> → Festival Mall · Alabang-Zapote Rd" (shortened like the caption).
+// Empty when the route is empty.
+func CardSubtitle(r RouteOut) string {
+	from := strings.TrimSpace(shortenCaption(r.From))
+	to := strings.TrimSpace(shortenCaption(r.To))
+	via := strings.TrimSpace(shortenCaption(r.Via))
+	if from == "" && to == "" {
+		return ""
+	}
+	s := from + " \u2192 " + to
+	if via != "" {
+		s += " \u00b7 " + via
+	}
+	return s
+}
+
 func RenderCaption(o *Output) string {
 	if o == nil {
 		return ""
@@ -63,6 +80,9 @@ func RenderCaption(o *Output) string {
 		if o.Focus {
 			lines = append(lines, "🗺️ Malapitan: Colours Town Center · SM Southmall · Village Square sa Alabang-Zapote Rd")
 		}
+		if strings.TrimSpace(o.Text.Tl.PickupNote) != "" {
+			lines = append(lines, "📍 "+o.Text.Tl.PickupNote)
+		}
 		lines = append(lines, o.Text.Tl.Note)
 		tlBlock = strings.Join(lines, "\n")
 	}
@@ -93,6 +113,9 @@ func RenderCaption(o *Output) string {
 		if o.Focus {
 			lines = append(lines, "🗺️ Close-up: Colours Town Center · SM Southmall · Village Square on Alabang-Zapote Rd")
 		}
+		if strings.TrimSpace(o.Text.En.PickupNote) != "" {
+			lines = append(lines, "📍 "+o.Text.En.PickupNote)
+		}
 		lines = append(lines, o.Text.En.Note)
 		enBlock = strings.Join(lines, "\n")
 	}
@@ -122,6 +145,9 @@ func RenderCaption(o *Output) string {
 		}
 		if o.Focus {
 			lines = append(lines, "🗺️ 拡大: Alabang-Zapote Rd の Colours Town Center・SM Southmall・Village Square 付近")
+		}
+		if strings.TrimSpace(o.Text.Ja.PickupNote) != "" {
+			lines = append(lines, "📍 "+o.Text.Ja.PickupNote)
 		}
 		lines = append(lines, o.Text.Ja.Note)
 		jaBlock = strings.Join(lines, "\n")
@@ -215,6 +241,9 @@ func CheckCaption(text string, o *Output) []string {
 			}
 		}
 	}
+	if o != nil && o.Pickup != nil && o.Pickup.SinceHHMM != "" {
+		allowedHHMM[o.Pickup.SinceHHMM] = true
+	}
 
 	pesoRe := regexp.MustCompile("\u20b1([0-9,]+)")
 	rangeRe := regexp.MustCompile("\u2013([0-9,]+)")
@@ -304,6 +333,20 @@ func CheckCaption(text string, o *Output) []string {
 	for _, m := range urlRe.FindAllString(text, -1) {
 		if m != site && strings.TrimRight(m, ".,") != site {
 			add("unexpected url: " + m)
+		}
+	}
+
+	// pickup name presence
+	if o != nil && o.Pickup != nil {
+		if !strings.Contains(text, o.Pickup.Name) {
+			add("pickup name missing")
+		}
+	}
+	// forbidden words
+	lower := strings.ToLower(text)
+	for _, bad := range []string{"gsm", "moveit", "move it", "green gsm"} {
+		if strings.Contains(lower, bad) {
+			add("forbidden word: " + bad)
 		}
 	}
 
