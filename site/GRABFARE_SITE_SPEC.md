@@ -38,3 +38,9 @@ Nothing is rebuilt hourly: the page fetches the file when it loads (and every 10
 - `parseHourly` keeps `era`; dedups same hour by lowest era.
 - `splitRuns` also breaks when era changes between consecutive points.
 - Chart draws a dashed vertical break marker (`.gc-break`, `.gc-break-label`) at each era boundary in today, a legend swatch (`.gc-sw-k`), and `.gc-prev` opacity for earlier-era points; aria-label gains a sentence when a boundary exists. Earlier-era dots' titles get " · earlier pickup" (localized).
+
+## Move It bike row
+- `GrabFareView.bike: GrabBikeView | null`: optional motorcycle-taxi (Move It) fare on the same trip, from top-level `bike` in grab-fare.json.
+- `GrabBikeView = { label, fresh, text: Record<Lang,{headline,asof}>, hourly: GrabHourly | null }`; `hourly` via `parseHourly(bike.hourly)`.
+- Validation: bike must be an object; label non-empty string (<=60 chars); fresh strictly boolean; text.tl|en|ja each with non-empty headline/asof (<=200 chars); else bike = null (card still shows).
+- UI: `#grab-bike` row inside #grab-card with `#grab-bike-line` (headline in `<strong>`), `#grab-bike-asof`, and a small chart (`#grab-bike-chart`) rendered with `buildGrabChartSvg` and `buildGrabChartLegend(...,{band:false})`; hidden when hourly null or svg empty. Never dimmed; a quote older than 90 min shows the same price with the "Last Move It quote" as-of text. Hourly points with `carried: true` are drawn as line only (no dot).

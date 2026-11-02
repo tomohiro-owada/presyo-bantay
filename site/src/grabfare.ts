@@ -15,12 +15,20 @@ export interface GrabFareText {
 
 export type GrabFareTrendDir = "up" | "down" | "flat" | "none";
 
+export interface GrabBikeView {
+  label: string;
+  fresh: boolean;
+  text: Record<Lang, { headline: string; asof: string }>;
+  hourly: GrabHourly | null;
+}
+
 export interface GrabFareView {
   text: Record<Lang, GrabFareText>;
   trendDir: GrabFareTrendDir;
   fallback: boolean;
   validUntilMs: number;
   hourly: GrabHourly | null;
+  bike: GrabBikeView | null;
 }
 
 function formatPeso(x: number): string {
@@ -184,11 +192,66 @@ export function evalGrabFare(raw: unknown, nowMs: number): GrabFareView | null {
     viewText[l] = entry;
   }
 
+  // Optional Move It motorcycle-taxi fare row.
+  const rawBike = r.bike;
+  let bike: GrabBikeView | null = null;
+  if (typeof rawBike === "object" && rawBike !== null && !Array.isArray(rawBike)) {
+    const b = rawBike as Record<string, unknown>;
+    const label = b.label;
+    const fresh = b.fresh;
+    const btext = b.text;
+    if (
+      typeof label === "string" &&
+      label.length > 0 &&
+      label.length <= 60 &&
+      typeof fresh === "boolean" &&
+      typeof btext === "object" &&
+      btext !== null &&
+      !Array.isArray(btext)
+    ) {
+      const bt = btext as Record<string, unknown>;
+      const langs: Lang[] = ["tl", "en", "ja"];
+      let ok = true;
+      const bikeText = {} as Record<Lang, { headline: string; asof: string }>;
+      for (const l of langs) {
+        const o = bt[l];
+        if (typeof o !== "object" || o === null || Array.isArray(o)) {
+          ok = false;
+          break;
+        }
+        const lo = o as Record<string, unknown>;
+        const headline = lo.headline;
+        const asof = lo.asof;
+        if (
+          typeof headline !== "string" ||
+          headline.length === 0 ||
+          headline.length > 200 ||
+          typeof asof !== "string" ||
+          asof.length === 0 ||
+          asof.length > 200
+        ) {
+          ok = false;
+          break;
+        }
+        bikeText[l] = { headline, asof };
+      }
+      if (ok) {
+        bike = {
+          label,
+          fresh,
+          text: bikeText,
+          hourly: parseHourly(b.hourly),
+        };
+      }
+    }
+  }
+
   return {
     text: viewText,
     trendDir,
     fallback,
     validUntilMs,
     hourly: parseHourly(r.hourly),
+    bike,
   };
 }

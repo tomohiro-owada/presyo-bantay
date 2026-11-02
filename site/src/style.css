@@ -499,6 +499,17 @@ table.data tr.cheap td {
   }
 }
 
+.grab-bike {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.grab-bike-line {
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
 /* Grab fare hour-of-day chart (inline SVG) */
 .grab-chart {
   margin: 12px 0 4px;
@@ -623,4 +634,8 @@ table.data tr.cheap td {
 
 .gc-sw-k {
   border-top: 2px dashed var(--muted);
+}
+
+.grab-bike .grab-chart {
+  max-width: 480px;
 }

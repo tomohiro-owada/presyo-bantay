@@ -267,3 +267,50 @@ func TestGrabfarePickupEndToEnd(t *testing.T) {
 		t.Fatal("pickup_note empty")
 	}
 }
+
+func TestGrabfareBikeEndToEnd(t *testing.T) {
+	dir := t.TempDir()
+	in := filepath.Join(dir, "in.json")
+	doc := map[string]any{
+		"route":  map[string]any{"from": "Zapote Bridge", "to": "Festival Mall", "via": "Alabang-Zapote Rd", "label": "x"},
+		"pickup": map[string]any{"current": "Old Zapote Public Market", "since_ts": "20261102-1220", "since": "2026-11-02T12:20:00+08:00", "history": []map[string]any{{"since_ts": "19700101-0000", "pickup": "Zapote Bridge"}, {"since_ts": "20261102-1220", "pickup": "Old Zapote Public Market"}}},
+		"bike":   map[string]any{"app": "moveit", "service": "Standard bike taxi", "latest": map[string]any{"ts": "20261102-1229", "captured_at": "2026-11-02T12:29:00+08:00", "price_min": 147, "price_max": 147, "eta_min": 5, "ok": true}, "series": []map[string]any{{"ts": "20261102-1229", "captured_at": "2026-11-02T12:29:00+08:00", "price_min": 147, "price_max": 147, "eta_min": 5, "ok": true}}},
+		"source": "grab", "currency": "PHP", "server_time": "2026-11-02T13:00:00+08:00", "hours": 26, "count": 1,
+		"runs": []map[string]any{
+			{"ts": "20261102-1300", "captured_at": "2026-11-02T13:00:00+08:00", "status": "complete", "fare": map[string]any{"currency": "PHP", "standard": map[string]any{"price": 320}, "metered_taxi": map[string]any{"min": 300, "max": 360}}, "traffic": nil},
+		},
+	}
+	b, _ := json.Marshal(doc)
+	if err := os.WriteFile(in, b, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	outDir := filepath.Join(dir, "out")
+	code, _, _ := captureGrabfare(t, []string{"-out-dir", outDir, "-input-file", in, "-now", "2026-11-02T13:10:00+08:00"})
+	if code != 0 {
+		t.Fatalf("exit %d", code)
+	}
+	data, _ := os.ReadFile(filepath.Join(outDir, "grab-fare.json"))
+	var got map[string]any
+	if err := json.Unmarshal(data, &got); err != nil {
+		t.Fatal(err)
+	}
+	bike, _ := got["bike"].(map[string]any)
+	if bike["label"] != "Motor taxi (Move It)" {
+		t.Fatalf("bike.label=%v", bike["label"])
+	}
+	if bike["fresh"] != true {
+		t.Fatalf("bike.fresh=%v", bike["fresh"])
+	}
+	if bike["min"] != float64(147) {
+		t.Fatalf("bike.min=%v", bike["min"])
+	}
+	hourly, _ := bike["hourly"].(map[string]any)
+	today, _ := hourly["today"].([]any)
+	if len(today) == 0 {
+		t.Fatal("bike.hourly.today empty")
+	}
+	hp, _ := today[0].(map[string]any)
+	if hp["h"] != float64(12) {
+		t.Fatalf("bike.hourly.today[0].h=%v", hp["h"])
+	}
+}

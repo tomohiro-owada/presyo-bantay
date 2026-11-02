@@ -112,6 +112,11 @@ func RenderGrabFareFocus(o *grabfare.Output, maps []image.Image, focus image.Ima
 	}
 	trendH := trendRows * 44
 
+	bikeH := 0
+	if o.Bike != nil {
+		bikeH = bikeBlockH
+	}
+
 	trafficH := 0
 	if o.Traffic != nil {
 		trafficH = 64
@@ -158,6 +163,9 @@ func RenderGrabFareFocus(o *grabfare.Output, maps []image.Image, focus image.Ima
 	}
 
 	numBlocks := 1 + 1
+	if bikeH > 0 {
+		numBlocks++
+	}
 	if trafficH > 0 {
 		numBlocks++
 	}
@@ -170,7 +178,7 @@ func RenderGrabFareFocus(o *grabfare.Output, maps []image.Image, focus image.Ima
 	if focusBlockH > 0 {
 		numBlocks++
 	}
-	total := panelH + trendH + trafficH + noteH + focusBlockH + mapH
+	total := panelH + trendH + bikeH + trafficH + noteH + focusBlockH + mapH
 	h := H
 	footerTop := h - 118
 	minPad := 8
@@ -263,6 +271,12 @@ func RenderGrabFareFocus(o *grabfare.Output, maps []image.Image, focus image.Ima
 		ty += 44
 	}
 	y += trendH + pad
+
+	// bike block (Move It motor taxi)
+	if bikeH > 0 {
+		drawBikeBlock(dst, y, bikeH, o)
+		y += bikeH + pad
+	}
 
 	// traffic chip
 	if trafficH > 0 {

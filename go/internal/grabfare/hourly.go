@@ -14,6 +14,9 @@ type HourPoint struct {
 	// pickup, 1 = the one before it, ... Readings of different eras are not
 	// comparable, so charts must not join them (a break marker is drawn).
 	Era int `json:"era,omitempty"`
+	// Carried marks a point filled forward from the last real reading (bike
+	// chart only); charts draw it as part of the line but without a dot.
+	Carried bool `json:"carried,omitempty"`
 }
 
 // HourlyOut carries today's and yesterday's readings per Manila hour, for the

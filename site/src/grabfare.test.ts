@@ -134,3 +134,125 @@ describe("evalGrabFare route names", () => {
     expect(v.text.en.route).toBe("Zapote Bridge → Festival Supermall Alabang (Alabang-Zapote Road)");
   });
 });
+
+describe("evalGrabFare bike", () => {
+  function bike(overrides: Record<string, unknown> = {}) {
+    return {
+      label: "Motor taxi (Move It)",
+      fresh: true,
+      text: {
+        tl: { headline: "h tl", asof: "a tl" },
+        en: { headline: "h en", asof: "a en" },
+        ja: { headline: "h ja", asof: "a ja" },
+      },
+      hourly: { today: [{ h: 12, min: 147, max: 147 }] },
+      ...overrides,
+    };
+  }
+
+  it("bike fresh parsed", () => {
+    const v = evalGrabFare(base({ bike: bike() }), NOW)!;
+    expect(v.bike).not.toBeNull();
+    expect(v.bike!.label).toBe("Motor taxi (Move It)");
+    expect(v.bike!.fresh).toBe(true);
+    expect(v.bike!.text.tl).toEqual({ headline: "h tl", asof: "a tl" });
+    expect(v.bike!.text.en).toEqual({ headline: "h en", asof: "a en" });
+    expect(v.bike!.text.ja).toEqual({ headline: "h ja", asof: "a ja" });
+    expect(v.bike!.hourly).not.toBeNull();
+    expect(v.bike!.hourly!.today).toHaveLength(1);
+    expect(v.bike!.hourly!.today[0]).toEqual({ h: 12, min: 147, max: 147, era: 0 });
+  });
+
+  it("bike stale parsed", () => {
+    const b = bike({
+      fresh: false,
+      text: {
+        tl: { headline: "Motor taxi (Move It): —", asof: "Walang bagong Move It quote sa nakaraang 90 minuto" },
+        en: { headline: "Motor taxi (Move It): —", asof: "No Move It quote in the last 90 minutes" },
+        ja: { headline: "Motor taxi (Move It): —", asof: "直近90分のMove It表示はありません" },
+      },
+    });
+    const v = evalGrabFare(base({ bike: b }), NOW)!;
+    expect(v.bike).not.toBeNull();
+    expect(v.bike!.fresh).toBe(false);
+    expect(v.bike!.text.tl.headline).toBe("Motor taxi (Move It): —");
+    expect(v.bike!.text.en.headline).toBe("Motor taxi (Move It): —");
+    expect(v.bike!.text.ja.headline).toBe("Motor taxi (Move It): —");
+  });
+
+  it("bike absent -> view.bike null", () => {
+    const v = evalGrabFare(base(), NOW)!;
+    expect(v.bike).toBeNull();
+  });
+
+  it("bike absent rest identical", () => {
+    const v0 = evalGrabFare(base(), NOW)!;
+    const v1 = evalGrabFare(base({ bike: bike() }), NOW)!;
+    expect({ ...v1, bike: null }).toEqual({ ...v0, bike: null });
+  });
+
+  it("bike non-object/array/string -> null, card evaluates", () => {
+    for (const bad of [null, 42, "str", [1, 2], true]) {
+      const v = evalGrabFare(base({ bike: bad }), NOW);
+      expect(v).not.toBeNull();
+      expect(v!.bike).toBeNull();
+    }
+  });
+
+  it("bike text missing language -> null", () => {
+    const b = bike();
+    delete (b.text as any).ja;
+    const v = evalGrabFare(base({ bike: b }), NOW)!;
+    expect(v).not.toBeNull();
+    expect(v.bike).toBeNull();
+  });
+
+  it("bike empty headline or asof -> null", () => {
+    const mk = (headline: string, asof: string) => bike({
+      text: {
+        tl: { headline, asof },
+        en: { headline, asof },
+        ja: { headline, asof },
+      },
+    });
+    expect(evalGrabFare(base({ bike: mk("", "a") }), NOW)!.bike).toBeNull();
+    expect(evalGrabFare(base({ bike: mk("h", "") }), NOW)!.bike).toBeNull();
+  });
+
+  it("bike headline or asof > 200 chars -> null", () => {
+    const long = "a".repeat(201);
+    const mk = (headline: string, asof: string) => bike({
+      text: {
+        tl: { headline, asof },
+        en: { headline, asof },
+        ja: { headline, asof },
+      },
+    });
+    expect(evalGrabFare(base({ bike: mk(long, "a") }), NOW)!.bike).toBeNull();
+    expect(evalGrabFare(base({ bike: mk("h", long) }), NOW)!.bike).toBeNull();
+  });
+
+  it("bike label empty or > 60 chars -> null", () => {
+    expect(evalGrabFare(base({ bike: bike({ label: "" }) }), NOW)!.bike).toBeNull();
+    expect(evalGrabFare(base({ bike: bike({ label: "a".repeat(61) }) }), NOW)!.bike).toBeNull();
+  });
+
+  it("bike fresh not boolean -> null", () => {
+    expect(evalGrabFare(base({ bike: bike({ fresh: "true" as any }) }), NOW)!.bike).toBeNull();
+    expect(evalGrabFare(base({ bike: bike({ fresh: 1 as any }) }), NOW)!.bike).toBeNull();
+  });
+
+  it("bike hourly empty lists -> hourly null, bike non-null", () => {
+    const b = bike({ hourly: { today: [], yesterday: [] } });
+    const v = evalGrabFare(base({ bike: b }), NOW)!;
+    expect(v.bike).not.toBeNull();
+    expect(v.bike!.hourly).toBeNull();
+  });
+
+  it("bike hourly garbage -> hourly null", () => {
+    const b = bike({ hourly: "garbage" as any });
+    const v = evalGrabFare(base({ bike: b }), NOW)!;
+    expect(v.bike).not.toBeNull();
+    expect(v.bike!.hourly).toBeNull();
+  });
+});

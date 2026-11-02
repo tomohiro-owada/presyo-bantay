@@ -77,6 +77,9 @@ func RenderCaption(o *Output) string {
 		if o.Traffic != nil && o.Text.Tl.Traffic != "" {
 			lines = append(lines, "🚦 "+o.Text.Tl.Traffic)
 		}
+		if o != nil && o.Bike != nil {
+			lines = append(lines, "🏍️ Motor taxi (Move It): "+FormatRange(*o.Bike.Min, *o.Bike.Max)+" · "+bikeAsofShort(o.Bike, "tl"))
+		}
 		if o.Focus {
 			lines = append(lines, "🗺️ Malapitan: Colours Town Center · SM Southmall · Village Square sa Alabang-Zapote Rd")
 		}
@@ -109,6 +112,9 @@ func RenderCaption(o *Output) string {
 		}
 		if o.Traffic != nil && o.Text.En.Traffic != "" {
 			lines = append(lines, "🚦 "+o.Text.En.Traffic)
+		}
+		if o != nil && o.Bike != nil {
+			lines = append(lines, "🏍️ Motor taxi (Move It): "+FormatRange(*o.Bike.Min, *o.Bike.Max)+" · "+bikeAsofShort(o.Bike, "en"))
 		}
 		if o.Focus {
 			lines = append(lines, "🗺️ Close-up: Colours Town Center · SM Southmall · Village Square on Alabang-Zapote Rd")
@@ -143,6 +149,9 @@ func RenderCaption(o *Output) string {
 		if o.Traffic != nil && o.Text.Ja.Traffic != "" {
 			lines = append(lines, "🚦 "+o.Text.Ja.Traffic)
 		}
+		if o != nil && o.Bike != nil {
+			lines = append(lines, "🏍️ Motor taxi (Move It): "+FormatRange(*o.Bike.Min, *o.Bike.Max)+" · "+bikeAsofShort(o.Bike, "ja"))
+		}
 		if o.Focus {
 			lines = append(lines, "🗺️ 拡大: Alabang-Zapote Rd の Colours Town Center・SM Southmall・Village Square 付近")
 		}
@@ -153,8 +162,11 @@ func RenderCaption(o *Output) string {
 		jaBlock = strings.Join(lines, "\n")
 	}
 
-	footer := "Details: " + site + "\n" +
-		"Source: Grab app quote at that time · Not an official fare · Map: Grab app screenshot · Hindi opisyal na pamasahe"
+	sourceLine := "Source: Grab app quote at that time · Not an official fare · Map: Grab app screenshot · Hindi opisyal na pamasahe"
+	if o != nil && o.Bike != nil {
+		sourceLine += " · Bike fare: Move It app quote"
+	}
+	footer := "Details: " + site + "\n" + sourceLine
 
 	_ = hhmm
 	return tlBlock + "\n" + Separator + "\n" + enBlock + "\n" + Separator + "\n" + jaBlock + "\n" + Separator + "\n" + footer
@@ -207,6 +219,14 @@ func CheckCaption(text string, o *Output) []string {
 			addPeso(*o.Fare.Standard)
 		}
 	}
+	if o != nil && o.Bike != nil {
+		if o.Bike.Min != nil {
+			addPeso(*o.Bike.Min)
+		}
+		if o.Bike.Max != nil {
+			addPeso(*o.Bike.Max)
+		}
+	}
 	if o != nil {
 		for _, tr := range []*TrendOut{&o.Trend, o.VsYesterday} {
 			if tr == nil {
@@ -243,6 +263,9 @@ func CheckCaption(text string, o *Output) []string {
 	}
 	if o != nil && o.Pickup != nil && o.Pickup.SinceHHMM != "" {
 		allowedHHMM[o.Pickup.SinceHHMM] = true
+	}
+	if o != nil && o.Bike != nil && o.Bike.AsOfHHMM != nil {
+		allowedHHMM[*o.Bike.AsOfHHMM] = true
 	}
 
 	pesoRe := regexp.MustCompile("\u20b1([0-9,]+)")
@@ -343,12 +366,46 @@ func CheckCaption(text string, o *Output) []string {
 		}
 	}
 	// forbidden words
+	badWords := []string{"gsm", "moveit", "green gsm"}
+	if !(o != nil && o.Bike != nil) {
+		badWords = append(badWords, "move it")
+	}
 	lower := strings.ToLower(text)
-	for _, bad := range []string{"gsm", "moveit", "move it", "green gsm"} {
+	for _, bad := range badWords {
 		if strings.Contains(lower, bad) {
 			add("forbidden word: " + bad)
 		}
 	}
+	if o != nil && o.Bike != nil {
+		if !strings.Contains(text, "Move It") {
+			add("missing Move It")
+		}
+	}
 
 	return problems
+}
+
+// bikeAsofShort is the caption's short as-of phrase for the bike line. A quote
+// older than the freshness window is labelled as the last quote.
+func bikeAsofShort(b *BikeOut, lang string) string {
+	hhmm := ""
+	if b.AsOfHHMM != nil {
+		hhmm = *b.AsOfHHMM
+	}
+	switch lang {
+	case "tl":
+		if b.Fresh {
+			return "Ayon sa Move It app noong " + hhmm
+		}
+		return "Huling Move It quote: " + hhmm
+	case "ja":
+		if b.Fresh {
+			return hhmm + "時点 · Move Itアプリ表示"
+		}
+		return "最終Move It表示: " + hhmm
+	}
+	if b.Fresh {
+		return "As of " + hhmm + " · Move It app quote"
+	}
+	return "Last Move It quote: " + hhmm
 }

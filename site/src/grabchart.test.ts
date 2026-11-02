@@ -334,3 +334,54 @@ describe("buildGrabChartSvg era", () => {
     expect(rightSvg).toMatch(/class="gc-break-label"[^>]*text-anchor="end"/);
   });
 });
+
+describe("buildGrabChartLegend band option", () => {
+  const h = parseHourly(raw([0, 1], [0, 1, 2, 3, 4, 5]))!;
+
+  it("omits gc-sw-b when band:false, includes otherwise", () => {
+    expect(buildGrabChartLegend(h, "en", { band: false })).not.toContain("gc-sw-b");
+    expect(buildGrabChartLegend(h, "en")).toContain("gc-sw-b");
+    expect(buildGrabChartLegend(h, "en", { band: true })).toContain("gc-sw-b");
+  });
+});
+
+describe("buildGrabChartSvg bike hourly", () => {
+  it("single today point -> non-empty svg, one gc-t-dot, no polygon/polyline", () => {
+    const h = parseHourly({ today: [{ h: 12, min: 147, max: 147 }], yesterday: [] })!;
+    const svg = buildGrabChartSvg(h, "en");
+    expect(svg.length).toBeGreaterThan(0);
+    expect((svg.match(/class="gc-t-dot"/g) ?? []).length).toBe(1);
+    expect(svg).not.toContain("<polygon");
+    expect(svg).not.toContain("<polyline");
+  });
+
+  it("two consecutive points -> polyline present", () => {
+    const h = parseHourly({ today: [{ h: 12, min: 147, max: 147 }, { h: 13, min: 148, max: 148 }], yesterday: [] })!;
+    const svg = buildGrabChartSvg(h, "en");
+    expect(svg).toContain("<polyline");
+  });
+});
+
+describe("carried-forward points (bike chart)", () => {
+  const mk = () =>
+    parseHourly({
+      today_date: "2026-11-02",
+      yesterday_date: "2026-11-01",
+      today: [
+        { h: 12, min: 147, max: 147 },
+        { h: 13, min: 147, max: 147, carried: true },
+        { h: 14, min: 150, max: 150 },
+        { h: 15, min: 150, max: 150, carried: true },
+      ],
+      yesterday: [],
+    })!;
+  it("parses the carried flag", () => {
+    const h = mk();
+    expect(h.today.map((p) => p.carried === true)).toEqual([false, true, false, true]);
+  });
+  it("draws the line through carried hours but a dot only for real readings", () => {
+    const svg = buildGrabChartSvg(mk(), "en");
+    expect((svg.match(/<circle class="gc-t-dot/g) ?? []).length).toBe(2);
+    expect(svg).toContain("<polyline");
+  });
+});

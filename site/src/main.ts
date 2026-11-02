@@ -457,8 +457,56 @@ function renderGrabFare(): void {
       pickupNoteEl.textContent = "";
     }
   }
+  renderGrabBike(view);
   renderGrabChart(view);
   $("grab-note").textContent = t.note;
+}
+
+
+function renderGrabBike(view: GrabFareView): void {
+  const bikeEl = document.getElementById("grab-bike");
+  if (!bikeEl) return;
+  const bike = view.bike;
+  if (!bike) {
+    bikeEl.hidden = true;
+    const lineEl = document.getElementById("grab-bike-line");
+    if (lineEl) lineEl.textContent = "";
+    const asofEl = document.getElementById("grab-bike-asof");
+    if (asofEl) asofEl.textContent = "";
+    const chartBox = document.getElementById("grab-bike-chart");
+    if (chartBox) chartBox.hidden = true;
+    const svgEl = document.getElementById("grab-bike-chart-svg");
+    if (svgEl) svgEl.innerHTML = "";
+    const legEl = document.getElementById("grab-bike-chart-legend");
+    if (legEl) legEl.innerHTML = "";
+    return;
+  }
+  bikeEl.hidden = false;
+  const lineEl = document.getElementById("grab-bike-line");
+  if (lineEl) {
+    let strong = lineEl.querySelector("strong");
+    if (!strong) {
+      strong = document.createElement("strong");
+      lineEl.append(strong);
+    }
+    (strong as HTMLElement).textContent = bike.text[lang].headline;
+  }
+  const asofEl = document.getElementById("grab-bike-asof");
+  if (asofEl) asofEl.textContent = bike.text[lang].asof;
+  const chartBox = document.getElementById("grab-bike-chart");
+  const svgEl = document.getElementById("grab-bike-chart-svg");
+  const legEl = document.getElementById("grab-bike-chart-legend");
+  const hourly = bike.hourly;
+  const svg = hourly ? buildGrabChartSvg(hourly, lang) : "";
+  if (!hourly || svg === "") {
+    if (chartBox) chartBox.hidden = true;
+    if (svgEl) svgEl.innerHTML = "";
+    if (legEl) legEl.innerHTML = "";
+    return;
+  }
+  if (chartBox) chartBox.hidden = false;
+  if (svgEl) svgEl.innerHTML = svg;
+  if (legEl) legEl.innerHTML = buildGrabChartLegend(hourly, lang, { band: false });
 }
 
 function renderGrabChart(view: GrabFareView): void {

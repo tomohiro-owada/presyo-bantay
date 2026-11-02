@@ -6,6 +6,8 @@ export interface HourPt {
   min: number;
   max: number;
   era?: number;
+  /** Filled forward from the last real reading: line only, no dot. */
+  carried?: boolean;
 }
 
 export interface GrabHourly {
@@ -39,6 +41,7 @@ function parsePts(raw: unknown): HourPt[] {
     if (!Number.isFinite(mn) || !Number.isFinite(mx) || mn <= 0 || mx < mn) continue;
     const era = parseEra(o.era);
     const pt: HourPt = { h, min: mn, max: mx, era };
+    if (o.carried === true) pt.carried = true;
     const prev = byHour.get(h);
     if (!prev || era <= (prev.era ?? 0)) byHour.set(h, pt);
   }
@@ -229,6 +232,7 @@ export function buildGrabChartSvg(data: GrabHourly, lang: Lang): string {
     }
   }
   for (const p of data.today) {
+    if (p.carried) continue;
     const cls = (p.era ?? 0) > 0 ? "gc-t-dot gc-prev" : "gc-t-dot";
     const titleSuffix = (p.era ?? 0) > 0 ? ` · ${tx.prev}` : "";
     parts.push(
@@ -261,14 +265,21 @@ export function buildGrabChartSvg(data: GrabHourly, lang: Lang): string {
 }
 
 /** Legend + optional pending hint as plain HTML (escaped). */
-export function buildGrabChartLegend(data: GrabHourly, lang: Lang): string {
+export function buildGrabChartLegend(
+  data: GrabHourly,
+  lang: Lang,
+  opts?: { band?: boolean },
+): string {
   const tx = CHART_TEXT[lang];
+  const band = opts?.band !== false;
   const items: string[] = [];
   items.push(`<span class="gc-key"><i class="gc-sw gc-sw-t"></i>${esc(tx.today)}</span>`);
   if (data.yesterday) {
     items.push(`<span class="gc-key"><i class="gc-sw gc-sw-y"></i>${esc(tx.yesterday)}</span>`);
   }
-  items.push(`<span class="gc-key"><i class="gc-sw gc-sw-b"></i>${esc(tx.band)}</span>`);
+  if (band) {
+    items.push(`<span class="gc-key"><i class="gc-sw gc-sw-b"></i>${esc(tx.band)}</span>`);
+  }
   // boundary detection
   let hasBoundary = false;
   for (let i = 1; i < data.today.length; i++) {

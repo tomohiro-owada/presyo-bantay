@@ -319,3 +319,37 @@ func TestGrabcardPickup(t *testing.T) {
 		t.Fatalf("run_ts=%v, want era0 run", meta["run_ts"])
 	}
 }
+
+func TestGrabcardBike(t *testing.T) {
+	dir := t.TempDir()
+	in := filepath.Join(dir, "in.json")
+	doc := map[string]any{
+		"route":    map[string]any{"from": "Zapote Bridge", "to": "Festival Supermall Alabang", "via": "Alabang-Zapote Road"},
+		"pickup":   map[string]any{"current": "Old Zapote Public Market", "since_ts": "20261102-1220", "since": "2026-11-02T12:20:00+08:00", "history": []map[string]any{{"since_ts": "19700101-0000", "pickup": "Zapote Bridge"}, {"since_ts": "20261102-1220", "pickup": "Old Zapote Public Market"}}},
+		"bike":     map[string]any{"app": "moveit", "service": "Standard bike taxi", "latest": map[string]any{"ts": "20261102-1229", "captured_at": "2026-11-02T12:29:00+08:00", "price_min": 147, "price_max": 147, "eta_min": 5, "ok": true}, "series": []map[string]any{{"ts": "20261102-1229", "captured_at": "2026-11-02T12:29:00+08:00", "price_min": 147, "price_max": 147, "eta_min": 5, "ok": true}}},
+		"currency": "PHP", "hours": 26, "count": 1,
+		"runs": []map[string]any{
+			{"ts": "20261102-1300", "captured_at": "2026-11-02T13:00:00+08:00", "status": "complete", "fare": map[string]any{"currency": "PHP", "standard": map[string]any{"price": 320, "eta_min": 8}, "metered_taxi": map[string]any{"min": 300, "max": 360, "eta_min": 8}}, "traffic": nil, "map_images": []string{}},
+		},
+	}
+	b, _ := json.Marshal(doc)
+	if err := os.WriteFile(in, b, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	out := filepath.Join(dir, "out")
+	var code int
+	captureStderr(t, func() {
+		code = cmdGrabcard([]string{"-input-file", in, "-out-dir", out, "-now", "2026-11-02T13:10:00+08:00", "-no-maps"})
+	})
+	if code != 0 {
+		t.Fatalf("exit %d", code)
+	}
+	txt, _ := os.ReadFile(filepath.Join(out, "grab-card.txt"))
+	if !strings.Contains(string(txt), "🏍️ Motor taxi (Move It): ₱147") {
+		t.Fatalf("caption missing bike line: %s", txt)
+	}
+	chk := readJSONFile(t, filepath.Join(out, "grab-card.check.json"))
+	if chk["ok"] != true {
+		t.Fatalf("check: %v", chk)
+	}
+}

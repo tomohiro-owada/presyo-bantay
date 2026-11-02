@@ -104,3 +104,12 @@ where N = since HH:MM, P = current pickup name, Q = previous pickup name. `Outpu
 Runs with era > 0 are never eligible for a card; `BuildFromRun` with an era > 0 ts returns the unavailable output.
 
 `Output.Pickup` is placed after `Route` and has `name`, `since` (RFC3339 Manila), `since_hhmm`, and `previous` (optional). `LangText` gains `pickup_note`.
+
+## Move It bike fare
+The read-only API may add an optional top-level `bike` block right after `pickup`:
+`"bike":{"app":"moveit","service":"Standard bike taxi","latest":{...}|null,"series":[<same reading objects, newest first>]}`.
+Each reading: `{"ts","captured_at","price_min","price_max","eta_min":n|null,"ok":bool}`. Absent block = no bike feature (everything as today).
+
+`Output.Bike` (`*BikeOut`, `bike,omitempty`) is set only on visible outputs. Fields: `label` ("Motor taxi (Move It)"), `fresh`, `min`/`max` (the carried-forward last valid price; always set), `as_of`, `as_of_hhmm`, `age_minutes` (newest valid reading, even when stale), `eta_min` (only when fresh and known), hourly points may carry `carried: true`, `hourly` (`*HourlyOut`), `text` (`BikeTexts` tl/en/ja with `headline`,`asof`).
+
+Valid reading: ok true; 0<min<=max<=3000; max<=3*min; parseable captured time (CapturedAt, else Ts as Manila); captured not later than now+10min; era 0. Merge `latest`+`series` (dedupe by Ts). Fresh = newest valid reading captured within `BikeFreshWindow` (90 min). Show the bike row only when at least one valid era-0 reading is dated today (Manila date of now); otherwise `Output.Bike` is nil. The price shown is the newest valid reading of today, carried forward when it is older than the freshness window (presentation only). Hourly reuses `buildHourly` over valid readings (era 0); today's missing hours from the first reading's hour up to the current Manila hour are filled with the previous known value and marked `carried: true` (yesterday is never filled). Texts: fresh headline "Motor taxi (Move It): " + FormatRange(min,max); asof tl "Ayon sa Move It app noong HH:MM (oras sa Maynila)", en "As of HH:MM (Manila time) · Move It app quote", ja "HH:MM時点のMove Itアプリ表示（マニラ時間）". Not fresh: same headline (price carried forward); asof tl "Huling Move It quote: HH:MM (oras sa Maynila)", en "Last Move It quote: HH:MM (Manila time)", ja "最終Move It表示: HH:MM（マニラ時間）". No dash, no "no quote" line. Green GSM is never used.

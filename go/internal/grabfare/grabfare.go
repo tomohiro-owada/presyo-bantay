@@ -28,6 +28,7 @@ const UserAgent = "PresyoBantay/0.1 (non-profit community price watch; https://g
 type InputDoc struct {
 	Route      RouteIn   `json:"route"`
 	Pickup     *PickupIn `json:"pickup"`
+	Bike       *BikeIn   `json:"bike"`
 	Source     string    `json:"source"`
 	Currency   string    `json:"currency"`
 	ServerTime string    `json:"server_time"`
@@ -211,6 +212,8 @@ type Output struct {
 	Text        Texts       `json:"text"`
 	// Hourly: today's/yesterday's readings per Manila hour (site chart).
 	Hourly *HourlyOut `json:"hourly,omitempty"`
+	// Bike is the optional Move It bike fare block.
+	Bike *BikeOut `json:"bike,omitempty"`
 	// Focus is set by the card command when the wide Colours/SM Southmall
 	// band is part of the image (adds one caption line; never serialised).
 	Focus bool `json:"-"`
@@ -971,6 +974,7 @@ func Build(doc *InputDoc, now time.Time, staleAfter time.Duration) *Output {
 		VsYesterday: vy,
 		Text:        texts,
 		Hourly:      buildHourly(usables, now),
+		Bike:        buildBike(doc, now),
 		Pickup:      pickupOut(doc),
 	}
 }
