@@ -4,12 +4,29 @@ import (
 	"bytes"
 	"embed"
 	"html/template"
+	"net/url"
 	"regexp"
 	"strings"
 
 	"github.com/tomohiro-owada/presyo-bantay/go/internal/fbregion"
 	"github.com/tomohiro-owada/presyo-bantay/go/internal/weekly"
 )
+
+// homeHref is the site-root path of base. Absolute so the brand link
+// resolves inside the project whether or not the page URL has a trailing slash.
+func homeHref(base string) string {
+	if base != "" && !strings.HasSuffix(base, "/") {
+		base += "/"
+	}
+	u, err := url.Parse(base)
+	if err != nil || u.Path == "" {
+		return "/"
+	}
+	if !strings.HasPrefix(u.Path, "/") {
+		return "/" + u.Path
+	}
+	return u.Path
+}
 
 //go:embed templates/*.tmpl
 var tmplFS embed.FS
@@ -115,6 +132,7 @@ type WeekView struct {
 	BlocksTL, BlocksEN, BlocksJA []Block
 	FooterTL, FooterEN, FooterJA string
 	DayLinks                     []DayLink
+	Home                         string
 }
 
 // renderWeekPage builds SITE/w/W/index.html.
@@ -131,6 +149,7 @@ func renderWeekPage(sitePublic string, doc *WeekDoc, older, newer *WeekDoc, base
 		FooterTL:  doc.Footer.TL,
 		FooterEN:  doc.Footer.EN,
 		FooterJA:  doc.Footer.JA,
+		Home:      homeHref(base),
 	}
 	tl, en, ja := doc.Summary.TL, doc.Summary.EN, doc.Summary.JA
 	if tl == "" {
@@ -192,6 +211,7 @@ type ArchiveView struct {
 	Canonical   string
 	OGImage     string
 	Weeks       []ArchiveWeek
+	Home        string
 }
 
 // renderWeeksArchive builds SITE/w/index.html (newest first).
@@ -200,6 +220,7 @@ func renderWeeksArchive(doc WeeksDoc, base string) (string, error) {
 		Title:       "Lingguhang ulat / Weekly reports / 週間レポート — Presyo Bantay",
 		Description: "Lingguhang ulat ng presyo mula sa DA Bantay Presyo. · Weekly price reports from DA Bantay Presyo.",
 		Canonical:   base + "w/",
+		Home:        homeHref(base),
 	}
 	for _, e := range doc.Weeks {
 		v.Weeks = append(v.Weeks, ArchiveWeek{
