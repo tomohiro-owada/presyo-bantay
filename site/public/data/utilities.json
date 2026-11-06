@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-06T16:10:01+08:00",
+  "generated_at": "2026-11-06T16:20:02+08:00",
   "fuel": {
     "id": "2026-10-27",
     "path": "u/fuel/2026-10-27/"
@@ -7,5 +7,9 @@
   "bills": {
     "id": "2026-10",
     "path": "u/bills/2026-10/"
+  },
+  "water": {
+    "id": "d20f3b6a53ac",
+    "path": "u/water/d20f3b6a53ac/"
   }
 }
