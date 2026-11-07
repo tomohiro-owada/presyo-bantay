@@ -1,0 +1,396 @@
+{
+  "generated_at": "2026-11-08T01:10:02+08:00",
+  "visible": true,
+  "state": "fresh",
+  "reason": "fresh",
+  "valid_until": "2026-11-08T03:00:00+08:00",
+  "route": {
+    "from": "Old Zapote Public Market",
+    "to": "Festival Supermall Alabang",
+    "via": "Alabang-Zapote Road"
+  },
+  "pickup": {
+    "name": "Old Zapote Public Market",
+    "since": "2026-11-02T12:20:00+08:00",
+    "since_hhmm": "12:20",
+    "previous": "Zapote Bridge"
+  },
+  "currency": "PHP",
+  "basis": "metered_taxi",
+  "as_of": "2026-11-08T01:00:00+08:00",
+  "as_of_hhmm": "01:00",
+  "age_minutes": 10,
+  "fallback": false,
+  "fare": {
+    "min": 274,
+    "max": 329,
+    "standard": 299
+  },
+  "traffic": null,
+  "trend": {
+    "direction": "down",
+    "delta_pesos": -16.5,
+    "delta_pct": -5.188679245283019,
+    "previous_as_of": "2026-11-08T00:00:00+08:00",
+    "previous_hhmm": "00:00"
+  },
+  "vs_yesterday": {
+    "direction": "up",
+    "delta_pesos": 1.5,
+    "delta_pct": 0.5,
+    "previous_as_of": "2026-11-07T01:00:00+08:00",
+    "previous_hhmm": "01:00"
+  },
+  "text": {
+    "tl": {
+      "title": "Tantiya sa pamasahe ng Grab",
+      "headline": "₱274–329 tantiya sa metered taxi",
+      "asof": "Ayon sa Grab app noong 01:00 (oras sa Maynila)",
+      "traffic": "",
+      "trend": "▼ ₱17 (-5%) kumpara sa 00:00",
+      "note": "Quote lang ito mula sa Grab app sa oras na iyon. Hindi opisyal na pamasahe."
+    },
+    "en": {
+      "title": "Grab fare estimate",
+      "headline": "₱274–329 metered taxi quote",
+      "asof": "As of 01:00 (Manila time)",
+      "traffic": "",
+      "trend": "▼ ₱17 (-5%) vs 00:00",
+      "note": "Quote shown in the Grab app at that time. Not an official fare; actual fare may differ."
+    },
+    "ja": {
+      "title": "Grab料金の目安",
+      "headline": "₱274–329 メータータクシーの目安",
+      "asof": "01:00時点のGrabアプリ表示（マニラ時間）",
+      "traffic": "",
+      "trend": "▼ ₱17（-5%） 00:00比",
+      "note": "その時点でGrabアプリに表示された料金です。公式運賃ではありません。"
+    }
+  },
+  "hourly": {
+    "today_date": "2026-11-08",
+    "yesterday_date": "2026-11-07",
+    "today": [
+      {
+        "h": 0,
+        "min": 289,
+        "max": 347,
+        "std": 362
+      },
+      {
+        "h": 1,
+        "min": 274,
+        "max": 329,
+        "std": 299
+      }
+    ],
+    "yesterday": [
+      {
+        "h": 0,
+        "min": 286,
+        "max": 344,
+        "std": 313
+      },
+      {
+        "h": 1,
+        "min": 273,
+        "max": 327,
+        "std": 339
+      },
+      {
+        "h": 2,
+        "min": 271,
+        "max": 325,
+        "std": 336
+      },
+      {
+        "h": 3,
+        "min": 271,
+        "max": 325,
+        "std": 334
+      },
+      {
+        "h": 4,
+        "min": 273,
+        "max": 328,
+        "std": 297
+      },
+      {
+        "h": 5,
+        "min": 284,
+        "max": 341,
+        "std": 298
+      },
+      {
+        "h": 6,
+        "min": 323,
+        "max": 387,
+        "std": 315
+      },
+      {
+        "h": 7,
+        "min": 314,
+        "max": 377,
+        "std": 304
+      },
+      {
+        "h": 8,
+        "min": 324,
+        "max": 389,
+        "std": 326
+      },
+      {
+        "h": 9,
+        "min": 324,
+        "max": 389,
+        "std": 348
+      },
+      {
+        "h": 10,
+        "min": 318,
+        "max": 381,
+        "std": 353
+      },
+      {
+        "h": 11,
+        "min": 326,
+        "max": 391,
+        "std": 387
+      },
+      {
+        "h": 12,
+        "min": 326,
+        "max": 391,
+        "std": 363
+      },
+      {
+        "h": 13,
+        "min": 338,
+        "max": 405,
+        "std": 545
+      },
+      {
+        "h": 14,
+        "min": 320,
+        "max": 384,
+        "std": 564
+      },
+      {
+        "h": 15,
+        "min": 327,
+        "max": 392,
+        "std": 365
+      },
+      {
+        "h": 16,
+        "min": 375,
+        "max": 450,
+        "std": 584
+      },
+      {
+        "h": 17,
+        "min": 372,
+        "max": 446,
+        "std": 365
+      },
+      {
+        "h": 18,
+        "min": 371,
+        "max": 445,
+        "std": 364
+      },
+      {
+        "h": 19,
+        "min": 343,
+        "max": 411,
+        "std": 497
+      },
+      {
+        "h": 20,
+        "min": 334,
+        "max": 401,
+        "std": 329
+      },
+      {
+        "h": 21,
+        "min": 343,
+        "max": 411,
+        "std": 347
+      },
+      {
+        "h": 22,
+        "min": 331,
+        "max": 397,
+        "std": 332
+      },
+      {
+        "h": 23,
+        "min": 322,
+        "max": 387,
+        "std": 321
+      }
+    ]
+  },
+  "bike": {
+    "label": "Motor taxi (Move It)",
+    "fresh": true,
+    "min": 150,
+    "max": 150,
+    "as_of": "2026-11-08T01:04:00+08:00",
+    "as_of_hhmm": "01:04",
+    "age_minutes": 6,
+    "eta_min": 5,
+    "hourly": {
+      "today_date": "2026-11-08",
+      "yesterday_date": "2026-11-07",
+      "today": [
+        {
+          "h": 0,
+          "min": 147,
+          "max": 147
+        },
+        {
+          "h": 1,
+          "min": 150,
+          "max": 150
+        }
+      ],
+      "yesterday": [
+        {
+          "h": 0,
+          "min": 147,
+          "max": 147
+        },
+        {
+          "h": 1,
+          "min": 150,
+          "max": 150
+        },
+        {
+          "h": 2,
+          "min": 150,
+          "max": 150
+        },
+        {
+          "h": 3,
+          "min": 147,
+          "max": 147
+        },
+        {
+          "h": 4,
+          "min": 150,
+          "max": 150
+        },
+        {
+          "h": 5,
+          "min": 157,
+          "max": 157
+        },
+        {
+          "h": 6,
+          "min": 160,
+          "max": 160
+        },
+        {
+          "h": 7,
+          "min": 160,
+          "max": 160
+        },
+        {
+          "h": 8,
+          "min": 160,
+          "max": 160
+        },
+        {
+          "h": 9,
+          "min": 150,
+          "max": 150
+        },
+        {
+          "h": 10,
+          "min": 147,
+          "max": 147
+        },
+        {
+          "h": 11,
+          "min": 150,
+          "max": 150
+        },
+        {
+          "h": 12,
+          "min": 150,
+          "max": 150
+        },
+        {
+          "h": 13,
+          "min": 150,
+          "max": 150
+        },
+        {
+          "h": 14,
+          "min": 150,
+          "max": 150
+        },
+        {
+          "h": 15,
+          "min": 150,
+          "max": 150
+        },
+        {
+          "h": 16,
+          "min": 149,
+          "max": 149
+        },
+        {
+          "h": 17,
+          "min": 160,
+          "max": 160
+        },
+        {
+          "h": 18,
+          "min": 160,
+          "max": 160
+        },
+        {
+          "h": 19,
+          "min": 160,
+          "max": 160
+        },
+        {
+          "h": 20,
+          "min": 160,
+          "max": 160
+        },
+        {
+          "h": 21,
+          "min": 160,
+          "max": 160
+        },
+        {
+          "h": 22,
+          "min": 150,
+          "max": 150
+        },
+        {
+          "h": 23,
+          "min": 147,
+          "max": 147
+        }
+      ]
+    },
+    "text": {
+      "tl": {
+        "headline": "Motor taxi (Move It): ₱150",
+        "asof": "Ayon sa Move It app noong 01:04 (oras sa Maynila)"
+      },
+      "en": {
+        "headline": "Motor taxi (Move It): ₱150",
+        "asof": "As of 01:04 (Manila time) · Move It app quote"
+      },
+      "ja": {
+        "headline": "Motor taxi (Move It): ₱150",
+        "asof": "01:04時点のMove Itアプリ表示（マニラ時間）"
+      }
+    }
+  }
+}
