@@ -1,6 +1,34 @@
 {
-  "latest": "2026-11-10",
+  "latest": "2026-11-11",
   "days": [
+    {
+      "date": "2026-11-11",
+      "path": "d/2026-11-11/",
+      "label": {
+        "tl": "Nob 11, 2026",
+        "en": "Nov 11, 2026",
+        "ja": "2026年11月11日"
+      },
+      "regions_with_data": 5,
+      "south": {
+        "text": {
+          "tl": "🛒 Sulit sa South Metro — presyo noong Nob 11\n\n✅ Mas mura kaysa usual:\n• Pechay Baguio ₱80/kg (−33%) · Las Piñas\n• Siling berde ₱120/kg (−29%) · La Huerta\n• Siling pula ₱230/kg (−26%) · Grace, Pateros\n• Ampalaya ₱130/kg (−13%) · Grace, Pateros\n• Tilapia ₱155/kg (−11%) · Suki Moonwalk\n\n⚠️ Mas mahal ngayon:\n• Talong ₱130/kg (+33%)\n• Repolyo ₱220/kg (+25%)\n• Kamatis ₱125/kg (+19%)\n",
+          "en": "🇬🇧 Deals in South Metro — prices of Nov 11\n✅ Pechay Baguio ₱80 (−33%), Green chili ₱120 (−29%), Red chili ₱230 (−26%), Ampalaya ₱130 (−13%), Tilapia ₱155 (−11%)\n⚠️ Pricier: Eggplant ₱130 (+33%), Cabbage ₱220 (+25%), Tomato ₱125 (+19%)\n",
+          "ja": "🇯🇵 南部（ラス・ピニャス周辺）のお買い得 — 11/11の価格\n✅ ペチャイ・バギオ ₱80（−33%）、青唐辛子 ₱120（−29%）、赤唐辛子 ₱230（−26%）、ゴーヤ ₱130（−13%）、ティラピア ₱155（−11%）\n⚠️ 高め：ナス ₱130（+33%）、キャベツ ₱220（+25%）、トマト ₱125（+19%）\n"
+        },
+        "summary": {
+          "tl": "Pechay Baguio ₱80/kg (−33%) · Las Piñas",
+          "en": "Pechay Baguio ₱80 (−33%)",
+          "ja": "ペチャイ・バギオ ₱80（−33%）"
+        },
+        "image": "d/2026-11-11/south.png",
+        "title": {
+          "tl": "South Metro",
+          "en": "South Metro",
+          "ja": "南部（ラス・ピニャス周辺）"
+        }
+      }
+    },
     {
       "date": "2026-11-10",
       "path": "d/2026-11-10/",
