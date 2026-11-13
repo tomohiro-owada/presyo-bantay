@@ -5,6 +5,7 @@ import (
 	"embed"
 	"fmt"
 	"html/template"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -20,6 +21,22 @@ var tmplFS embed.FS
 
 var pageTmpl = template.Must(template.ParseFS(tmplFS,
 	"templates/ucommon.html.tmpl", "templates/upost.html.tmpl", "templates/uindex.html.tmpl"))
+
+// homeHref is the site-root path of base. Absolute so the brand link
+// resolves inside the project whether or not the page URL has a trailing slash.
+func homeHref(base string) string {
+	if base != "" && !strings.HasSuffix(base, "/") {
+		base += "/"
+	}
+	u, err := url.Parse(base)
+	if err != nil || u.Path == "" {
+		return "/"
+	}
+	if !strings.HasPrefix(u.Path, "/") {
+		return "/" + u.Path
+	}
+	return u.Path
+}
 
 // pesoRe matches one peso amount so it can be wrapped in a nowrap span
 // (extended units for utility captions: /L, /kWh, /cu.m).
@@ -343,6 +360,7 @@ type IndexView struct {
 	Canonical   string
 	OGImage     string
 	Root        string
+	Home        string
 	FuelTL      []Block
 	FuelEN      []Block
 	FuelJA      []Block
@@ -377,6 +395,7 @@ type PostView struct {
 	OGAlt       string
 	Published   string
 	Root        string
+	Home        string
 	H1TL        string
 	H1EN        string
 	H1JA        string
@@ -414,6 +433,7 @@ func postPage(doc PostDoc, base string) (string, error) {
 		OGAlt:       first(tl),
 		Published:   pub,
 		Root:        "../../../",
+		Home:        homeHref(base),
 		H1TL:        first(tl),
 		H1EN:        first(en),
 		H1JA:        first(ja),
@@ -452,6 +472,7 @@ func Rebuild(snap *utilities.Snapshot, sitePublic, base, gen string) error {
 		Description: "Bayarin sa bahay: kuryente, LPG, tubig — Presyo Bantay utilities watch",
 		Canonical:   base + "u/",
 		Root:        "../",
+		Home:        homeHref(base),
 	}
 	// Latest fuel caption + 6-week list + pump table.
 	if len(snap.Fuel.Adjustments) > 0 {
