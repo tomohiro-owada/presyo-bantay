@@ -1,0 +1,173 @@
+{
+  "date": "2026-11-16",
+  "generated_at": "2026-11-17T14:00:51+08:00",
+  "regions": [
+    {
+      "id": "south",
+      "order": 1,
+      "title": {
+        "tl": "South Metro",
+        "en": "South Metro",
+        "ja": "南部（ラス・ピニャス周辺）"
+      },
+      "has_data": true,
+      "image": "south.png",
+      "image_bytes": 67400,
+      "alt": {
+        "tl": "South Metro: mas mura ang Siling berde −33%, Pechay Baguio −33%, Siling pula −33%",
+        "en": "South Metro: cheaper than usual: Green chili −33%, Pechay Baguio −33%, Red chili −33%",
+        "ja": "南部（ラス・ピニャス周辺）のお買い得：青唐辛子 −33%、ペチャイ・バギオ −33%、赤唐辛子 −33%"
+      },
+      "text": {
+        "tl": "🛒 Sulit sa South Metro — presyo noong Nob 16\n\n✅ Mas mura kaysa usual:\n• Siling berde ₱100/kg (−33%) · Grace, Pateros\n• Pechay Baguio ₱80/kg (−33%) · Las Piñas\n• Siling pula ₱200/kg (−33%) · Alabang\n• Sayote ₱70/kg (−13%) · Grace, Pateros\n• Patatas ₱160/kg (−11%) · La Huerta\n\n⚠️ Mas mahal ngayon:\n• Kamatis ₱125/kg (+20%)\n• Talong ₱135/kg (+20%)\n",
+        "en": "🇬🇧 Deals in South Metro — prices of Nov 16\n✅ Green chili ₱100 (−33%), Pechay Baguio ₱80 (−33%), Red chili ₱200 (−33%), Chayote ₱70 (−13%), Potato ₱160 (−11%)\n⚠️ Pricier: Tomato ₱125 (+20%), Eggplant ₱135 (+20%)\n",
+        "ja": "🇯🇵 南部（ラス・ピニャス周辺）のお買い得 — 11/16の価格\n✅ 青唐辛子 ₱100（−33%）、ペチャイ・バギオ ₱80（−33%）、赤唐辛子 ₱200（−33%）、サヨテ ₱70（−13%）、じゃがいも ₱160（−11%）\n⚠️ 高め：トマト ₱125（+20%）、ナス ₱135（+20%）\n"
+      },
+      "summary": {
+        "tl": "Siling berde ₱100/kg (−33%) · Grace, Pateros",
+        "en": "Green chili ₱100 (−33%)",
+        "ja": "青唐辛子 ₱100（−33%）"
+      },
+      "check": "pass"
+    },
+    {
+      "id": "manila",
+      "order": 2,
+      "title": {
+        "tl": "Maynila at Pasay",
+        "en": "Manila & Pasay",
+        "ja": "マニラ・パサイ"
+      },
+      "has_data": true,
+      "image": "manila.png",
+      "image_bytes": 66110,
+      "alt": {
+        "tl": "Maynila at Pasay: mas mura ang Siling pula −41%, Siling berde −23%, Pechay Baguio −20%",
+        "en": "Manila & Pasay: cheaper than usual: Red chili −41%, Green chili −23%, Pechay Baguio −20%",
+        "ja": "マニラ・パサイのお買い得：赤唐辛子 −41%、青唐辛子 −23%、ペチャイ・バギオ −20%"
+      },
+      "text": {
+        "tl": "🛒 Sulit sa Maynila at Pasay — presyo noong Nob 16\n\n✅ Mas mura kaysa usual:\n• Siling pula ₱200/kg (−41%) · Quinta\n• Siling berde ₱155/kg (−23%) · Quinta\n• Pechay Baguio ₱80/kg (−20%) · Quinta\n• Patatas ₱180/kg (−10%) · Quinta\n• Sayote ₱55/kg (−8%) · Quinta\n\n⚠️ Mas mahal ngayon:\n• Talong ₱140/kg (+17%)\n• Kamatis ₱140/kg (+17%)\n",
+        "en": "🇬🇧 Deals in Manila & Pasay — prices of Nov 16\n✅ Red chili ₱200 (−41%), Green chili ₱155 (−23%), Pechay Baguio ₱80 (−20%), Potato ₱180 (−10%), Chayote ₱55 (−8%)\n⚠️ Pricier: Eggplant ₱140 (+17%), Tomato ₱140 (+17%)\n",
+        "ja": "🇯🇵 マニラ・パサイのお買い得 — 11/16の価格\n✅ 赤唐辛子 ₱200（−41%）、青唐辛子 ₱155（−23%）、ペチャイ・バギオ ₱80（−20%）、じゃがいも ₱180（−10%）、サヨテ ₱55（−8%）\n⚠️ 高め：ナス ₱140（+17%）、トマト ₱140（+17%）\n"
+      },
+      "summary": {
+        "tl": "Siling pula ₱200/kg (−41%) · Quinta",
+        "en": "Red chili ₱200 (−41%)",
+        "ja": "赤唐辛子 ₱200（−41%）"
+      },
+      "check": "pass"
+    },
+    {
+      "id": "qc",
+      "order": 3,
+      "title": {
+        "tl": "Quezon City",
+        "en": "Quezon City",
+        "ja": "ケソン市"
+      },
+      "has_data": true,
+      "image": "qc.png",
+      "image_bytes": 70848,
+      "alt": {
+        "tl": "Quezon City: mas mura ang Siling pula −38%, Pechay Baguio −33%, Sayote −25%",
+        "en": "Quezon City: cheaper than usual: Red chili −38%, Pechay Baguio −33%, Chayote −25%",
+        "ja": "ケソン市のお買い得：赤唐辛子 −38%、ペチャイ・バギオ −33%、サヨテ −25%"
+      },
+      "text": {
+        "tl": "🛒 Sulit sa Quezon City — presyo noong Nob 16\n\n✅ Mas mura kaysa usual:\n• Siling pula ₱170/kg (−38%) · North Diversion\n• Pechay Baguio ₱80/kg (−33%) · Muñoz\n• Sayote ₱30/kg (−25%) · North Diversion\n• Siling berde ₱90/kg (−25%) · North Diversion\n• Ampalaya ₱60/kg (−14%) · Balintawak\n\n⚠️ Mas mahal ngayon:\n• Kamatis ₱105/kg (+27%)\n• Talong ₱135/kg (+16%)\n",
+        "en": "🇬🇧 Deals in Quezon City — prices of Nov 16\n✅ Red chili ₱170 (−38%), Pechay Baguio ₱80 (−33%), Chayote ₱30 (−25%), Green chili ₱90 (−25%), Ampalaya ₱60 (−14%)\n⚠️ Pricier: Tomato ₱105 (+27%), Eggplant ₱135 (+16%)\n",
+        "ja": "🇯🇵 ケソン市のお買い得 — 11/16の価格\n✅ 赤唐辛子 ₱170（−38%）、ペチャイ・バギオ ₱80（−33%）、サヨテ ₱30（−25%）、青唐辛子 ₱90（−25%）、ゴーヤ ₱60（−14%）\n⚠️ 高め：トマト ₱105（+27%）、ナス ₱135（+16%）\n"
+      },
+      "summary": {
+        "tl": "Siling pula ₱170/kg (−38%) · North Diversion",
+        "en": "Red chili ₱170 (−38%)",
+        "ja": "赤唐辛子 ₱170（−38%）"
+      },
+      "check": "pass"
+    },
+    {
+      "id": "north",
+      "order": 4,
+      "title": {
+        "tl": "CAMANAVA",
+        "en": "North (CAMANAVA)",
+        "ja": "北部（カマナバ）"
+      },
+      "has_data": true,
+      "image": "north.png",
+      "image_bytes": 70036,
+      "alt": {
+        "tl": "CAMANAVA: mas mura ang Siling berde −29%, Siling pula −27%, Pechay Baguio −20%",
+        "en": "North (CAMANAVA): cheaper than usual: Green chili −29%, Red chili −27%, Pechay Baguio −20%",
+        "ja": "北部（カマナバ）のお買い得：青唐辛子 −29%、赤唐辛子 −27%、ペチャイ・バギオ −20%"
+      },
+      "text": {
+        "tl": "🛒 Sulit sa CAMANAVA — presyo noong Nob 16\n\n✅ Mas mura kaysa usual:\n• Siling berde ₱100/kg (−29%) · Navotas Agora\n• Siling pula ₱255/kg (−27%) · Malabon Central\n• Pechay Baguio ₱80/kg (−20%) · Maypajo\n• Ampalaya ₱100/kg (−17%) · Karuhatan\n• Sayote ₱45/kg (−10%) · Hulong Duhat\n\n⚠️ Mas mahal ngayon:\n• Kamatis ₱130/kg (+16%)\n• Talong ₱130/kg (+15%)\n",
+        "en": "🇬🇧 Deals in North (CAMANAVA) — prices of Nov 16\n✅ Green chili ₱100 (−29%), Red chili ₱255 (−27%), Pechay Baguio ₱80 (−20%), Ampalaya ₱100 (−17%), Chayote ₱45 (−10%)\n⚠️ Pricier: Tomato ₱130 (+16%), Eggplant ₱130 (+15%)\n",
+        "ja": "🇯🇵 北部（カマナバ）のお買い得 — 11/16の価格\n✅ 青唐辛子 ₱100（−29%）、赤唐辛子 ₱255（−27%）、ペチャイ・バギオ ₱80（−20%）、ゴーヤ ₱100（−17%）、サヨテ ₱45（−10%）\n⚠️ 高め：トマト ₱130（+16%）、ナス ₱130（+15%）\n"
+      },
+      "summary": {
+        "tl": "Siling berde ₱100/kg (−29%) · Navotas Agora",
+        "en": "Green chili ₱100 (−29%)",
+        "ja": "青唐辛子 ₱100（−29%）"
+      },
+      "check": "pass"
+    },
+    {
+      "id": "east",
+      "order": 5,
+      "title": {
+        "tl": "Silangan",
+        "en": "East Metro",
+        "ja": "東部"
+      },
+      "has_data": true,
+      "image": "east.png",
+      "image_bytes": 70721,
+      "alt": {
+        "tl": "Silangan: mas mura ang Siling pula −57%, Pechay Baguio −37%, Sayote −17%",
+        "en": "East Metro: cheaper than usual: Red chili −57%, Pechay Baguio −37%, Chayote −17%",
+        "ja": "東部のお買い得：赤唐辛子 −57%、ペチャイ・バギオ −37%、サヨテ −17%"
+      },
+      "text": {
+        "tl": "🛒 Sulit sa Silangan — presyo noong Nob 16\n\n✅ Mas mura kaysa usual:\n• Siling pula ₱150/kg (−57%) · San Juan Agora\n• Pechay Baguio ₱60/kg (−37%) · Parang\n• Sayote ₱50/kg (−17%) · San Juan Agora\n• Siling berde ₱125/kg (−17%) · Marikina\n• Patatas ₱150/kg (−17%) · Parang\n\n⚠️ Mas mahal ngayon:\n• Talong ₱122.50/kg (+17%)\n• Repolyo ₱240/kg (+17%)\n• Kamatis ₱120/kg (+12%)\n",
+        "en": "🇬🇧 Deals in East Metro — prices of Nov 16\n✅ Red chili ₱150 (−57%), Pechay Baguio ₱60 (−37%), Chayote ₱50 (−17%), Green chili ₱125 (−17%), Potato ₱150 (−17%)\n⚠️ Pricier: Eggplant ₱122.50 (+17%), Cabbage ₱240 (+17%), Tomato ₱120 (+12%)\n",
+        "ja": "🇯🇵 東部のお買い得 — 11/16の価格\n✅ 赤唐辛子 ₱150（−57%）、ペチャイ・バギオ ₱60（−37%）、サヨテ ₱50（−17%）、青唐辛子 ₱125（−17%）、じゃがいも ₱150（−17%）\n⚠️ 高め：ナス ₱122.50（+17%）、キャベツ ₱240（+17%）、トマト ₱120（+12%）\n"
+      },
+      "summary": {
+        "tl": "Siling pula ₱150/kg (−57%) · San Juan Agora",
+        "en": "Red chili ₱150 (−57%)",
+        "ja": "赤唐辛子 ₱150（−57%）"
+      },
+      "check": "pass"
+    }
+  ],
+  "footer": {
+    "tl": "% = kumpara sa usual na presyo (30 araw)\nSource: DA Price Monitoring · Hindi opisyal na DA page",
+    "en": "% = vs. 30-day usual price\nSource: DA Price Monitoring · Hindi opisyal na DA page",
+    "ja": "% = 30日間のいつもの価格比\nSource: DA Price Monitoring · Hindi opisyal na DA page"
+  },
+  "digest": {
+    "image": "digest.png",
+    "image_bytes": 87741,
+    "alt": {
+      "tl": "Presyo sa Metro Manila noong Nob 16: 5 rehiyon, mga pangunahing bilihin at trend.",
+      "en": "Metro Manila prices on Nov 16: 5 regions, key staples with trend arrows.",
+      "ja": "11/16のメトロマニラ価格：5地域、主要食品と前回比の矢印。"
+    },
+    "text": {
+      "tl": "🛒 Presyo sa Metro Manila — noong Nob 16\nMedian ng mga palengke, kumpara sa Nob 15:\n• Bigas ₱48/kg →±0%\n• Liempo ₱370/kg →±0%\n• Manok ₱200/kg ▼−1%\n• Itlog ₱8.13/piraso →±0%\n• Galunggong ₱320/kg →±0%\n• Kamatis ₱120/kg →±0%\n• Sibuyas pula ₱130/kg →±0%\n• Asukal ₱81.50/kg →±0%\n⭐ Pinakamura kaysa usual: Siling pula ₱150/kg (−57%) · San Juan Agora\n",
+      "en": "🇬🇧 Metro Manila prices — Nov 16\nMarket median vs Nov 15:\nRice ₱48/kg →±0% · Pork belly ₱370/kg →±0% · Chicken ₱200/kg ▼−1% · Egg ₱8.13/pc →±0% · Galunggong ₱320/kg →±0% · Tomato ₱120/kg →±0% · Red onion ₱130/kg →±0% · Sugar ₱81.50/kg →±0%\n⭐ Best deal vs usual: Red chili ₱150 (−57%)\n",
+      "ja": "🇯🇵 メトロマニラの価格 — 11/16\n市場の中央値、11/15比：\n米 ₱48/kg →±0%、豚バラ ₱370/kg →±0%、鶏肉 ₱200/kg ▼−1%、卵 ₱8.13/個 →±0%、ガルンゴン ₱320/kg →±0%、トマト ₱120/kg →±0%、赤玉ねぎ ₱130/kg →±0%、砂糖 ₱81.50/kg →±0%\n⭐ いつもより安い：赤唐辛子 ₱150（−57%）\n"
+    },
+    "prev_as_of": "2026-11-15",
+    "included": [
+      "south",
+      "manila",
+      "qc",
+      "north",
+      "east"
+    ]
+  }
+}

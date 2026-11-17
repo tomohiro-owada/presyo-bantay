@@ -1,6 +1,34 @@
 {
-  "latest": "2026-11-14",
+  "latest": "2026-11-16",
   "days": [
+    {
+      "date": "2026-11-16",
+      "path": "d/2026-11-16/",
+      "label": {
+        "tl": "Nob 16, 2026",
+        "en": "Nov 16, 2026",
+        "ja": "2026年11月16日"
+      },
+      "regions_with_data": 5,
+      "south": {
+        "text": {
+          "tl": "🛒 Sulit sa South Metro — presyo noong Nob 16\n\n✅ Mas mura kaysa usual:\n• Siling berde ₱100/kg (−33%) · Grace, Pateros\n• Pechay Baguio ₱80/kg (−33%) · Las Piñas\n• Siling pula ₱200/kg (−33%) · Alabang\n• Sayote ₱70/kg (−13%) · Grace, Pateros\n• Patatas ₱160/kg (−11%) · La Huerta\n\n⚠️ Mas mahal ngayon:\n• Kamatis ₱125/kg (+20%)\n• Talong ₱135/kg (+20%)\n",
+          "en": "🇬🇧 Deals in South Metro — prices of Nov 16\n✅ Green chili ₱100 (−33%), Pechay Baguio ₱80 (−33%), Red chili ₱200 (−33%), Chayote ₱70 (−13%), Potato ₱160 (−11%)\n⚠️ Pricier: Tomato ₱125 (+20%), Eggplant ₱135 (+20%)\n",
+          "ja": "🇯🇵 南部（ラス・ピニャス周辺）のお買い得 — 11/16の価格\n✅ 青唐辛子 ₱100（−33%）、ペチャイ・バギオ ₱80（−33%）、赤唐辛子 ₱200（−33%）、サヨテ ₱70（−13%）、じゃがいも ₱160（−11%）\n⚠️ 高め：トマト ₱125（+20%）、ナス ₱135（+20%）\n"
+        },
+        "summary": {
+          "tl": "Siling berde ₱100/kg (−33%) · Grace, Pateros",
+          "en": "Green chili ₱100 (−33%)",
+          "ja": "青唐辛子 ₱100（−33%）"
+        },
+        "image": "d/2026-11-16/south.png",
+        "title": {
+          "tl": "South Metro",
+          "en": "South Metro",
+          "ja": "南部（ラス・ピニャス周辺）"
+        }
+      }
+    },
     {
       "date": "2026-11-14",
       "path": "d/2026-11-14/",
