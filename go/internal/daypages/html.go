@@ -4,11 +4,29 @@ import (
 	"bytes"
 	"embed"
 	"html/template"
+	"net/url"
 	"regexp"
 	"strings"
 
 	"github.com/tomohiro-owada/presyo-bantay/go/internal/fbregion"
 )
+
+// homeHref is the site-root path of base (e.g. https://host/presyo-bantay/
+// → /presyo-bantay/). An absolute path stays correct whether or not the
+// current page URL has a trailing slash; a relative ../../ does not.
+func homeHref(base string) string {
+	if base != "" && !strings.HasSuffix(base, "/") {
+		base += "/"
+	}
+	u, err := url.Parse(base)
+	if err != nil || u.Path == "" {
+		return "/"
+	}
+	if !strings.HasPrefix(u.Path, "/") {
+		return "/" + u.Path
+	}
+	return u.Path
+}
 
 //go:embed templates/*.tmpl
 var tmplFS embed.FS
@@ -131,6 +149,7 @@ type DayView struct {
 	Digest                       *DigestView
 	Regions                      []RegionView
 	FooterTL, FooterEN, FooterJA string
+	Home                         string
 }
 
 // noDataNote is the in-page note for regions without data.
@@ -158,6 +177,7 @@ func renderDayPage(day *DayDoc, older, newer *DayDoc, base string) (string, erro
 		FooterTL:  day.Footer.TL,
 		FooterEN:  day.Footer.EN,
 		FooterJA:  day.Footer.JA,
+		Home:      homeHref(base),
 	}
 	if f, ok := featured(day); ok {
 		v.Description = f.Alt.TL + " · Prices from DA Bantay Presyo"
@@ -239,6 +259,7 @@ type ArchiveView struct {
 	Canonical   string
 	OGImage     string
 	Months      []ArchiveMonth
+	Home        string
 }
 
 // renderArchivePage builds SITE/d/index.html: days grouped under month
@@ -248,6 +269,7 @@ func renderArchivePage(doc DaysDoc, base string) (string, error) {
 		Title:       "Araw-araw na ulat / Daily reports / 毎日のレポート — Presyo Bantay",
 		Description: "Araw-araw na ulat ng presyo sa 5 rehiyon mula sa DA Bantay Presyo. · Daily price reports for 5 areas from DA Bantay Presyo.",
 		Canonical:   base + "d/",
+		Home:        homeHref(base),
 	}
 	var months []ArchiveMonth
 	var curKey string

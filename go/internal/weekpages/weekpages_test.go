@@ -240,7 +240,7 @@ func TestBrandHeader(t *testing.T) {
 		`>DAの市場価格を毎日お届け<`,
 	}
 	weekWants := []string{
-		`<a class="brand home" href="../../">`,
+		`<a class="brand home" href="/presyo-bantay/">`,
 		`srcset="../../brand/logo-mark-96.webp 2x, ../../brand/logo-mark-144.webp 3x"`,
 		`<img class="brand-mark" src="../../brand/logo-mark-96.png"`,
 		`alt="" aria-hidden="true"`,
@@ -258,7 +258,7 @@ func TestBrandHeader(t *testing.T) {
 		}
 	}
 	archWants := []string{
-		`<a class="brand home" href="../">`,
+		`<a class="brand home" href="/presyo-bantay/">`,
 		`srcset="../brand/logo-mark-96.webp 2x, ../brand/logo-mark-144.webp 3x"`,
 		`<img class="brand-mark" src="../brand/logo-mark-96.png"`,
 		`rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png"`,
