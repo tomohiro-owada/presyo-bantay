@@ -1,0 +1,169 @@
+{
+  "generated_at": "2026-11-22T04:10:02+08:00",
+  "visible": true,
+  "state": "fallback",
+  "reason": "fallback: latest run is pending, showing latest analysed reading",
+  "valid_until": "2026-11-22T05:00:00+08:00",
+  "route": {
+    "from": "Old Zapote Public Market",
+    "to": "Festival Supermall Alabang",
+    "via": "Alabang-Zapote Road"
+  },
+  "pickup": {
+    "name": "Old Zapote Public Market",
+    "since": "2026-11-02T12:20:00+08:00",
+    "since_hhmm": "12:20",
+    "previous": "Zapote Bridge"
+  },
+  "currency": "PHP",
+  "basis": "metered_taxi",
+  "as_of": "2026-11-22T03:00:00+08:00",
+  "as_of_hhmm": "03:00",
+  "age_minutes": 70,
+  "fallback": true,
+  "fare": {
+    "min": 269,
+    "max": 322,
+    "standard": 291
+  },
+  "traffic": null,
+  "trend": {
+    "direction": "flat",
+    "delta_pesos": -0.5,
+    "delta_pct": -0.16891891891891891,
+    "previous_as_of": "2026-11-22T02:00:00+08:00",
+    "previous_hhmm": "02:00"
+  },
+  "vs_yesterday": null,
+  "text": {
+    "tl": {
+      "title": "Tantiya sa pamasahe ng Grab",
+      "headline": "₱269–322 tantiya sa metered taxi",
+      "asof": "Ayon sa Grab app noong 03:00 (oras sa Maynila) (huling na-analyze na reading)",
+      "traffic": "",
+      "trend": "＝ Walang pagbabago kumpara sa 02:00",
+      "note": "Quote lang ito mula sa Grab app sa oras na iyon. Hindi opisyal na pamasahe."
+    },
+    "en": {
+      "title": "Grab fare estimate",
+      "headline": "₱269–322 metered taxi quote",
+      "asof": "As of 03:00 (Manila time) (latest analysed reading)",
+      "traffic": "",
+      "trend": "＝ No change vs 02:00",
+      "note": "Quote shown in the Grab app at that time. Not an official fare; actual fare may differ."
+    },
+    "ja": {
+      "title": "Grab料金の目安",
+      "headline": "₱269–322 メータータクシーの目安",
+      "asof": "03:00時点のGrabアプリ表示（マニラ時間）（最新の分析済み）",
+      "traffic": "",
+      "trend": "＝ 02:00比で変化なし",
+      "note": "その時点でGrabアプリに表示された料金です。公式運賃ではありません。"
+    }
+  },
+  "hourly": {
+    "today_date": "2026-11-22",
+    "yesterday_date": "2026-11-21",
+    "today": [
+      {
+        "h": 2,
+        "min": 269,
+        "max": 323,
+        "std": 292
+      },
+      {
+        "h": 3,
+        "min": 269,
+        "max": 322,
+        "std": 291
+      }
+    ],
+    "yesterday": [
+      {
+        "h": 0,
+        "min": 277,
+        "max": 332,
+        "std": 301
+      },
+      {
+        "h": 4,
+        "min": 274,
+        "max": 328,
+        "std": 339
+      },
+      {
+        "h": 5,
+        "min": 284,
+        "max": 341,
+        "std": 298
+      }
+    ]
+  },
+  "bike": {
+    "label": "Motor taxi (Move It)",
+    "fresh": true,
+    "min": 150,
+    "max": 150,
+    "as_of": "2026-11-22T04:04:00+08:00",
+    "as_of_hhmm": "04:04",
+    "age_minutes": 6,
+    "eta_min": 5,
+    "hourly": {
+      "today_date": "2026-11-22",
+      "yesterday_date": "2026-11-21",
+      "today": [
+        {
+          "h": 2,
+          "min": 150,
+          "max": 150
+        },
+        {
+          "h": 3,
+          "min": 147,
+          "max": 147
+        },
+        {
+          "h": 4,
+          "min": 150,
+          "max": 150
+        }
+      ],
+      "yesterday": [
+        {
+          "h": 0,
+          "min": 147,
+          "max": 147
+        },
+        {
+          "h": 2,
+          "min": 147,
+          "max": 147
+        },
+        {
+          "h": 4,
+          "min": 147,
+          "max": 147
+        },
+        {
+          "h": 5,
+          "min": 160,
+          "max": 160
+        }
+      ]
+    },
+    "text": {
+      "tl": {
+        "headline": "Motor taxi (Move It): ₱150",
+        "asof": "Ayon sa Move It app noong 04:04 (oras sa Maynila)"
+      },
+      "en": {
+        "headline": "Motor taxi (Move It): ₱150",
+        "asof": "As of 04:04 (Manila time) · Move It app quote"
+      },
+      "ja": {
+        "headline": "Motor taxi (Move It): ₱150",
+        "asof": "04:04時点のMove Itアプリ表示（マニラ時間）"
+      }
+    }
+  }
+}
