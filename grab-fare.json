@@ -1,0 +1,60 @@
+{
+  "generated_at": "2026-11-25T18:10:01+08:00",
+  "visible": false,
+  "state": "unavailable",
+  "reason": "unavailable: no usable fare reading",
+  "valid_until": null,
+  "route": {
+    "from": "Old Zapote Public Market",
+    "to": "Festival Supermall Alabang",
+    "via": "Alabang-Zapote Road"
+  },
+  "pickup": {
+    "name": "Old Zapote Public Market",
+    "since": "2026-11-02T12:20:00+08:00",
+    "since_hhmm": "12:20",
+    "previous": "Zapote Bridge"
+  },
+  "currency": "PHP",
+  "basis": "",
+  "as_of": null,
+  "as_of_hhmm": null,
+  "age_minutes": null,
+  "fallback": false,
+  "fare": null,
+  "traffic": null,
+  "trend": {
+    "direction": "none",
+    "delta_pesos": null,
+    "delta_pct": null,
+    "previous_as_of": null,
+    "previous_hhmm": null
+  },
+  "vs_yesterday": null,
+  "text": {
+    "tl": {
+      "title": "Tantiya sa pamasahe ng Grab",
+      "headline": "",
+      "asof": "",
+      "traffic": "",
+      "trend": "",
+      "note": "Quote lang ito mula sa Grab app sa oras na iyon. Hindi opisyal na pamasahe."
+    },
+    "en": {
+      "title": "Grab fare estimate",
+      "headline": "",
+      "asof": "",
+      "traffic": "",
+      "trend": "",
+      "note": "Quote shown in the Grab app at that time. Not an official fare; actual fare may differ."
+    },
+    "ja": {
+      "title": "Grab料金の目安",
+      "headline": "",
+      "asof": "",
+      "traffic": "",
+      "trend": "",
+      "note": "その時点でGrabアプリに表示された料金です。公式運賃ではありません。"
+    }
+  }
+}
